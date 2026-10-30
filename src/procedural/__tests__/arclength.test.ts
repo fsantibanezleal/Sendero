@@ -109,6 +109,7 @@ describe('arclength', () => {
     const t0 = performance.now();
     buildArcTable(poly);
     const dt = performance.now() - t0;
-    if (!process.env.CI) expect(dt).toBeLessThan(20);
+    // Wall-clock budgets depend on machine load: measured only on request (SENDERO_PERF_TESTS=1).
+    if (process.env.SENDERO_PERF_TESTS === '1') expect(dt).toBeLessThan(20);
   });
 });

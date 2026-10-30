@@ -95,6 +95,7 @@ describe('poissonDisk', () => {
     const pts = poissonDisk({ width: 1600, height: 900, rMin: 6, rng: mulberry32(6) });
     const dt = performance.now() - t0;
     expect(pts.length).toBeGreaterThan(10000);
-    if (!process.env.CI) expect(dt).toBeLessThan(300);
+    // Wall-clock budgets depend on machine load: measured only on request (SENDERO_PERF_TESTS=1).
+    if (process.env.SENDERO_PERF_TESTS === '1') expect(dt).toBeLessThan(300);
   });
 });

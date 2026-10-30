@@ -44,7 +44,8 @@ export function computeLayout(width: number, height: number): Layout {
     x: width - margin - width * miniScale,
     y: height - margin - height * miniScale,
   };
-  const pathStart = { x: 0.1 * width, y: 0.16 * height };
+  // Low enough that the family of six waiting around it fits below the top edge.
+  const pathStart = { x: 0.11 * width, y: 0.22 * height };
   const pathEnd = { x: mini.x + 0.02 * width, y: mini.y + 0.62 * mini.height };
   return {
     screen: { x: 0, y: 0, width, height },
@@ -55,7 +56,7 @@ export function computeLayout(width: number, height: number): Layout {
     pathStart,
     pathEnd,
     arrivalHeight: 0.92 * mini.height,
-    farHeight: 0.92 * mini.height * 0.32,
+    farHeight: 0.92 * mini.height * 0.42,
   };
 }
 

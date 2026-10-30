@@ -54,23 +54,43 @@ Each touch, each mark and each failing layer writes one line tagged `[Sendero]` 
 (`src/diagnostics/log.ts`; read it with `adb logcat -s ReactNativeJS`). The lines hold no image and no data about the
 visitor.
 
-## Who walks the path
+## The family and who walks the path
 
-`src/figures/catalog.ts`:
+`src/figures/catalog.ts`, `src/figures/looks.ts`, `src/experience/plan.ts`. The owner's rule: "you always show at the
+left upper area, the 4 main silhouettes, and the 2 pets, but always random choosing variants", and "always one of the
+4 main characters must be selected to walk, and at some occasions a pet is companion".
 
-- People only as grandparents and adults: abuela, abuelo, mujer, hombre. No children: the owner considers it too
-  sensitive, and November 1 is popularly associated with deceased children (research: Mexican press citing INAH).
-- A dog or a cat walks with the chosen person in about 35 percent of visits; a pet never walks alone.
-- The person kind never repeats twice in a row, and neither does the message.
-- The whispered voice matches the person: a woman's voice for abuela and mujer, a man's for abuelo and hombre.
+- The family that waits in the upper left is always six: a grandmother, a grandfather, a woman and a man, a dog and a
+  cat. They appear as the petal path starts drawing and stay until the arrival; their places among six spots are
+  shuffled at every visit.
+- Each of the six is a new random variant at every visit, generated from parts (`looks.ts`): for people, age (62 to
+  92 for grandparents, 22 to 58 for adults), height, body type (slim, average, heavy, with belly and shoulders), the
+  stoop that comes with age, hair (bald, short, long, bun, braids, ponytail, curly, bob, shoulder length, pompadour),
+  headwear only on some (sombrero, palma, texana, fedora, boina, gorra, rebozo, panuelo, a flower), the top (plain,
+  jacket, coat, poncho, shawl, rebozo, apron), the bottom (trousers or one of five skirts) and what they carry (a cane,
+  more likely with age; marigolds, a guitar, a bag, a basket, a candle). Pets vary in size (from a small dog to a large
+  one), body length, legs (some short-legged), build, ears (upright, large bat ears, floppy, small), tail (curled,
+  straight, low, stub, plume), muzzle and long fur, standing or sitting. A test draws 60 random variants of each person
+  and counts at least 30 visibly different silhouettes, from the side and from the front.
+- One of the four people walks the path, chosen at random, never the same kind of person twice in a row; in about 35
+  percent of visits one of the two pets walks beside them. A pet never walks alone. No children: the owner considers it
+  too sensitive, and November 1 is popularly associated with deceased children (research: Mexican press citing INAH).
+- The walker steps out of the family and onto the path; the reveal shows the same variant from the front, and the
+  pet, when there is one, sitting beside it.
+- The whispered voice matches the person: a woman's voice for the grandmother and the woman, a man's for the
+  grandfather and the man.
 
 ## The messages
 
-`src/content/messages.ts` holds the seven messages exactly as the owner wrote them (accents corrected only):
-"siempre te recordaré", "siempre en mis pensamientos", "gracias", "sigue así", "lo estás haciendo bien",
-"descansa, lo estás haciendo bien", "también te extraño". The screen capitalizes only the first letter. The research
-proposed more candidates and flagged three to avoid ("nos vemos pronto", "sigue adelante, aquí te espero",
-"perdóname si no estuve más"); none is added without the owner's decision.
+`src/content/messages.ts`: 62 messages, the words a loved one says to someone they have not seen in a long time, to
+support them and warm them (the owner's brief: "at least some 50", about remembering, company and support). The first
+seven are the owner's own, exactly as written (accents corrected only): "siempre te recordaré", "siempre en mis
+pensamientos", "gracias", "sigue así", "lo estás haciendo bien", "descansa, lo estás haciendo bien", "también te
+extraño". The rest are grouped as reunion ("hoy vine a verte"), memory ("te llevo en el corazón"), company ("camino a
+tu lado") and support ("eres más fuerte de lo que crees"). Every message works for any visitor and either voice (no
+gendered words about the visitor or the speaker), and none of the forms the culture research flagged is used ("nos
+vemos pronto", "aquí te espero", "perdóname si no estuve más"); a test checks both. Messages come from a shuffle bag:
+all 62 appear once before any repeats, never the same twice in a row. The screen capitalizes only the first letter.
 
 ## Design rules for a grieving audience
 

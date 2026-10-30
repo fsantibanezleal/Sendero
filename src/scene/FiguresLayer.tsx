@@ -1,33 +1,44 @@
-import { type FlowerAtlas } from '../flowers/atlas';
 import { Circle, Group, RadialGradient, Skia, vec } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
-import type { Visit } from '../experience/useExperience';
 import type { Layout } from '../experience/layout';
+import type { Visit } from '../experience/plan';
 import { TIMELINE, windowProgress } from '../experience/timeline';
 import { HUMAN_PROFILE } from '../figures/catalog';
-import { humanFarPath, humanMainPath, petWalkPaths, type ScreenTransform } from '../figures/draw';
+import { humanFarPath, humanMainPath, petSitPath, petWalkPaths, type ScreenTransform } from '../figures/draw';
 import { gaitCurves } from '../figures/gait';
 import { standPose, walkPose } from '../figures/rig';
+import { rigStyle } from '../figures/style';
+import type { FlowerAtlas } from '../flowers/atlas';
 import type { PetalPathData } from '../path/petalPath';
 import { easeInOutSine, pointAtDistance, smoothstep } from '../procedural';
 import { Ghost } from './Ghost';
 import { Sparkles } from './Sparkles';
 
-/** Offsets of the gathered groups around the far end of the path, in screen fractions, and depth. */
-const GATHER_SPOTS = [
-  { dx: 0, dy: 0, k: 1 },
-  { dx: -0.05, dy: -0.025, k: 0.9 },
-  { dx: 0.05, dy: -0.04, k: 0.86 },
-  { dx: -0.085, dy: 0.012, k: 0.82 },
-  { dx: 0.088, dy: 0.004, k: 0.8 },
+/**
+ * Where the family waits around the far end of the path, in units of the far figure height:
+ * four places for the people (a little apart, at slightly different depths) and two in front for
+ * the pets. `k` scales the figure with its depth.
+ */
+const SPOTS = [
+  { a: -0.62, b: -0.06, k: 0.93 },
+  { a: -0.2, b: 0.05, k: 1.0 },
+  { a: 0.24, b: -0.08, k: 0.92 },
+  { a: 0.66, b: 0.03, k: 0.98 },
+  { a: -0.42, b: 0.3, k: 1.04 },
+  { a: 0.46, b: 0.32, k: 1.04 },
 ];
 
+/** Fraction of the walk spent stepping from the waiting place onto the path. */
+const STEP_OFF = 0.1;
+
 /**
- * The silhouettes: the group that gathers at the far end of the path (dissolving in, standing with
- * a gentle sway), then the chosen person, and their pet when they have one, walking the path toward
- * the frame in about seven seconds, growing with depth and stepping with real gait kinematics.
+ * The silhouettes: the family of six (the four people and the two pets, each a new variant) that
+ * appears in the upper left as the path starts and waits there; then one of the four people, and
+ * the pet beside them when there is one, steps onto the path and walks toward the frame in about
+ * seven seconds, growing with depth and stepping with real gait kinematics. The others stay until
+ * the arrival.
  */
 export function FiguresLayer({
   visit,
@@ -44,141 +55,158 @@ export function FiguresLayer({
   clock: SharedValue<number>;
   time: SharedValue<number>;
 }) {
-  const { width: W, height: H } = layout.screen;
   const table = path.table;
-  const chosen = visit.group;
-  const profile = HUMAN_PROFILE[chosen.human];
-  const curves = useMemo(() => gaitCurves(profile.gaitGroup), [profile.gaitGroup]);
-  const style = useMemo(
-    () => ({
-      trunkLeanDeg: profile.trunkLeanDeg,
-      amplitude: profile.amplitude,
-      armSwing: chosen.human === 'abuelo' ? 0.45 : 0.8,
-      headForward: profile.gaitGroup === 'older' ? 0.012 : 0,
-    }),
-    [profile, chosen.human],
-  );
-  const gather = useMemo(
-    () =>
-      visit.gather.map((g, i) => {
-        const p = HUMAN_PROFILE[g.human];
-        return {
-          group: g,
-          spot: GATHER_SPOTS[i % GATHER_SPOTS.length],
-          style: { trunkLeanDeg: p.trunkLeanDeg, amplitude: 1, armSwing: 0, headForward: p.gaitGroup === 'older' ? 0.012 : 0 },
-          phase: i * 1.3,
-        };
-      }),
-    [visit.gather],
-  );
   const start = layout.pathStart;
   const far = layout.farHeight;
   const near = layout.arrivalHeight;
-  // Outside their phases the figures are empty: one shared empty path instead of new ones every frame.
   const empty = useMemo(() => Skia.Path.Make(), []);
 
-  // The group standing at the far end (all but the chosen one fade when the walk starts).
-  const gathered = useDerivedValue(() => {
-    const t = clock.value;
-    if (t < TIMELINE.gather.start || t >= TIMELINE.othersFade.end) return { main: empty, back: empty };
+  const walkerLook = visit.people[visit.walker];
+  const profile = HUMAN_PROFILE[walkerLook.human];
+  const curves = useMemo(() => gaitCurves(profile.gaitGroup), [profile.gaitGroup]);
+  const cadence = profile.cadenceHz / Math.sqrt(walkerLook.build.height);
+  const walkStyle = useMemo(() => rigStyle(walkerLook, false), [walkerLook]);
+  const companion = visit.companion == null ? null : visit.pets[visit.companion];
+
+  // Screen place of each of the six figures (people 0 to 3, pets 4 and 5).
+  const places = useMemo(
+    () =>
+      visit.spots.map((s) => {
+        const spot = SPOTS[s];
+        return { x: start.x + spot.a * far, y: start.y + spot.b * far, h: far * spot.k };
+      }),
+    [visit.spots, start.x, start.y, far],
+  );
+  const waiting = useMemo(
+    () =>
+      visit.people.map((look, i) => ({
+        look,
+        place: places[i],
+        style: rigStyle(look, true),
+        phase: i * 1.3 + visit.id,
+        walker: i === visit.walker,
+      })),
+    [visit.people, visit.walker, visit.id, places],
+  );
+  const waitingPets = useMemo(
+    () => visit.pets.map((look, i) => ({ look, place: places[4 + i], companion: i === visit.companion })),
+    [visit.pets, visit.companion, places],
+  );
+
+  // The family that stays: everyone but the walker and the pet that walks with them. Built once per
+  // visit (they stand still), so it costs nothing per frame; the glow breathes instead.
+  const family = useMemo(() => {
     const main = Skia.PathBuilder.Make();
     const back = Skia.PathBuilder.Make();
-    for (let i = 1; i < gather.length; i++) {
-      const g = gather[i];
-      const h = far * g.spot.k;
-      const tf: ScreenTransform = { ox: start.x + g.spot.dx * W, oy: start.y + g.spot.dy * H, h, facing: 1 };
-      const pose = standPose(g.style, 1.5 * Math.sin(time.value * 0.7 + g.phase));
-      back.addPath(humanFarPath(pose, tf));
-      main.addPath(humanMainPath(g.group.human, pose, tf));
-      if (g.group.pet != null) {
-        const pt: ScreenTransform = { ox: tf.ox + 0.22 * h, oy: tf.oy + 0.02 * h, h, facing: 1 };
-        const pet = petWalkPaths(g.group.pet, 0.1, pt);
-        main.addPath(pet.main);
-        back.addPath(pet.far);
+    for (let i = 0; i < waiting.length; i++) {
+      const w = waiting[i];
+      if (w.walker) continue;
+      const tf: ScreenTransform = { ox: w.place.x, oy: w.place.y, h: w.place.h, facing: 1 };
+      const pose = standPose(w.style, 1.2 * Math.sin(w.phase));
+      back.addPath(humanFarPath(w.look, pose, tf));
+      main.addPath(humanMainPath(w.look, pose, tf));
+    }
+    for (let i = 0; i < waitingPets.length; i++) {
+      const p = waitingPets[i];
+      if (p.companion) continue;
+      const tf: ScreenTransform = { ox: p.place.x, oy: p.place.y, h: p.place.h, facing: 1 };
+      if (p.look.sits) {
+        main.addPath(petSitPath(p.look, tf));
+      } else {
+        const paths = petWalkPaths(p.look, 0.1, tf);
+        main.addPath(paths.main);
+        back.addPath(paths.far);
       }
     }
     return { main: main.build(), back: back.build() };
-  });
-  const gatheredMain = useDerivedValue(() => gathered.value.main);
-  const gatheredFar = useDerivedValue(() => gathered.value.back);
-  const gatheredOpacity = useDerivedValue(() => {
+  }, [waiting, waitingPets]);
+  const familyMain = useDerivedValue(() => family.main);
+  const familyFar = useDerivedValue(() => family.back);
+  const familyOpacity = useDerivedValue(() => {
     const t = clock.value;
-    const appear = smoothstep(TIMELINE.gather.start, TIMELINE.gather.end, t);
-    const leave = 1 - windowProgress(t, TIMELINE.othersFade);
-    return appear * leave;
+    const appear = smoothstep(TIMELINE.family.start, TIMELINE.family.end, t);
+    const leave = 1 - smoothstep(TIMELINE.arrive.start, TIMELINE.arrive.end, t);
+    return appear * leave * (0.86 + 0.06 * Math.sin(time.value * 0.9));
   });
-  const gatheredGlow = useDerivedValue(() => far * 0.22 + (1 - gatheredOpacity.value) * far * 0.5);
+  const familyGlow = useDerivedValue(() => far * 0.2 + (1 - familyOpacity.value) * far * 0.4);
+  const familyTop = useDerivedValue(() => start.y - far * 1.2);
+  const familyBottom = useDerivedValue(() => start.y + far * 0.35);
 
-  // The chosen one: standing at the start during the gathering, then walking.
+  // The walker: waiting at their place, then stepping onto the path and walking it.
+  const walkerPlace = places[visit.walker];
+  const petPlace = visit.companion == null ? null : places[4 + visit.companion];
   const walker = useDerivedValue(() => {
     const t = clock.value;
-    if (t < TIMELINE.gather.start || t >= TIMELINE.reveal.start) {
-      return { main: empty, back: empty, x: start.x, y: start.y, h: far };
+    if (t < TIMELINE.family.start || t >= TIMELINE.reveal.start) {
+      return { main: empty, back: empty, x: walkerPlace.x, y: walkerPlace.y, h: walkerPlace.h };
     }
     const main = Skia.PathBuilder.Make();
     const back = Skia.PathBuilder.Make();
     const u = easeInOutSine(windowProgress(t, TIMELINE.walk));
-    const s = u * table.total;
-    const p = pointAtDistance(table, s);
-    const z = u;
-    const h = far + (near - far) * Math.pow(z, 1.3);
-    const facing = p.tx < -0.25 ? -1 : 1;
-    const tf: ScreenTransform = { ox: p.x, oy: p.y, h, facing };
+    const p = pointAtDistance(table, u * table.total);
+    const onPath = far + (near - far) * Math.pow(u, 1.3);
+    // Step off: blend from the waiting place onto the path during the first part of the walk.
+    const m = smoothstep(0, STEP_OFF, u);
+    const x = walkerPlace.x + (p.x - walkerPlace.x) * m;
+    const y = walkerPlace.y + (p.y - walkerPlace.y) * m;
+    const h = walkerPlace.h + (onPath - walkerPlace.h) * m;
+    const facing = m < 1 && p.x < walkerPlace.x ? -1 : p.tx < -0.25 ? -1 : 1;
+    const tf: ScreenTransform = { ox: x, oy: y, h, facing };
     const walking = t >= TIMELINE.walk.start && t < TIMELINE.walk.end;
     const pose = walking
-      ? walkPose(curves, (t - TIMELINE.walk.start) * profile.cadenceHz, style)
-      : standPose(style, 1.5 * Math.sin(time.value * 0.7));
-    back.addPath(humanFarPath(pose, tf));
-    main.addPath(humanMainPath(chosen.human, pose, tf));
-    if (chosen.pet != null) {
+      ? walkPose(curves, (t - TIMELINE.walk.start) * cadence, walkStyle)
+      : standPose(rigStyle(walkerLook, true), 1.5 * Math.sin(time.value * 0.7));
+    back.addPath(humanFarPath(walkerLook, pose, tf));
+    main.addPath(humanMainPath(walkerLook, pose, tf));
+    if (companion != null && petPlace != null) {
       // The pet walks beside the person, on the viewer's side of the path, a little ahead.
       const nx = -p.ty;
       const ny = p.tx;
       const side = ny > 0 ? 1 : -1;
-      const pt: ScreenTransform = {
-        ox: p.x + nx * side * 0.18 * h + p.tx * 0.12 * h,
-        oy: p.y + ny * side * 0.18 * h + p.ty * 0.12 * h,
-        h,
-        facing,
-      };
-      const pet = petWalkPaths(chosen.pet, walking ? (t - TIMELINE.walk.start) * 1.7 : 0.1, pt);
-      main.addPath(pet.main);
-      back.addPath(pet.far);
+      const besideX = x + nx * side * 0.18 * h + p.tx * 0.12 * h;
+      const besideY = y + ny * side * 0.18 * h + p.ty * 0.12 * h;
+      const q = walking ? 1 : 0;
+      const px = petPlace.x + (besideX - petPlace.x) * m;
+      const py = petPlace.y + (besideY - petPlace.y) * m;
+      const pt: ScreenTransform = { ox: px, oy: py, h: petPlace.h + (h - petPlace.h) * m, facing };
+      if (!walking && companion.sits) {
+        main.addPath(petSitPath(companion, pt));
+      } else {
+        const pet = petWalkPaths(companion, q > 0 ? (t - TIMELINE.walk.start) * 1.7 : 0.1, pt);
+        main.addPath(pet.main);
+        back.addPath(pet.far);
+      }
     }
-    return { main: main.build(), back: back.build(), x: p.x, y: p.y, h };
+    return { main: main.build(), back: back.build(), x, y, h };
   });
   const walkerMain = useDerivedValue(() => walker.value.main);
   const walkerFar = useDerivedValue(() => walker.value.back);
   const walkerOpacity = useDerivedValue(() => {
     const t = clock.value;
-    const appear = smoothstep(TIMELINE.gather.start, TIMELINE.gather.end, t);
+    const appear = smoothstep(TIMELINE.family.start, TIMELINE.family.end, t);
     const leave = 1 - smoothstep(TIMELINE.arrive.start, TIMELINE.arrive.start + 0.9, t);
-    return appear * leave * 0.92;
+    return appear * leave * 0.94;
   });
   const walkerTop = useDerivedValue(() => walker.value.y - walker.value.h);
   const walkerBottom = useDerivedValue(() => walker.value.y);
   const walkerGlow = useDerivedValue(() => walker.value.h * 0.18);
-  const gatherTop = useDerivedValue(() => start.y - far);
-  const gatherBottom = useDerivedValue(() => start.y + far * 0.05);
+  // The walker's light grows once they leave the family.
+  const walking = useDerivedValue(() => smoothstep(TIMELINE.walk.start, TIMELINE.walk.start + 1.0, clock.value));
 
   // A soft warm light on the petals under the walker's feet, so the figure stands on the path.
-  const groundTransform = useDerivedValue(() => [
-    { translateX: walker.value.x },
-    { translateY: walker.value.y },
-    { scaleY: 0.2 },
-  ]);
+  const groundTransform = useDerivedValue(() => [{ translateX: walker.value.x }, { translateY: walker.value.y }, { scaleY: 0.2 }]);
   const groundR = useDerivedValue(() => walker.value.h * 0.32);
-  const groundOpacity = useDerivedValue(() => walkerOpacity.value * 0.7);
+  const groundOpacity = useDerivedValue(() => walkerOpacity.value * walking.value * 0.7);
 
   const sparkX = useDerivedValue(() => walker.value.x);
   const sparkY = useDerivedValue(() => walker.value.y - walker.value.h * 0.45);
   const sparkSpread = useDerivedValue(() => walker.value.h * 0.4);
   const sparkSize = useDerivedValue(() => walker.value.h * 0.05);
-  const sparkStrength = useDerivedValue(() => walkerOpacity.value);
+  const sparkStrength = useDerivedValue(() => walkerOpacity.value * walking.value);
 
   return (
     <Group>
-      <Ghost main={gatheredMain} far={gatheredFar} opacity={gatheredOpacity} top={gatherTop} bottom={gatherBottom} glow={gatheredGlow} />
+      <Ghost main={familyMain} far={familyFar} opacity={familyOpacity} top={familyTop} bottom={familyBottom} glow={familyGlow} />
       <Sparkles
         image={atlas.image}
         sprite={atlas.glow}

@@ -54,7 +54,7 @@ export function Scene({
     [visit, layout, W, H, atlas.petals.length],
   );
   const pathOn = useDerivedValue(() => clock.value >= TIMELINE.path.start && clock.value < TIMELINE.reveal.start);
-  const figuresOn = useDerivedValue(() => clock.value >= TIMELINE.gather.start && clock.value < TIMELINE.reveal.start);
+  const figuresOn = useDerivedValue(() => clock.value >= TIMELINE.family.start && clock.value < TIMELINE.reveal.start);
   return (
     <Canvas style={styles.fill}>
       <NightLayer layout={layout} time={time} />

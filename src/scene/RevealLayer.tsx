@@ -8,6 +8,7 @@ import type { Visit } from '../experience/useExperience';
 import { TIMELINE } from '../experience/timeline';
 import type { FlowerAtlas } from '../flowers/atlas';
 import { humanFrontPath, petSitPath, type ScreenTransform } from '../figures/draw';
+import { silhouetteTop } from '../figures/looks';
 import { mulberry32, smoothstep } from '../procedural';
 import { palette } from '../theme/palette';
 import { Gate } from './Gate';
@@ -39,8 +40,8 @@ export function RevealLayer({
   time: SharedValue<number>;
 }) {
   const { width: W, height: H } = layout.screen;
-  const human = visit.group.human;
-  const pet = visit.group.pet;
+  const look = visit.people[visit.walker];
+  const pet = visit.companion == null ? null : visit.pets[visit.companion];
 
   const bokeh = useMemo(() => {
     const rng = mulberry32(visit.id * 31 + 5);
@@ -52,9 +53,10 @@ export function RevealLayer({
     }));
   }, [visit.id, W, H]);
 
-  // Tall enough to stand behind the visitor (shown at 0.82), low enough that the head stays below the
-  // papel picado and the top garland (the owner saw it covered by the flowers at 0.98).
-  const ghostH = H * 0.82;
+  // Tall enough to stand behind the visitor (shown at 0.82), low enough that the head, and any hat,
+  // stays below the papel picado and the top garland (the owner saw it covered by the flowers at
+  // 0.98): the top of the silhouette is kept at or under 0.8 of the screen height.
+  const ghostH = Math.min(H * 0.82, (H * 0.8) / silhouetteTop(look));
   const ghostX = W * 0.565;
   const ghostGround = H * 1.0;
   const appear = useDerivedValue(() => smoothstep(TIMELINE.reveal.start, TIMELINE.reveal.start + 1.6, clock.value));
@@ -64,7 +66,7 @@ export function RevealLayer({
     if (clock.value < TIMELINE.reveal.start) return empty;
     const tf: ScreenTransform = { ox: ghostX, oy: ghostGround, h: ghostH, facing: 1 };
     const breath = 0.5 + 0.5 * Math.sin(time.value * 1.25);
-    const person = humanFrontPath(human, tf, breath);
+    const person = humanFrontPath(look, tf, breath);
     if (pet == null) return person;
     const pt: ScreenTransform = { ox: W * 0.27, oy: H * 1.0, h: H * 0.62, facing: 1 };
     const both = Skia.PathBuilder.Make();

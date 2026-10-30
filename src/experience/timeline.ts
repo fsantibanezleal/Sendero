@@ -26,8 +26,8 @@ export const TIMELINE = {
   path: { start: 0.8, end: 3.6 },
   gather: { start: 2.8, end: 4.2 },
   walk: { start: 4.2, end: 11.2 },
-  /** Other silhouettes fade out while the chosen one starts walking. */
-  othersFade: { start: 4.2, end: 6.0 },
+  /** The family of six appears in the upper left while the path starts, and stays until the arrival. */
+  family: { start: 0.8, end: 2.2 },
   arrive: { start: 11.2, end: 12.4 },
   reveal: { start: 12.4, end: 15.4 },
   message: { start: 15.4, end: 25.4 },

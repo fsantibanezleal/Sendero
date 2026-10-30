@@ -31,3 +31,14 @@
   replaced by raster images built from the frames' pixels; the choice and any person-mask failure are logged.
 - Without a person mask, the reveal shows the visitor as a soft-edged portrait left of centre, so the silhouette
   stays visible behind and beside them; only the variant on screen is drawn.
+- The family in the upper left is always six (a grandmother, a grandfather, a woman, a man, a dog, a cat), each a new
+  random variant at every visit: age, height, body type, hair, headwear on some, clothes, what they carry; pets by
+  size, legs, ears, tail and fur. One of the four people walks, never the same kind twice in a row, sometimes with one
+  of the pets beside them; a pet never walks alone.
+- Figures redrawn with smooth anatomical outlines (profile head with face, neck, muscle-shaped limbs, shoes, female and
+  male contours from the front, clothes that follow the body) and pets with real dog and cat proportions.
+- 62 messages (the owner's seven verbatim) on reunion, memory, company and support, from a shuffle bag: all appear
+  once before any repeats.
+- The visit's clock follows real time on slow devices (it stretched past a minute at a few frames per second, and
+  touches during the long fade back were ignored); the waiting family is drawn once per visit; the touch handler is
+  created once; every ignored touch is logged with its reason.

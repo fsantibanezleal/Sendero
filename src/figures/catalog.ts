@@ -1,16 +1,13 @@
 /**
- * The figures that walk the petal path. Grandparents and adults only: no children (owner's
- * decision). Pets never walk alone: a dog or a cat always walks beside a person.
+ * The family that waits at the far end of the path: always the four people (a grandmother, a
+ * grandfather, a woman and a man) and the two pets (a dog and a cat), each drawn as a new random
+ * variant at every visit (looks.ts). One of the four people walks the path, sometimes with one of
+ * the pets beside them; a pet never walks alone. No children (owner's decision).
  */
 
 export type HumanKind = 'abuela' | 'abuelo' | 'mujer' | 'hombre';
 export type PetKind = 'perro' | 'gato';
 export type VoiceId = 'mujer' | 'hombre';
-
-export interface CompanionGroup {
-  human: HumanKind;
-  pet: PetKind | null;
-}
 
 export const HUMANS: readonly HumanKind[] = ['abuela', 'abuelo', 'mujer', 'hombre'];
 export const PETS: readonly PetKind[] = ['perro', 'gato'];
@@ -36,37 +33,53 @@ function pickFrom<T>(rand: Rand, items: readonly T[]): T {
   return items[Math.min(items.length - 1, Math.floor(rand() * items.length))];
 }
 
-/** Chooses the group that walks, never repeating the previous person kind. */
-export function chooseGroup(rand: Rand, previous: HumanKind | null): CompanionGroup {
+/**
+ * Chooses who walks the path: one of the four people of the family, at random, never the same kind
+ * of person twice in a row. A pet never walks alone.
+ */
+export function chooseWalker(rand: Rand, previous: HumanKind | null): HumanKind {
   const pool = previous == null ? HUMANS : HUMANS.filter((h) => h !== previous);
-  const human = pickFrom(rand, pool);
-  const pet = rand() < PET_PROBABILITY ? pickFrom(rand, PETS) : null;
-  return { human, pet };
+  return pickFrom(rand, pool);
+}
+
+/** Chooses the pet that walks beside the person, in about a third of visits; null for none. */
+export function chooseCompanion(rand: Rand): PetKind | null {
+  return rand() < PET_PROBABILITY ? pickFrom(rand, PETS) : null;
 }
 
 /**
- * The silhouettes that gather at the far end of the path: the chosen group first, then two to
- * four more groups of other people (pets only beside a person).
+ * Draws from a shuffle bag: every item comes out once, in random order, before any comes out again,
+ * and a new round never starts with the item that ended the previous one. `bag` holds what is left
+ * of the round and is updated in place.
  */
-export function gatherGroups(rand: Rand, chosen: CompanionGroup): CompanionGroup[] {
-  const extra = 2 + Math.floor(rand() * 3);
-  const groups: CompanionGroup[] = [chosen];
-  for (let i = 0; i < extra; i++) {
-    const human = pickFrom(rand, HUMANS);
-    const pet = rand() < PET_PROBABILITY * 0.6 ? pickFrom(rand, PETS) : null;
-    groups.push({ human, pet });
+export function drawFromBag<T>(rand: Rand, items: readonly T[], bag: T[], previous: T | null): T {
+  for (let i = bag.length - 1; i >= 0; i--) {
+    if (!items.includes(bag[i])) bag.splice(i, 1);
   }
-  return groups;
+  if (bag.length === 0) {
+    const next = [...items];
+    for (let i = next.length - 1; i > 0; i--) {
+      const j = Math.min(i, Math.floor(rand() * (i + 1)));
+      [next[i], next[j]] = [next[j], next[i]];
+    }
+    // The bag is drawn from its end: keep the previous item away from the first draw.
+    if (next.length > 1 && next[next.length - 1] === previous) {
+      [next[0], next[next.length - 1]] = [next[next.length - 1], next[0]];
+    }
+    bag.push(...next);
+  }
+  return bag.pop() as T;
 }
 
-/** Chooses a message index, never repeating the previous one. */
-export function chooseMessage(rand: Rand, count: number, previous: number | null): number {
+/** Chooses a message index from a shuffle bag: every message appears once before any repeats. */
+export function chooseMessage(rand: Rand, count: number, bag: number[], previous: number | null): number {
   if (count <= 1) {
     return 0;
   }
-  let i = Math.floor(rand() * (previous == null ? count : count - 1));
-  if (previous != null && i >= previous) {
-    i += 1;
-  }
-  return Math.min(i, count - 1);
+  return drawFromBag(
+    rand,
+    Array.from({ length: count }, (_, i) => i),
+    bag,
+    previous,
+  );
 }

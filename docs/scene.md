@@ -71,16 +71,25 @@ passes it.
   place the knee, ankle, heel and toe; the pelvis height is solved each frame so the lowest foot point touches the
   ground, which produces the natural bob. Arms swing against the opposite leg. Older people walk with the older group's
   curves, a smaller excursion, a slower cadence (0.78 to 0.8 cycles per second against 0.9) and a forward lean.
-- Figures (research-culture D5): abuela with a rebozo over the head and shoulders and a long skirt; abuelo with a
-  wide-brimmed sombrero and a cane planted ahead of the hand; mujer with long hair and a dress; hombre with a hat. The
-  dog has the Xoloitzcuintle's lean body, long neck and large upright ears; the cat a round head and a raised tail. Both
-  walk a lateral-sequence walk (hind left, fore left, hind right, fore right; phase offsets 0, 0.25, 0.5, 0.75,
-  following Hildebrand's framework).
+- Figures (`draw.ts`): every person is drawn from their variant (see `docs/experience.md`) with smooth outlines (closed
+  Catmull-Rom curves written as cubic Beziers): a torso with the back, the shoulder blade, the lumbar curve, the
+  buttock, the belly and the chest or bust; a neck; a head in profile with crown, forehead, brow, nose, lips, chin, jaw
+  and nape; limbs shaped like muscles (thigh, calf, upper arm, forearm) with a deltoid at the shoulder; shoes and hands.
+  From the front: a female or male torso contour (shoulders, chest or bust, waist, hips), an oval head narrowing to the
+  jaw with ears, muscle-shaped arms and legs. Clothes follow the body: skirts with curved hems, jackets and coats with
+  sleeves, a poncho with a fringe, shawls and rebozos crossed in front. Pets have a dog's or a cat's proportions: height
+  at the withers, body about 1.1 times as long, a deep chest and a tuck-up, a neck, a skull with a muzzle (dog) or a
+  round head with small ears (cat), and the variant's ears and tail. Both walk a lateral-sequence walk (hind left,
+  fore left, hind right, fore right; phase offsets 0, 0.25, 0.5, 0.75, following Hildebrand's framework).
+- Preview sheet for design review: `SENDERO_PREVIEW=<file.png> npx jest src/figures/__tests__/preview.test.ts` draws
+  random variants of every person and pet with the real Skia engine (`SENDERO_PREVIEW_SEED`, `SENDERO_PREVIEW_ZOOM`).
 - Every primitive is wound clockwise on screen, so the nonzero fill merges them into one silhouette.
 - Ghost look (`Ghost.tsx`, research-visuals D5): a wide warm halo and a tight halo added with the plus blend, the body
   filled with a vertical gradient that fades out at the feet, the far-side limbs dimmer behind, and small lights
   drifting up around the figure (`Sparkles.tsx`).
-- The walk: position along the path by arc length with an ease-in-out, height from the far size to 92 percent of the
+- The family waits around the far end of the path (six places in units of the far figure height, 42 percent of the
+  arrival height), drawn once per visit. The walk: the walker steps from their place onto the path in the first tenth
+  of the walk, then moves along it by arc length with an ease-in-out, height from the far size to 92 percent of the
   mini frame as z^1.3, the pet beside the person on the viewer's side, a little ahead.
 
 ## The frame and the reveal

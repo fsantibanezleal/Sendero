@@ -18,7 +18,8 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { MESSAGES } from '../content/messages';
 import { log } from '../diagnostics/log';
-import { type History, LAST_STAGE, MARK_NAMES, planVisit, stageAt, type Visit } from './plan';
+import { describeLook, describePet } from '../figures/looks';
+import { emptyHistory, type History, LAST_STAGE, MARK_NAMES, planVisit, stageAt, type Visit } from './plan';
 import { TIMELINE } from './timeline';
 
 export type { Visit };
@@ -54,7 +55,7 @@ export function useExperience(events: ExperienceEvents): Experience {
   /** True once the planned visit's layers are mounted. */
   const ready = useSharedValue(false);
   const [first] = useState(() => {
-    const h: History = { human: null, message: null, count: 0 };
+    const h: History = emptyHistory();
     return { history: h, visit: planVisit(h) };
   });
   const history = useRef<History>(first.history);
@@ -73,7 +74,11 @@ export function useExperience(events: ExperienceEvents): Experience {
 
   useFrameCallback((frame) => {
     'worklet';
-    const dt = Math.min(0.1, (frame.timeSincePreviousFrame ?? 16) / 1000);
+    // Real time, whatever the frame rate: a slow device shows fewer frames, never a longer visit (with
+    // steps capped at 0.1 s a tablet at 3 frames per second stretched the 27 s visit past a minute,
+    // and touches during that long fade back to the camera were ignored). Only a gap of over half a
+    // second (the app paused) is cut short.
+    const dt = Math.min(0.5, (frame.timeSincePreviousFrame ?? 16) / 1000);
     time.value = time.value + dt;
     if (clock.value >= 0) {
       const next = clock.value + dt;
@@ -108,7 +113,7 @@ export function useExperience(events: ExperienceEvents): Experience {
     (current: number, previous: number) => {
       const v = visitRef.current;
       if (previous < 0 && current >= 0) {
-        log(`visit ${v.id} started: ${v.group.human}${v.group.pet != null ? ` with ${v.group.pet}` : ''}, message ${MESSAGES[v.messageIndex].id}`);
+        log(`visit ${v.id} started: ${describeLook(v.people[v.walker])}${v.companion != null ? ` with ${describePet(v.pets[v.companion])}` : ''}, message ${MESSAGES[v.messageIndex].id}`);
       }
       if (current >= 0) {
         for (let k = Math.max(previous, 0) + 1; k <= current; k++) fire(k, v);

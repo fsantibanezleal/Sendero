@@ -1,7 +1,7 @@
 import { MESSAGES } from '../../content/messages';
 import { HUMAN_PROFILE, HUMANS } from '../../figures/catalog';
 import { mulberry32 } from '../../procedural';
-import { type History, LAST_STAGE, MARKS, planVisit, stageAt } from '../plan';
+import { emptyHistory, type History, LAST_STAGE, MARKS, planVisit, stageAt } from '../plan';
 import { TIMELINE } from '../timeline';
 
 describe('timeline stages', () => {
@@ -39,35 +39,55 @@ describe('timeline stages', () => {
 });
 
 describe('planning the next visit', () => {
-  it('numbers the visits and never repeats the previous person or message', () => {
-    const h: History = { human: null, message: null, count: 0 };
+  it('numbers the visits; never the same person walks twice in a row; no message repeats within a round', () => {
+    const h: History = emptyHistory();
     const rand = mulberry32(7);
     let previous = planVisit(h, rand);
     expect(previous.id).toBe(1);
+    const roundSeen = new Set<number>([previous.messageIndex]);
     for (let i = 2; i <= 500; i++) {
       const v = planVisit(h, rand);
       expect(v.id).toBe(i);
-      expect(v.group.human).not.toBe(previous.group.human);
+      expect(v.people[v.walker].human).not.toBe(previous.people[previous.walker].human);
       expect(v.messageIndex).not.toBe(previous.messageIndex);
+      if (roundSeen.size === MESSAGES.length) roundSeen.clear();
+      expect(roundSeen.has(v.messageIndex)).toBe(false);
+      roundSeen.add(v.messageIndex);
       previous = v;
     }
   });
 
-  it('plans a complete visit: grown-ups only, the chosen group first, the voice of the person', () => {
-    const h: History = { human: null, message: null, count: 0 };
+  it('always has the four people and the two pets, a person walks, a pet only beside them', () => {
+    const h: History = emptyHistory();
     const rand = mulberry32(11);
+    let withPet = 0;
     for (let i = 0; i < 300; i++) {
       const v = planVisit(h, rand);
-      expect(HUMANS).toContain(v.group.human);
-      expect(v.gather[0]).toBe(v.group);
-      expect(v.gather.length).toBeGreaterThanOrEqual(3);
-      for (const g of v.gather) expect(HUMANS).toContain(g.human);
-      expect(v.voice).toBe(HUMAN_PROFILE[v.group.human].voice);
-      expect(v.messageIndex).toBeGreaterThanOrEqual(0);
-      expect(v.messageIndex).toBeLessThan(MESSAGES.length);
+      expect(v.people.map((p) => p.human)).toEqual([...HUMANS]);
+      expect(v.pets.map((p) => p.kind)).toEqual(['perro', 'gato']);
+      expect(v.walker).toBeGreaterThanOrEqual(0);
+      expect(v.walker).toBeLessThan(4);
+      if (v.companion != null) {
+        withPet++;
+        expect([0, 1]).toContain(v.companion);
+      }
+      expect([...v.spots].sort()).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(v.spots.slice(0, 4).every((s) => s < 4)).toBe(true);
+      expect(v.voice).toBe(HUMAN_PROFILE[v.people[v.walker].human].voice);
       expect(Number.isInteger(v.pathSeed)).toBe(true);
       expect(v.pathSeed).toBeGreaterThanOrEqual(0);
       expect(v.pathSeed).toBeLessThan(2 ** 31);
     }
+    expect(withPet).toBeGreaterThan(60);
+    expect(withPet).toBeLessThan(150);
+  });
+
+  it('draws new variants at every visit', () => {
+    const h: History = emptyHistory();
+    const rand = mulberry32(13);
+    const a = planVisit(h, rand);
+    const b = planVisit(h, rand);
+    for (let i = 0; i < 4; i++) expect(JSON.stringify(a.people[i])).not.toBe(JSON.stringify(b.people[i]));
+    for (let i = 0; i < 2; i++) expect(JSON.stringify(a.pets[i])).not.toBe(JSON.stringify(b.pets[i]));
   });
 });

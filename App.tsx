@@ -159,8 +159,9 @@ function Altar() {
     },
     [staff, readStatus],
   );
-  const onTouched = useCallback((x: number, y: number, started: boolean) => {
-    log(`touch at ${Math.round(x)},${Math.round(y)}${started ? ': visit starts' : ''}`);
+  const onTouched = useCallback((x: number, y: number, started: boolean, at: number) => {
+    const why = at === -2 ? 'staff corner' : at >= 0 ? `ignored, a visit is running (${at.toFixed(1)} s)` : 'ignored, the next visit is being prepared';
+    log(`touch at ${Math.round(x)},${Math.round(y)}: ${started ? 'visit starts' : why}`);
   }, []);
 
   // The touch is handled on the UI thread: the planned visit starts in the same frame, whatever the JS
@@ -168,17 +169,23 @@ function Altar() {
   // interrupted. Pressing, holding or sliding a finger all count as a touch.
   const corner = Math.min(width, height) * CORNER_FRACTION;
   const begin = experience.begin;
-  const touch = useTapGesture({
-    maxDuration: 60000,
-    maxDistance: 100000,
-    onActivate: (e) => {
-      'worklet';
-      const inCorner = e.x <= corner && e.y <= corner;
-      const started = inCorner ? false : begin();
-      scheduleOnRN(onStaffTap, e.x, e.y);
-      scheduleOnRN(onTouched, e.x, e.y, started);
-    },
-  });
+  const clock = experience.clock;
+  // One stable gesture configuration: recreating it on every render re-attached the native handler.
+  const tapConfig = useMemo(
+    () => ({
+      maxDuration: 60000,
+      maxDistance: 100000,
+      onActivate: (e: { x: number; y: number }) => {
+        'worklet';
+        const inCorner = e.x <= corner && e.y <= corner;
+        const started = inCorner ? false : begin();
+        scheduleOnRN(onStaffTap, e.x, e.y);
+        scheduleOnRN(onTouched, e.x, e.y, started, inCorner ? -2 : clock.value);
+      },
+    }),
+    [corner, begin, onStaffTap, onTouched, clock],
+  );
+  const touch = useTapGesture(tapConfig);
 
   const actions = {
     importMusic: async () => {

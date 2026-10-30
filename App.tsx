@@ -147,7 +147,7 @@ function Altar() {
     [staff, readStatus],
   );
   const onTouched = useCallback((x: number, y: number, started: boolean, at: number) => {
-    const why = at === -2 ? 'staff corner' : at >= 0 ? `ignored, a visit is running (${at.toFixed(1)} s)` : 'ignored, the next visit is being prepared';
+    const why = at === -2 ? 'staff corner' : at >= 0 ? `ignored, a visit is running (${at.toFixed(1)} s)` : 'the next visit is being prepared: it starts as soon as it is ready';
     log(`touch at ${Math.round(x)},${Math.round(y)}: ${started ? 'visit starts' : why}`);
   }, []);
 

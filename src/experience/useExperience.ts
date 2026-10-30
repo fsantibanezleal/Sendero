@@ -56,6 +56,10 @@ export function useExperience(events: ExperienceEvents): Experience {
   const time = useSharedValue(0);
   /** True once the planned visit's layers are mounted. */
   const ready = useSharedValue(false);
+  /** A touch arrived while the next visit was being prepared. */
+  const pending = useSharedValue(false);
+  /** Frame timestamp (ms) at which the running visit started; -1 until its first frame. */
+  const startedAt = useSharedValue(-1);
   const [first] = useState(() => {
     const h: History = emptyHistory();
     return { history: h, visit: planVisit(h) };
@@ -89,8 +93,17 @@ export function useExperience(events: ExperienceEvents): Experience {
     const dt = Math.min(0.5, (frame.timeSincePreviousFrame ?? 16) / 1000);
     time.value = time.value + dt;
     if (clock.value >= 0) {
-      const next = clock.value + dt;
+      // The visit's clock is read from the frame's timestamp, not summed from steps: a visit lasts its
+      // 26.8 s of real time even when frames come seconds apart (a loaded device ran one for 90 s).
+      if (startedAt.value < 0) startedAt.value = frame.timestamp - clock.value * 1000;
+      const next = (frame.timestamp - startedAt.value) / 1000;
       clock.value = next >= TIMELINE.total ? -1 : next;
+    } else if (pending.value && ready.value) {
+      // A touch that came while the next visit was being prepared starts it now.
+      pending.value = false;
+      ready.value = false;
+      startedAt.value = -1;
+      clock.value = 0;
     }
   });
 
@@ -156,18 +169,29 @@ export function useExperience(events: ExperienceEvents): Experience {
 
   const begin = useCallback((): boolean => {
     'worklet';
-    if (clock.get() >= 0 || !ready.get()) return false;
+    if (clock.get() >= 0) return false;
+    if (!ready.get()) {
+      // Remembered: the frame callback starts the visit as soon as it is ready.
+      pending.set(true);
+      return false;
+    }
     ready.set(false);
+    startedAt.set(-1);
     clock.set(0);
     return true;
-  }, [clock, ready]);
+  }, [clock, ready, pending, startedAt]);
 
   const start = useCallback((): boolean => {
-    if (clock.get() >= 0 || !ready.get()) return false;
+    if (clock.get() >= 0) return false;
+    if (!ready.get()) {
+      pending.set(true);
+      return false;
+    }
     ready.set(false);
+    startedAt.set(-1);
     clock.set(0);
     return true;
-  }, [clock, ready]);
+  }, [clock, ready, pending, startedAt]);
 
   return { clock, time, visit, shown, begin, start };
 }

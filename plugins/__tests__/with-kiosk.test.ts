@@ -61,4 +61,14 @@ describe('with-kiosk manifest edit', () => {
       /MainActivity/,
     );
   });
+
+  it('opts out of camera compatibility force rotation and refresh, once', () => {
+    const m = addKioskToManifest(addKioskToManifest(manifestFixture()));
+    const props = (m.manifest.application[0] as unknown as { property: { $: Record<string, string> }[] }).property;
+    for (const name of ['android.window.PROPERTY_CAMERA_COMPAT_ALLOW_FORCE_ROTATION', 'android.window.PROPERTY_CAMERA_COMPAT_ALLOW_REFRESH']) {
+      const found = props.filter((p) => p.$['android:name'] === name);
+      expect(found).toHaveLength(1);
+      expect(found[0].$['android:value']).toBe('false');
+    }
+  });
 });

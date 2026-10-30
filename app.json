@@ -4,12 +4,13 @@
     "slug": "sendero",
     "version": "0.0.0",
     "platforms": ["android"],
-    "orientation": "landscape",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#14102B",
     "android": {
       "package": "com.faslwork.sendero",
+      "versionCode": 1,
       "permissions": ["android.permission.CAMERA"],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",

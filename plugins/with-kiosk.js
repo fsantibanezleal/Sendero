@@ -4,6 +4,10 @@
  * LAUNCHER filter stays) and allows it to run in lock task mode when the app is allowlisted by the
  * device owner. The device admin receiver lives in the module's own manifest (modules/sendero-kiosk).
  *
+ * It also opts the app out of Android's camera compatibility treatment on large screens (forced
+ * rotation to the camera sensor's orientation, letterboxing, activity refresh): Sendero draws the camera
+ * itself, upright, in any orientation, and the treatment rotated and letterboxed the altar screen.
+ *
  * Plain CommonJS like privacy.js; typed by with-kiosk.d.ts and tested in __tests__/with-kiosk.test.ts.
  */
 const { withAndroidManifest } = require('expo/config-plugins');
@@ -11,6 +15,12 @@ const { withAndroidManifest } = require('expo/config-plugins');
 const ACTION_MAIN = 'android.intent.action.MAIN';
 const CATEGORY_HOME = 'android.intent.category.HOME';
 const CATEGORY_DEFAULT = 'android.intent.category.DEFAULT';
+
+/** Application properties that turn off camera compatibility force rotation and refresh. */
+const CAMERA_COMPAT_OPT_OUT = [
+  'android.window.PROPERTY_CAMERA_COMPAT_ALLOW_FORCE_ROTATION',
+  'android.window.PROPERTY_CAMERA_COMPAT_ALLOW_REFRESH',
+];
 
 /**
  * Adds the HOME filter and the lockTaskMode attribute to MainActivity; idempotent.
@@ -39,6 +49,15 @@ function addKioskToManifest(manifest) {
       action: [{ $: { 'android:name': ACTION_MAIN } }],
       category: [{ $: { 'android:name': CATEGORY_HOME } }, { $: { 'android:name': CATEGORY_DEFAULT } }],
     });
+  }
+
+  for (const app of apps) {
+    const props = app.property ?? (app.property = []);
+    for (const name of CAMERA_COMPAT_OPT_OUT) {
+      if (!props.some((/** @type {any} */ p) => p.$?.['android:name'] === name)) {
+        props.push({ $: { 'android:name': name, 'android:value': 'false' } });
+      }
+    }
   }
   return manifest;
 }

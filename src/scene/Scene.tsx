@@ -12,6 +12,7 @@ import { buildPetalPath } from '../path/petalPath';
 import { palette } from '../theme/palette';
 import { FiguresLayer } from './FiguresLayer';
 import { FrameLayer } from './FrameLayer';
+import { LayerBoundary } from './LayerBoundary';
 import { NightLayer } from './NightLayer';
 import { PathLayer } from './PathLayer';
 
@@ -52,10 +53,16 @@ export function Scene({
   return (
     <Canvas style={styles.fill}>
       <NightLayer layout={layout} time={time} />
-      {visit != null && path != null ? <PathLayer data={path} atlas={atlas} clock={clock} height={layout.screen.height} /> : null}
+      {visit != null && path != null ? (
+        <LayerBoundary name="path" resetKey={visit.id}>
+          <PathLayer data={path} atlas={atlas} clock={clock} height={layout.screen.height} />
+        </LayerBoundary>
+      ) : null}
       <FrameLayer layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} visit={visit} />
       {visit != null && path != null ? (
-        <FiguresLayer visit={visit} layout={layout} path={path} atlas={atlas} clock={clock} time={time} />
+        <LayerBoundary name="figures" resetKey={visit.id}>
+          <FiguresLayer visit={visit} layout={layout} path={path} atlas={atlas} clock={clock} time={time} />
+        </LayerBoundary>
       ) : null}
       <Bloom layout={layout} clock={clock} />
     </Canvas>

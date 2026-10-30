@@ -37,7 +37,7 @@ function Shot([string]$name) {
   return $file
 }
 
-& $adb $(if ($Serial) { '-s', $Serial }) shell monkey -p com.faslwork.sendero -c android.intent.category.LAUNCHER 1 | Out-Null
+& $adb $(if ($Serial) { '-s', $Serial }) shell monkey -p com.faslwork.sendero -c android.intent.category.LAUNCHER 1 2>&1 | Out-Null
 Start-Sleep -Seconds $IdleWait
 Shot 'idle' | Out-Null
 $size = (& $adb $(if ($Serial) { '-s', $Serial }) shell wm size) -replace '.*:\s*', ''

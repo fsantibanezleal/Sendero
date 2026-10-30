@@ -12,6 +12,7 @@ import { garlandSprites } from '../flowers/garland';
 import { easeInOutCubic, easeOutCubic, smoothstep } from '../procedural';
 import { palette } from '../theme/palette';
 import { bannerRow, type Banner } from './papelPicado';
+import { LayerBoundary } from './LayerBoundary';
 import { coverRect, RevealLayer } from './RevealLayer';
 
 /**
@@ -88,7 +89,9 @@ export function FrameLayer({
         </Group>
         {visit != null ? (
           <Group opacity={revealMix}>
-            <RevealLayer visit={visit} layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} />
+            <LayerBoundary name="reveal" resetKey={visit.id}>
+              <RevealLayer visit={visit} layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} />
+            </LayerBoundary>
           </Group>
         ) : null}
       </Group>

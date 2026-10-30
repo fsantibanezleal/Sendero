@@ -55,7 +55,7 @@ export function computeLayout(width: number, height: number): Layout {
     pathStart,
     pathEnd,
     arrivalHeight: 0.92 * mini.height,
-    farHeight: 0.92 * mini.height * 0.22,
+    farHeight: 0.92 * mini.height * 0.32,
   };
 }
 

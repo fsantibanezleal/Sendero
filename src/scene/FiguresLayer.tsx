@@ -1,5 +1,5 @@
 import { type FlowerAtlas } from '../flowers/atlas';
-import { Group, Skia } from '@shopify/react-native-skia';
+import { Circle, Group, RadialGradient, Skia, vec } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
@@ -103,9 +103,9 @@ export function FiguresLayer({
     const t = clock.value;
     const appear = smoothstep(TIMELINE.gather.start, TIMELINE.gather.end, t);
     const leave = 1 - windowProgress(t, TIMELINE.othersFade);
-    return appear * leave * 0.85;
+    return appear * leave;
   });
-  const gatheredGlow = useDerivedValue(() => far * 0.35 + (1 - gatheredOpacity.value) * far * 0.5);
+  const gatheredGlow = useDerivedValue(() => far * 0.22 + (1 - gatheredOpacity.value) * far * 0.5);
 
   // The chosen one: standing at the start during the gathering, then walking.
   const walker = useDerivedValue(() => {
@@ -159,6 +159,15 @@ export function FiguresLayer({
   const gatherTop = useDerivedValue(() => start.y - far);
   const gatherBottom = useDerivedValue(() => start.y + far * 0.05);
 
+  // A soft warm light on the petals under the walker's feet, so the figure stands on the path.
+  const groundTransform = useDerivedValue(() => [
+    { translateX: walker.value.x },
+    { translateY: walker.value.y },
+    { scaleY: 0.2 },
+  ]);
+  const groundR = useDerivedValue(() => walker.value.h * 0.32);
+  const groundOpacity = useDerivedValue(() => walkerOpacity.value * 0.7);
+
   const sparkX = useDerivedValue(() => walker.value.x);
   const sparkY = useDerivedValue(() => walker.value.y - walker.value.h * 0.45);
   const sparkSpread = useDerivedValue(() => walker.value.h * 0.4);
@@ -180,6 +189,11 @@ export function FiguresLayer({
         time={time}
         strength={sparkStrength}
       />
+      <Group transform={groundTransform} opacity={groundOpacity} blendMode="plus">
+        <Circle cx={0} cy={0} r={groundR}>
+          <RadialGradient c={vec(0, 0)} r={groundR} colors={['rgba(255, 213, 138, 0.8)', 'rgba(255, 170, 60, 0.25)', 'rgba(255, 170, 60, 0)']} />
+        </Circle>
+      </Group>
       <Ghost main={walkerMain} far={walkerFar} opacity={walkerOpacity} top={walkerTop} bottom={walkerBottom} glow={walkerGlow} />
     </Group>
   );

@@ -12,7 +12,8 @@ param(
   [string]$Apk,
   [string]$Serial
 )
-$ErrorActionPreference = 'Stop'
+# Native tools write to stderr; exit codes are checked instead (Windows PowerShell 5.1).
+$ErrorActionPreference = 'Continue'
 $root = Split-Path -Parent $PSScriptRoot
 if (-not $env:ANDROID_HOME) { $env:ANDROID_HOME = Join-Path $env:LOCALAPPDATA 'Android\Sdk' }
 $adb = Join-Path $env:ANDROID_HOME 'platform-tools\adb.exe'

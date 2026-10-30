@@ -131,8 +131,8 @@ function Candle({ x, y, size, time, phase }: { x: number; y: number; size: numbe
     const f = flicker.value;
     const fx = x;
     const fy = y - size * 0.12;
-    const h = size * 0.34 * f;
-    const w = size * 0.075;
+    const h = size * 0.5 * f;
+    const w = size * 0.11;
     const p = Skia.PathBuilder.Make();
     p.moveTo(fx, fy - h);
     p.cubicTo(fx + w * 1.4, fy - h * 0.45, fx + w, fy, fx, fy);
@@ -140,12 +140,12 @@ function Candle({ x, y, size, time, phase }: { x: number; y: number; size: numbe
     p.close();
     return p.build();
   });
-  const glowR = useDerivedValue(() => size * 1.1 * flicker.value);
-  const glowOpacity = useDerivedValue(() => 0.5 * flicker.value);
+  const glowR = useDerivedValue(() => size * 1.3 * flicker.value);
+  const glowOpacity = useDerivedValue(() => 0.85 * flicker.value);
   return (
     <Group>
       <Circle cx={x} cy={y - size * 0.25} r={glowR} opacity={glowOpacity} blendMode="plus">
-        <RadialGradient c={vec(x, y - size * 0.25)} r={size * 1.1} colors={['rgba(255, 213, 138, 0.55)', 'rgba(255, 213, 138, 0)']} />
+        <RadialGradient c={vec(x, y - size * 0.25)} r={size * 1.1} colors={['rgba(255, 213, 138, 0.75)', 'rgba(255, 170, 60, 0.25)', 'rgba(255, 213, 138, 0)']} />
       </Circle>
       <Path path={body} color="#F3E7D0" />
       <Path path={flame} color={palette.marigoldLight}>

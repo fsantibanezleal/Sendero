@@ -147,7 +147,10 @@ export function useCameraFeed(active: boolean): CameraFeed {
   const channels = info?.channels ?? 1;
 
   const frameOutput = useFrameOutput({
-    pixelFormat: 'native',
+    // YUV is the format every Android camera must support for image analysis; 'native' resolves to
+    // PRIVATE, which some devices refuse (seen on the emulator: 'PRIVATE format ... is not supported
+    // for ImageAnalysis'). Skia renders 8-bit YUV buffers directly.
+    pixelFormat: 'yuv',
     dropFramesWhileBusy: true,
     allowDeferredStart: false,
     enablePreviewSizedOutputBuffers: true,

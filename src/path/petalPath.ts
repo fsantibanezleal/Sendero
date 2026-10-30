@@ -66,7 +66,7 @@ export function petalSize(z: number, height: number): number {
 
 export function controlPoints(o: PetalPathOptions): Point[] {
   const rng = mulberry32(o.seed);
-  const n = 7;
+  const n = 5;
   const dx = o.end.x - o.start.x;
   const dy = o.end.y - o.start.y;
   const len = Math.hypot(dx, dy) || 1;
@@ -76,7 +76,7 @@ export function controlPoints(o: PetalPathOptions): Point[] {
   let sign = rng() < 0.5 ? -1 : 1;
   for (let i = 1; i < n - 1; i++) {
     const u = i / (n - 1);
-    const amp = o.height * 0.11 * (1 - 0.35 * u) * randRange(rng, 0.65, 1.2);
+    const amp = o.height * 0.075 * (1 - 0.3 * u) * randRange(rng, 0.7, 1.15);
     const x = o.start.x + dx * u + nx * amp * sign;
     const y = o.start.y + dy * u + ny * amp * sign;
     points.push({

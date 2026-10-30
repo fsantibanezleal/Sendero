@@ -1,0 +1,626 @@
+{
+  "clips": [
+    {
+      "file": "mujer/m01.m4a",
+      "heard": "Siempre te recordaré.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m02.m4a",
+      "heard": "Siempre en mis pensamientos.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m03.m4a",
+      "heard": "Gracias.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m04.m4a",
+      "heard": "¡Sí que así!",
+      "wer": 1.0
+    },
+    {
+      "file": "mujer/m05.m4a",
+      "heard": "Lo estás haciendo bien.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m06.m4a",
+      "heard": "Descanza, lo estás haciendo bien.",
+      "wer": 0.2
+    },
+    {
+      "file": "mujer/m07.m4a",
+      "heard": "También te extraño.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m08.m4a",
+      "heard": "Hoy viene a verte.",
+      "wer": 0.25
+    },
+    {
+      "file": "mujer/m09.m4a",
+      "heard": "¡Qué gusto me da verde!",
+      "wer": 0.2
+    },
+    {
+      "file": "mujer/m10.m4a",
+      "heard": "¿Cuánto tiempo sin verde?",
+      "wer": 0.25
+    },
+    {
+      "file": "mujer/m11.m4a",
+      "heard": "te extrañaba mucho.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m12.m4a",
+      "heard": "Déjame verte, un ratito.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m13.m4a",
+      "heard": "Tu luz me trajo hasta aquí.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m14.m4a",
+      "heard": "Seguí las flores hasta ti.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m15.m4a",
+      "heard": "Gracias por las flores.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m16.m4a",
+      "heard": "Gracias por acordarte de mí.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m17.m4a",
+      "heard": "Cada año vuelvo a verte.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m18.m4a",
+      "heard": "Vine a darte un abrazo.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m19.m4a",
+      "heard": "¡Qué bonito les volver a verte!",
+      "wer": 0.167
+    },
+    {
+      "file": "mujer/m20.m4a",
+      "heard": "Aquí sigo, cerquita de ti.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m21.m4a",
+      "heard": "Sigo en tu corazón.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m22.m4a",
+      "heard": "Te llevo en el corazón.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m23.m4a",
+      "heard": "Nunca me olvido de ti.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m24.m4a",
+      "heard": "Me acuerdo de ti todos los días.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m25.m4a",
+      "heard": "Me acuerdo de tu risa.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m26.m4a",
+      "heard": "Mientras me recuerdes, aquí estoy.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m27.m4a",
+      "heard": "Vivo en tus recuerdos.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m28.m4a",
+      "heard": "Me llevo tu cariño.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m29.m4a",
+      "heard": "Nuestro cariño no se acaba.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m30.m4a",
+      "heard": "Cuardo cada momento contigo.",
+      "wer": 0.25
+    },
+    {
+      "file": "mujer/m31.m4a",
+      "heard": "Aquí estoy contigo.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m32.m4a",
+      "heard": "Camino a tu lado.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m33.m4a",
+      "heard": "Me acompaño aunque no me veas.",
+      "wer": 0.167
+    },
+    {
+      "file": "mujer/m34.m4a",
+      "heard": "Estoy más cerca de lo que crees.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m35.m4a",
+      "heard": "Siempre te cuido.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m36.m4a",
+      "heard": "Seguimos juntos.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m37.m4a",
+      "heard": "Nunca me fui del todo.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m38.m4a",
+      "heard": "Estoy en cada vela que enciendes.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m39.m4a",
+      "heard": "Me quedo un ratito contigo.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m40.m4a",
+      "heard": "De peor y sonrido.",
+      "wer": 0.75
+    },
+    {
+      "file": "mujer/m41.m4a",
+      "heard": "¿Cuánto te quiero?",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m42.m4a",
+      "heard": "Me llenas de orgullo.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m43.m4a",
+      "heard": "¡Tú puedes!",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m44.m4a",
+      "heard": "¡Con fin a ti!",
+      "wer": 1.0
+    },
+    {
+      "file": "mujer/m45.m4a",
+      "heard": "Todo va a estar bien.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m46.m4a",
+      "heard": "No tengas miedo.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m47.m4a",
+      "heard": "Eres más fuerte de lo que crees.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m48.m4a",
+      "heard": "Ve con calma, no hay prisa.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m49.m4a",
+      "heard": "Sí que adelante, yo te acompaño.",
+      "wer": 0.4
+    },
+    {
+      "file": "mujer/m50.m4a",
+      "heard": "Vive bonito.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m51.m4a",
+      "heard": "Sé feliz, te lo mereces.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m52.m4a",
+      "heard": "Riden mucho, me encanta tu risa.",
+      "wer": 0.167
+    },
+    {
+      "file": "mujer/m53.m4a",
+      "heard": "Cuida a los tuyos.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m54.m4a",
+      "heard": "Ablaza fuerte a quien quieres.",
+      "wer": 0.2
+    },
+    {
+      "file": "mujer/m55.m4a",
+      "heard": "Abridate y come bien.",
+      "wer": 0.25
+    },
+    {
+      "file": "mujer/m56.m4a",
+      "heard": "Date un descanso, te lo has ganado.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m57.m4a",
+      "heard": "Tu esfuerzo vale mucho.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m58.m4a",
+      "heard": "Eres luz para los tuyos.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m59.m4a",
+      "heard": "Te mato un abrazo grande.",
+      "wer": 0.2
+    },
+    {
+      "file": "mujer/m60.m4a",
+      "heard": "Gracias por tanto cariño.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m61.m4a",
+      "heard": "Hoy es fiesta de Frutala.",
+      "wer": 0.5
+    },
+    {
+      "file": "mujer/m62.m4a",
+      "heard": "Canta y baila por mí.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m01.m4a",
+      "heard": "Siempre te recordaré.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m02.m4a",
+      "heard": "Siempre en mis pensamientos.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m03.m4a",
+      "heard": "¡Gracias!",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m04.m4a",
+      "heard": "¡Vas a seguir, vamos a seguir!",
+      "wer": 3.0
+    },
+    {
+      "file": "hombre/m05.m4a",
+      "heard": "Lo estás haciendo bien.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m06.m4a",
+      "heard": "Descansa, lo estás haciendo bien.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m07.m4a",
+      "heard": "También te extraño.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m08.m4a",
+      "heard": "¡Toy bien abiertos!",
+      "wer": 1.0
+    },
+    {
+      "file": "hombre/m09.m4a",
+      "heard": "¡Qué gusto me da verte!",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m10.m4a",
+      "heard": "¿Cuánto tiempo sin verte?",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m11.m4a",
+      "heard": "Te extrañaba mucho.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m12.m4a",
+      "heard": "Déjame verte un ratito.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m13.m4a",
+      "heard": "Tu luz me trajo hasta aquí.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m14.m4a",
+      "heard": "Seguí las flores hasta ti.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m15.m4a",
+      "heard": "Gracias por las flores.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m16.m4a",
+      "heard": "Gracias por acordarte de mí.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m17.m4a",
+      "heard": "Cada año vuelvo a perse.",
+      "wer": 0.2
+    },
+    {
+      "file": "hombre/m18.m4a",
+      "heard": "¡Bene atarte un abrazo!",
+      "wer": 0.6
+    },
+    {
+      "file": "hombre/m19.m4a",
+      "heard": "¡Qué bonito es volver a verte!",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m20.m4a",
+      "heard": "Aquí sigo cerquita de ti.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m21.m4a",
+      "heard": "Sigo en tu corazón.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m22.m4a",
+      "heard": "Te llevo en el corazón.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m23.m4a",
+      "heard": "Nunca me olvido de ti.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m24.m4a",
+      "heard": "Me acuerdo de time todos los días.",
+      "wer": 0.143
+    },
+    {
+      "file": "hombre/m25.m4a",
+      "heard": "Me acuerdo de tu risa.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m26.m4a",
+      "heard": "Mientras me recuerdes, aquí estoy.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m27.m4a",
+      "heard": "¡Vivo en tus recuerdos!",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m28.m4a",
+      "heard": "Me llevo tu cariño.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m29.m4a",
+      "heard": "Nuestro cariño no se acaba.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m30.m4a",
+      "heard": "Guardo cada momento contigo.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m31.m4a",
+      "heard": "Aquí estoy contigo.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m32.m4a",
+      "heard": "Camino a tu lado.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m33.m4a",
+      "heard": "Te acompaño aunque no me veas.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m34.m4a",
+      "heard": "Estoy más cerca de lo que crees.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m35.m4a",
+      "heard": "Siempre te cuido.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m36.m4a",
+      "heard": "Seguimos juntos.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m37.m4a",
+      "heard": "Nunca me fui de todo.",
+      "wer": 0.2
+    },
+    {
+      "file": "hombre/m38.m4a",
+      "heard": "Estoy en cada vela que enciendes.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m39.m4a",
+      "heard": "Me quedo un ratito contigo.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m40.m4a",
+      "heard": "Te veo y sonrío.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m41.m4a",
+      "heard": "¡Cuánto te quiero!",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m42.m4a",
+      "heard": "Me llenas de orgullo.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m43.m4a",
+      "heard": "¡Tú puedes!",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m44.m4a",
+      "heard": "Confía en ti.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m45.m4a",
+      "heard": "Todo va a estar bien.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m46.m4a",
+      "heard": "No tengas miedo.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m47.m4a",
+      "heard": "Eres más fuerte de lo que crees.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m48.m4a",
+      "heard": "Ve con calma, no hay prisa.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m49.m4a",
+      "heard": "Sigue adelante, yo te acompaño.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m50.m4a",
+      "heard": "¡Vayre bonito!",
+      "wer": 0.5
+    },
+    {
+      "file": "hombre/m51.m4a",
+      "heard": "Sé feliz, te lo mereces.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m52.m4a",
+      "heard": "Prie mucho, me encanta tu risa.",
+      "wer": 0.167
+    },
+    {
+      "file": "hombre/m53.m4a",
+      "heard": "Cuida a los tuyos.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m54.m4a",
+      "heard": "Abraza fuerte a quien quieres.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m55.m4a",
+      "heard": "Aplicarte y come bien.",
+      "wer": 0.25
+    },
+    {
+      "file": "hombre/m56.m4a",
+      "heard": "Date un descanso, te lo has ganado.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m57.m4a",
+      "heard": "Tu esfuerzo vale mucho.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m58.m4a",
+      "heard": "Eres luz para los tuyos.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m59.m4a",
+      "heard": "Te mando un abrazo grande.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m60.m4a",
+      "heard": "Gracias por tanto, cariño.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m61.m4a",
+      "heard": "Hoy es fiesta disfrútala.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m62.m4a",
+      "heard": "¡Canta divaela por mí!",
+      "wer": 0.4
+    }
+  ],
+  "meanWer": 0.1,
+  "model": "openai/whisper-small"
+}

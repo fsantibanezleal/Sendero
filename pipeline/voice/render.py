@@ -22,6 +22,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 OUT = ROOT / "assets" / "voice"
 MESSAGES = json.loads((HERE / "messages.json").read_text(encoding="utf-8"))
+SPOKEN = json.loads((HERE / "spoken.json").read_text(encoding="utf-8"))
 VOICE_GENDER = {"mujer": "female", "hombre": "male"}
 TARGET_LUFS = -20.0
 TRUE_PEAK_CEILING = -3.0
@@ -64,13 +65,26 @@ def decode_m4a(path: Path, scratch: Path) -> tuple[np.ndarray, int]:
     return x, sr
 
 
+def spoken_text(candidate_id: str, message: dict) -> str:
+    """What the voice says for a message: the override for this model if any, else the message as a sentence
+    (first letter upper case, final period). The words are the message's; spoken.json explains each override."""
+    override = SPOKEN["overrides"].get(candidate_id, {}).get(message["id"])
+    if override is not None:
+        return override
+    t = message["text"].strip()
+    t = t[:1].upper() + t[1:]
+    return t if t.endswith((".", "!", "?")) else t + "."
+
+
 def neutral_speech(c: synth.Candidate, message: dict, scratch: Path) -> tuple[np.ndarray, int]:
     """Neutral synthesis of one message, cached as float32 WAV in the scratch folder (the engines are slow to load).
 
     Always read back through the file so a cached and an uncached run give identical audio."""
-    path = scratch / "neutral" / c.id / f"{message['id']}.wav"
+    text = spoken_text(c.id, message)
+    key = hashlib.sha256(text.encode("utf-8")).hexdigest()[:8]
+    path = scratch / "neutral" / c.id / f"{message['id']}-{key}.wav"  # a new spoken text never reuses an old file
     if not path.exists():
-        x, sr = synth.synthesize(c, message["text"])
+        x, sr = synth.synthesize(c, text)
         path.parent.mkdir(parents=True, exist_ok=True)
         sf.write(path, x, sr, subtype="FLOAT")
     x, sr = sf.read(path, dtype="float64")

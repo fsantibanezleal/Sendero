@@ -20,7 +20,11 @@ VERBATIM = {
 
 
 def test_messages_are_verbatim():
-    assert {m["id"]: m["text"] for m in MESSAGES} == VERBATIM
+    # The owner's seven, word for word; the rest follow the owner's brief of at least about fifty.
+    by_id = {m["id"]: m["text"] for m in MESSAGES}
+    assert {k: by_id[k] for k in VERBATIM} == VERBATIM
+    assert len(MESSAGES) >= 50
+    assert len(set(by_id.values())) == len(MESSAGES)
 
 
 def good_catalog():
@@ -69,3 +73,20 @@ def test_committed_catalog_and_files():
         assert (ROOT / "assets/voice" / clip["file"]).is_file()
     raw = path.read_text(encoding="utf-8")
     assert raw == render.dumps_catalog(c)
+
+
+def test_spoken_forms_keep_the_words():
+    import re
+
+    from pipeline.voice import intelligibility, synth
+
+    for m in MESSAGES:
+        assert render.spoken_text("kokoro-em_alex", m) == m["text"][:1].upper() + m["text"][1:] + "."
+    for cid, overrides in render.SPOKEN["overrides"].items():
+        assert cid in synth.BY_ID
+        for mid, text in overrides.items():
+            message = next(m for m in MESSAGES if m["id"] == mid)
+            # Outside the raw phonemes [[ ]] an override says only words of the message.
+            plain = re.sub(r"\[\[.*?\]\]", " ", text)
+            assert set(intelligibility.words(plain)) <= set(intelligibility.words(message["text"]))
+            assert render.spoken_text(cid, message) == text

@@ -9,3 +9,5 @@ pytest==9.2.0
 # Kokoro-82M (Spanish male voice): installed after the lines above, CPU wheel of torch first:
 #   uv pip install torch --index-url https://download.pytorch.org/whl/cpu
 #   uv pip install kokoro==0.9.4
+# Intelligibility measurement (pipeline/voice/intelligibility.py, Whisper small through transformers; uses the torch above):
+#   uv pip install transformers==5.22.0

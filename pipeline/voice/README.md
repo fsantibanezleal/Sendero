@@ -18,6 +18,10 @@ uv pip install --python pipeline/voice/.venv/Scripts/python.exe kokoro==0.9.4
 $env:SENDERO_MODELS_ROOT = "<models root>/sendero"
 $env:SENDERO_SCRATCH = "<temp root>/sendero-voice"
 pipeline/voice/.venv/Scripts/python.exe -m pipeline.voice.render
+uv pip install --python pipeline/voice/.venv/Scripts/python.exe transformers==5.22.0
+$env:HF_HOME = "<models root>/sendero/hf"
+pipeline/voice/.venv/Scripts/python.exe -m pipeline.voice.intelligibility
+pipeline/voice/.venv/Scripts/python.exe -m pipeline.voice.doc_tables
 pipeline/voice/.venv/Scripts/python.exe -m pytest pipeline/voice/tests -q
 ```
 
@@ -35,6 +39,9 @@ Models are downloaded into `$SENDERO_MODELS_ROOT/voices` (3 tries each) and thei
 | `whisper.py` | normal speech to whisper: LPC order 24, noise excitation, formant shift (pure numpy and scipy) |
 | `distance.py` | low-pass, synthesized room, pre-delay, wet and dry, lead silence and tail |
 | `render.py` | orchestrates everything, encodes AAC and writes `assets/voice/catalog.json` |
+| `intelligibility.py` | transcribes every clip with Whisper small (Spanish) and records the word error rate in `intelligibility.json` |
+| `spoken.json` | how each message is spoken: as a sentence, plus pronunciation overrides per voice model (same words) |
+| `doc_tables.py` | writes the measured tables of `docs/voice.md` from `selection.json`, the catalog and `intelligibility.json` |
 | `selection.json` | the measured F0 of every candidate and the choice |
 | `models.lock.json` | source URL, size and SHA-256 of every model file |
 | `tests/` | pytest suite (DSP, selection rule, catalog contract) |

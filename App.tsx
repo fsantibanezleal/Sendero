@@ -3,23 +3,24 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { NavigationBar } from 'expo-navigation-bar';
 import { setStatusBarHidden, StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { type GestureResponderEvent, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { GestureDetector, GestureHandlerRootView, useTapGesture } from 'react-native-gesture-handler';
 import { useCameraPermission } from 'react-native-vision-camera';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import pkg from './package.json';
-import { BUNDLED_TRACKS } from './src/audio/assets.generated';
-import { VOICE_CLIPS } from './src/audio/assets.generated';
+import { BUNDLED_TRACKS, VOICE_CLIPS } from './src/audio/assets.generated';
 import { clearImportedMusic, importFromPickedFolder, ownTracks } from './src/audio/importMusic';
 import { buildRound, type Track } from './src/audio/playlist';
 import { SoundEngine } from './src/audio/soundEngine';
 import { type CameraFeed, useCameraFeed } from './src/camera/useCameraFeed';
 import { MESSAGES } from './src/content/messages';
+import { log } from './src/diagnostics/log';
 import { computeLayout } from './src/experience/layout';
 import { useExperience, type Visit } from './src/experience/useExperience';
 import { bakeFlowerAtlas } from './src/flowers/atlas';
 import * as Kiosk from './src/kiosk/kiosk';
-import { createStaffGesture } from './src/kiosk/staffGesture';
+import { CORNER_FRACTION, createStaffGesture } from './src/kiosk/staffGesture';
 import { FONT_MESSAGE, FONT_TITLE, Hint, MessageOverlay } from './src/scene/Overlays';
 import { Scene } from './src/scene/Scene';
 import { loadSettings, saveSettings, type Settings } from './src/settings/settings';
@@ -132,68 +133,97 @@ function Altar() {
   );
   const experience = useExperience(events);
 
-  const gesture = useMemo(() => createStaffGesture({ width, height }), [width, height]);
-  const onTouch = useCallback(
-    (e: GestureResponderEvent) => {
-      if (panelOpen) return;
-      const { locationX, locationY } = e.nativeEvent;
-      if (gesture.tap(locationX, locationY)) {
-        setPanelOpen(true);
-        return;
-      }
-      // A touch in the staff corner never starts a visit, so the gesture is not interrupted.
-      const corner = Math.min(width, height) * 0.12;
-      if (locationX <= corner && locationY <= corner) return;
-      experience.start();
-    },
-    [panelOpen, gesture, width, height, experience],
+  const staff = useMemo(() => createStaffGesture({ width, height }), [width, height]);
+  // The panel shows a snapshot of the status taken when it opens and after each action.
+  const [status, setStatus] = useState<StaffStatus | null>(null);
+  const readStatus = useCallback(
+    (): StaffStatus => ({
+      version: displayVersion(pkg.version),
+      kiosk: Kiosk.kioskState(),
+      deviceOwner: Kiosk.isDeviceOwner(),
+      model: feed.modelState === 'ready' ? 'lista' : feed.modelState === 'loading' ? 'cargando' : 'no disponible',
+      maskRate: feed.maskRate.get(),
+      ownTracks: ownCount,
+      bundledTracks: BUNDLED_TRACKS.length,
+      nowPlaying: engine.current?.nowPlaying() ?? '',
+    }),
+    [feed.modelState, feed.maskRate, ownCount],
   );
+  const onStaffTap = useCallback(
+    (x: number, y: number) => {
+      if (staff.tap(x, y)) {
+        log('staff panel opened');
+        setStatus(readStatus());
+        setPanelOpen(true);
+      }
+    },
+    [staff, readStatus],
+  );
+  const onTouched = useCallback((x: number, y: number, started: boolean) => {
+    log(`touch at ${Math.round(x)},${Math.round(y)}${started ? ': visit starts' : ''}`);
+  }, []);
 
-  const status: StaffStatus = {
-    version: displayVersion(pkg.version),
-    kiosk: Kiosk.kioskState(),
-    deviceOwner: Kiosk.isDeviceOwner(),
-    model: feed.modelState === 'ready' ? 'lista' : feed.modelState === 'loading' ? 'cargando' : 'no disponible',
-    maskRate: feed.maskRate.value,
-    ownTracks: ownCount,
-    bundledTracks: BUNDLED_TRACKS.length,
-    nowPlaying: engine.current?.nowPlaying() ?? '',
-  };
+  // The touch is handled on the UI thread: the planned visit starts in the same frame, whatever the JS
+  // thread is doing. A touch in the staff corner never starts a visit, so the gesture is not
+  // interrupted. Pressing, holding or sliding a finger all count as a touch.
+  const corner = Math.min(width, height) * CORNER_FRACTION;
+  const begin = experience.begin;
+  const touch = useTapGesture({
+    maxDuration: 60000,
+    maxDistance: 100000,
+    onActivate: (e) => {
+      'worklet';
+      const inCorner = e.x <= corner && e.y <= corner;
+      const started = inCorner ? false : begin();
+      scheduleOnRN(onStaffTap, e.x, e.y);
+      scheduleOnRN(onTouched, e.x, e.y, started);
+    },
+  });
 
   const actions = {
     importMusic: async () => {
       const r = await importFromPickedFolder();
       engine.current?.refresh();
+      setStatus(readStatus());
       return `Importadas: ${r.copied} · ya estaban: ${r.skipped} · con error: ${r.failed}`;
     },
     clearMusic: () => {
       const n = clearImportedMusic();
       engine.current?.refresh();
+      setStatus(readStatus());
       return `Borradas: ${n}`;
     },
     enterKiosk: async () => {
       const state = await Kiosk.enterKiosk();
+      setStatus(readStatus());
       return state === 'locked' ? 'Modo quiosco activo (dispositivo bloqueado en Sendero).' : 'Pantalla fijada (sin propietario del dispositivo: se puede salir con el gesto del sistema).';
     },
     exitKiosk: async () => {
       await Kiosk.exitKiosk();
+      setStatus(readStatus());
       return 'Modo quiosco desactivado.';
     },
     releaseDevice: async () => {
       await Kiosk.releaseDeviceOwner();
+      setStatus(readStatus());
       return 'Dispositivo liberado: Sendero ya no es el propietario del dispositivo.';
     },
     testVisit: () => {
-      experience.start();
+      log(`test visit from the staff panel: ${experience.start() ? 'starts' : 'ignored (a visit is running)'}`);
     },
   };
 
   return (
-    <View style={styles.root} onTouchEnd={onTouch}>
-      <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} />
-      <Hint clock={experience.clock} time={experience.time} visible={settings.showHint} />
-      <MessageOverlay visit={experience.visit} clock={experience.clock} />
-      {panelOpen ? (
+    <View style={styles.root}>
+      <GestureDetector gesture={touch}>
+        <View style={styles.root} collapsable={false}>
+          <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} />
+          <Hint clock={experience.clock} time={experience.time} visible={settings.showHint} />
+          <MessageOverlay visit={experience.visit} clock={experience.clock} />
+        </View>
+      </GestureDetector>
+      {/* Outside the touch detector, so the panel's buttons never start a visit. */}
+      {panelOpen && status != null ? (
         <StaffPanel settings={settings} onSettings={updateSettings} status={status} actions={actions} onClose={() => setPanelOpen(false)} />
       ) : null}
     </View>

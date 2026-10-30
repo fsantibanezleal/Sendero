@@ -12,14 +12,18 @@ import { buildPetalPath } from '../path/petalPath';
 import { palette } from '../theme/palette';
 import { FiguresLayer } from './FiguresLayer';
 import { FrameLayer } from './FrameLayer';
+import { Gate } from './Gate';
 import { LayerBoundary } from './LayerBoundary';
 import { NightLayer } from './NightLayer';
 import { PathLayer } from './PathLayer';
 
 /**
  * The single canvas of the experience (docs/architecture.md). Draw order, back to front:
- * the night between the worlds, the petal path, the gathered silhouettes, the framed camera (which
- * also holds the reveal), the walking silhouette, and the bloom of the arrival.
+ * the night between the worlds, the petal path, the framed camera (which also holds the reveal), the
+ * silhouettes, and the bloom of the arrival.
+ *
+ * `visit` is the visit the next touch starts: its path and figures are mounted while the altar waits
+ * and gated off (Gate), so the touch shows them without waiting for a React render.
  */
 export function Scene({
   layout,
@@ -34,36 +38,37 @@ export function Scene({
   atlas: FlowerAtlas;
   clock: SharedValue<number>;
   time: SharedValue<number>;
-  visit: Visit | null;
+  visit: Visit;
 }) {
+  const { width: W, height: H } = layout.screen;
   const path = useMemo(
     () =>
-      visit == null
-        ? null
-        : buildPetalPath({
-            start: layout.pathStart,
-            end: layout.pathEnd,
-            width: layout.screen.width,
-            height: layout.screen.height,
-            seed: visit.pathSeed,
-            petalVariants: atlas.petals.length,
-          }),
-    [visit, layout, atlas.petals.length],
+      buildPetalPath({
+        start: layout.pathStart,
+        end: layout.pathEnd,
+        width: W,
+        height: H,
+        seed: visit.pathSeed,
+        petalVariants: atlas.petals.length,
+      }),
+    [visit, layout, W, H, atlas.petals.length],
   );
+  const pathOn = useDerivedValue(() => clock.value >= TIMELINE.path.start && clock.value < TIMELINE.reveal.start);
+  const figuresOn = useDerivedValue(() => clock.value >= TIMELINE.gather.start && clock.value < TIMELINE.reveal.start);
   return (
     <Canvas style={styles.fill}>
       <NightLayer layout={layout} time={time} />
-      {visit != null && path != null ? (
+      <Gate on={pathOn} width={W} height={H}>
         <LayerBoundary name="path" resetKey={visit.id}>
-          <PathLayer data={path} atlas={atlas} clock={clock} height={layout.screen.height} />
+          <PathLayer data={path} atlas={atlas} clock={clock} height={H} />
         </LayerBoundary>
-      ) : null}
+      </Gate>
       <FrameLayer layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} visit={visit} />
-      {visit != null && path != null ? (
+      <Gate on={figuresOn} width={W} height={H}>
         <LayerBoundary name="figures" resetKey={visit.id}>
           <FiguresLayer visit={visit} layout={layout} path={path} atlas={atlas} clock={clock} time={time} />
         </LayerBoundary>
-      ) : null}
+      </Gate>
       <Bloom layout={layout} clock={clock} />
     </Canvas>
   );
@@ -76,12 +81,15 @@ function Bloom({ layout, clock }: { layout: Layout; clock: SharedValue<number> }
   const p = useDerivedValue(() => windowProgress(clock.value, { start: TIMELINE.arrive.start - 0.4, end: TIMELINE.reveal.start + 0.6 }));
   const r = useDerivedValue(() => mini.width * 0.3 + p.value * screen.width * 0.9);
   const opacity = useDerivedValue(() => Math.sin(Math.PI * p.value) * 0.75);
+  const on = useDerivedValue(() => p.value > 0 && p.value < 1);
   return (
-    <Group opacity={opacity} blendMode="plus">
-      <Circle c={c} r={r}>
-        <RadialGradient c={c} r={screen.width} colors={[palette.warmWhite, 'rgba(255, 194, 14, 0.35)', 'rgba(255, 194, 14, 0)']} positions={[0, 0.3, 0.75]} />
-      </Circle>
-    </Group>
+    <Gate on={on} width={screen.width} height={screen.height}>
+      <Group opacity={opacity} blendMode="plus">
+        <Circle c={c} r={r}>
+          <RadialGradient c={c} r={screen.width} colors={[palette.warmWhite, 'rgba(255, 194, 14, 0.35)', 'rgba(255, 194, 14, 0)']} positions={[0, 0.3, 0.75]} />
+        </Circle>
+      </Group>
+    </Gate>
   );
 }
 

@@ -87,7 +87,10 @@ export function RevealLayer({
   const ghostX = W * 0.565;
   const ghostGround = H * 1.0;
   const appear = useDerivedValue(() => smoothstep(TIMELINE.reveal.start, TIMELINE.reveal.start + 1.6, clock.value));
+  const empty = useMemo(() => Skia.Path.Make(), []);
   const ghostMain = useDerivedValue(() => {
+    // Built only during the reveal (it breathes, so it is rebuilt every frame while shown).
+    if (clock.value < TIMELINE.reveal.start) return empty;
     const tf: ScreenTransform = { ox: ghostX, oy: ghostGround, h: ghostH, facing: 1 };
     const breath = 0.5 + 0.5 * Math.sin(time.value * 1.25);
     const person = humanFrontPath(human, tf, breath);
@@ -98,7 +101,6 @@ export function RevealLayer({
     both.addPath(petSitPath(pet, pt));
     return both.build();
   });
-  const empty = useMemo(() => Skia.Path.Make(), []);
   const ghostFar = useDerivedValue(() => empty);
   const ghostOpacity = useDerivedValue(() => appear.value * (0.82 + 0.08 * Math.sin(time.value * 1.25)));
   const ghostTop = useDerivedValue(() => ghostGround - ghostH);

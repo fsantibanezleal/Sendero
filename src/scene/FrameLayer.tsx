@@ -12,6 +12,7 @@ import { garlandSprites } from '../flowers/garland';
 import { easeInOutCubic, easeOutCubic, smoothstep } from '../procedural';
 import { palette } from '../theme/palette';
 import { bannerRow, type Banner } from './papelPicado';
+import { Gate } from './Gate';
 import { LayerBoundary } from './LayerBoundary';
 import { coverRect, RevealLayer } from './RevealLayer';
 
@@ -35,7 +36,7 @@ export function FrameLayer({
   atlas: FlowerAtlas;
   clock: SharedValue<number>;
   time: SharedValue<number>;
-  visit: Visit | null;
+  visit: Visit;
 }) {
   const { width: W, height: H } = layout.screen;
 
@@ -56,6 +57,9 @@ export function FrameLayer({
     return 1 - smoothstep(TIMELINE.return.start, TIMELINE.return.end, t);
   });
   const cameraOpacity = useDerivedValue(() => 1 - revealMix.value);
+  // Under the full reveal the camera is hidden, and while waiting the reveal is: neither is drawn.
+  const cameraOn = useDerivedValue(() => revealMix.value < 1);
+  const revealOn = useDerivedValue(() => revealMix.value > 0);
 
   const clip = useMemo(() => rrect(Skia.XYWHRect(0, 0, W, H), layout.radius, layout.radius), [W, H, layout.radius]);
   const cover = useDerivedValue(() => {
@@ -84,16 +88,18 @@ export function FrameLayer({
   return (
     <Group transform={transform}>
       <Group clip={clip}>
-        <Group opacity={cameraOpacity}>
-          <Image image={feed.image} x={cx} y={cy} width={cw} height={ch} fit="fill" />
-        </Group>
-        {visit != null ? (
+        <Gate on={cameraOn} width={W} height={H}>
+          <Group opacity={cameraOpacity}>
+            <Image image={feed.image} x={cx} y={cy} width={cw} height={ch} fit="fill" />
+          </Group>
+        </Gate>
+        <Gate on={revealOn} width={W} height={H}>
           <Group opacity={revealMix}>
             <LayerBoundary name="reveal" resetKey={visit.id}>
               <RevealLayer visit={visit} layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} />
             </LayerBoundary>
           </Group>
-        ) : null}
+        </Gate>
       </Group>
       <Atlas image={atlas.image} sprites={garland.rects} transforms={garland.transforms} />
       <Line p1={vec(0, string.y + 2)} p2={vec(W, string.y + 2)} color="rgba(255, 244, 224, 0.5)" strokeWidth={2} />

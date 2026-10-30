@@ -3,26 +3,25 @@
  *
  * One clock drives every visual: `clock` (seconds since the visitor's touch, -1 while idle) and
  * `time` (seconds since the app started, for idle animations) advance on the UI thread with
- * Reanimated's frame callback, so animation never waits for JavaScript. Side effects that are not
- * visual (camera mask on and off, music ducking, the whisper) run on the JS thread from timers set
- * at the touch, at the times of the timeline.
+ * Reanimated's frame callback, so animation never waits for JavaScript.
+ *
+ * The next visit is planned while the altar waits (the companion, the gathering, the message and
+ * the petal path), so its layers are already mounted, invisible, when the visitor touches: the touch
+ * only starts the clock, on the UI thread (`begin`), and nothing the visitor sees depends on a React
+ * render at that moment. The side effects that are not visual (camera mask on and off, music
+ * ducking, the whisper) follow the clock: a reaction on the UI thread reports each mark of the
+ * timeline to the JS thread as the clock passes it.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { type SharedValue, useFrameCallback, useSharedValue } from 'react-native-reanimated';
+import { type SharedValue, useAnimatedReaction, useFrameCallback, useSharedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { MESSAGES } from '../content/messages';
-import { chooseGroup, chooseMessage, type CompanionGroup, gatherGroups, HUMAN_PROFILE, type HumanKind, type VoiceId } from '../figures/catalog';
+import { log } from '../diagnostics/log';
+import { type History, LAST_STAGE, MARK_NAMES, planVisit, stageAt, type Visit } from './plan';
 import { TIMELINE } from './timeline';
 
-export interface Visit {
-  id: number;
-  group: CompanionGroup;
-  gather: CompanionGroup[];
-  messageIndex: number;
-  voice: VoiceId;
-  /** Seed of this visit's petal path, so every visit draws a different path. */
-  pathSeed: number;
-}
+export type { Visit };
 
 export interface ExperienceEvents {
   /** The person mask is needed from the walk to the end of the message. */
@@ -38,26 +37,39 @@ export interface ExperienceEvents {
 export interface Experience {
   clock: SharedValue<number>;
   time: SharedValue<number>;
-  visit: Visit | null;
-  /** Starts a visit; returns false while one is running (touches are ignored). */
+  /** The visit the next touch starts (planned while idle), or the one running. */
+  visit: Visit;
+  /**
+   * Starts the planned visit from a UI-thread worklet (the touch gesture); returns false while a
+   * visit runs or the next one is still being prepared (the touch is ignored).
+   */
+  begin(): boolean;
+  /** The same from the JS thread (the staff panel's test visit). */
   start(): boolean;
 }
 
 export function useExperience(events: ExperienceEvents): Experience {
   const clock = useSharedValue(-1);
   const time = useSharedValue(0);
-  const [visit, setVisit] = useState<Visit | null>(null);
-  const running = useRef(false);
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const history = useRef<{ human: HumanKind | null; message: number | null; count: number }>({
-    human: null,
-    message: null,
-    count: 0,
+  /** True once the planned visit's layers are mounted. */
+  const ready = useSharedValue(false);
+  const [first] = useState(() => {
+    const h: History = { human: null, message: null, count: 0 };
+    return { history: h, visit: planVisit(h) };
   });
+  const history = useRef<History>(first.history);
+  const [visit, setVisit] = useState<Visit>(first.visit);
+  const visitRef = useRef(first.visit);
   const eventsRef = useRef(events);
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
+
+  useEffect(() => {
+    // Effects run after the commit: the planned visit's path and figures are mounted now.
+    visitRef.current = visit;
+    ready.set(true);
+  }, [visit, ready]);
 
   useFrameCallback((frame) => {
     'worklet';
@@ -69,55 +81,70 @@ export function useExperience(events: ExperienceEvents): Experience {
     }
   });
 
-  useEffect(
-    () => () => {
-      for (const t of timers.current) clearTimeout(t);
+  const fire = useCallback((stage: number, v: Visit) => {
+    const e = eventsRef.current;
+    log(`visit ${v.id}: ${MARK_NAMES[stage - 1]}`);
+    switch (stage) {
+      case 1:
+        e.onMask(true);
+        break;
+      case 2:
+        e.onReveal(v);
+        break;
+      case 3:
+        e.onMessage(v);
+        break;
+      case 4:
+        e.onWhisper(v);
+        break;
+      case 5:
+        e.onReturn(v);
+        e.onMask(false);
+        break;
+    }
+  }, []);
+
+  const onStage = useCallback(
+    (current: number, previous: number) => {
+      const v = visitRef.current;
+      if (previous < 0 && current >= 0) {
+        log(`visit ${v.id} started: ${v.group.human}${v.group.pet != null ? ` with ${v.group.pet}` : ''}, message ${MESSAGES[v.messageIndex].id}`);
+      }
+      if (current >= 0) {
+        for (let k = Math.max(previous, 0) + 1; k <= current; k++) fire(k, v);
+        return;
+      }
+      // The visit ended. The mask and the music are always released, even if a mark was missed.
+      if (previous < LAST_STAGE) fire(LAST_STAGE, v);
+      log(`visit ${v.id} ended`);
+      eventsRef.current.onEnd();
+      setVisit(planVisit(history.current));
     },
-    [],
+    [fire],
   );
 
-  const start = useCallback((): boolean => {
-    if (running.current) {
-      return false;
-    }
-    running.current = true;
-    const h = history.current;
-    const group = chooseGroup(Math.random, h.human);
-    const messageIndex = chooseMessage(Math.random, MESSAGES.length, h.message);
-    h.human = group.human;
-    h.message = messageIndex;
-    h.count += 1;
-    const v: Visit = {
-      id: h.count,
-      group,
-      gather: gatherGroups(Math.random, group),
-      messageIndex,
-      voice: HUMAN_PROFILE[group.human].voice,
-      pathSeed: Math.floor(Math.random() * 2 ** 31),
-    };
-    setVisit(v);
+  useAnimatedReaction(
+    () => stageAt(clock.value),
+    (current, previous) => {
+      if (previous == null || current === previous) return;
+      scheduleOnRN(onStage, current, previous);
+    },
+  );
+
+  const begin = useCallback((): boolean => {
+    'worklet';
+    if (clock.get() >= 0 || !ready.get()) return false;
+    ready.set(false);
     clock.set(0);
-
-    const at = (seconds: number, fn: () => void) => {
-      timers.current.push(setTimeout(fn, seconds * 1000));
-    };
-    at(TIMELINE.mask.start, () => eventsRef.current.onMask(true));
-    at(TIMELINE.reveal.start, () => eventsRef.current.onReveal(v));
-    at(TIMELINE.message.start, () => eventsRef.current.onMessage(v));
-    at(TIMELINE.whisperAt, () => eventsRef.current.onWhisper(v));
-    at(TIMELINE.return.start, () => {
-      eventsRef.current.onReturn(v);
-      eventsRef.current.onMask(false);
-    });
-    at(TIMELINE.total, () => {
-      clock.set(-1);
-      running.current = false;
-      timers.current = [];
-      setVisit(null);
-      eventsRef.current.onEnd();
-    });
     return true;
-  }, [clock]);
+  }, [clock, ready]);
 
-  return { clock, time, visit, start };
+  const start = useCallback((): boolean => {
+    if (clock.get() >= 0 || !ready.get()) return false;
+    ready.set(false);
+    clock.set(0);
+    return true;
+  }, [clock, ready]);
+
+  return { clock, time, visit, begin, start };
 }

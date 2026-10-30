@@ -37,9 +37,22 @@ asked for the experience.
 
 `src/experience/useExperience.ts` keeps two Reanimated shared values advanced by a frame callback on the UI thread:
 `clock` (seconds since the touch, -1 while idle) and `time` (seconds since start, for idle animations). Every visual
-is a derived value of these two, so the animation never waits for JavaScript. The effects that are not visual run on
-the JavaScript thread from timers set at the touch: the mask on and off, the still-frame decision, the music duck and
-release, the whisper, and the end of the visit. Touches are ignored while a visit runs.
+is a derived value of these two, so the animation never waits for JavaScript.
+
+The next visit is planned while the altar waits (`src/experience/plan.ts`: the companion, the gathering, the message
+and the seed of the petal path), and its layers are mounted then, gated off. The touch is a tap gesture handled on
+the UI thread (`App.tsx`, `react-native-gesture-handler`): it starts the clock in the same frame, so nothing the
+visitor sees waits for a React render at that moment. A touch counts when a finger is pressed, held or slid; touches
+in the staff corner never start a visit; touches are ignored while a visit runs.
+
+The effects that are not visual follow the clock: a reaction on the UI thread reports each mark of the timeline as
+the clock passes it (`MARKS`: mask on, reveal, message, whisper, return), and the JavaScript thread runs the effect:
+the mask on and off, the still-frame decision, the music duck and release, and the whisper. When the clock returns
+to idle the mask and the music are always released, and the next visit is planned.
+
+Each touch, each mark and each failing layer writes one line tagged `[Sendero]` to the system log
+(`src/diagnostics/log.ts`; read it with `adb logcat -s ReactNativeJS`). The lines hold no image and no data about the
+visitor.
 
 ## Who walks the path
 

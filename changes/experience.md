@@ -19,3 +19,9 @@
   mode, test visit, kiosk on and off, release of the device.
 - Release signing from a properties file outside the repository; Windows native build fix (short CMake
   staging folders, CMAKE_OBJECT_PATH_MAX=250); Sendero's own marigold launcher icons.
+- The visit starts in the frame of the touch: the next visit is planned while the altar waits and its layers are
+  mounted gated off; the touch is handled on the UI thread; the side effects follow the clock's marks instead
+  of JS timers, so a busy JS thread can no longer hide the petal path and the walkers.
+- Hidden layers are not drawn (an empty clip instead of an opacity of 0, which Skia still draws): the path, the
+  figures, the reveal, the camera under the full reveal and the bloom.
+- One `[Sendero]` line in the system log per touch, visit mark and failing layer.

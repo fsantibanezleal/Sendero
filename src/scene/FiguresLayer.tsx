@@ -74,13 +74,15 @@ export function FiguresLayer({
   const start = layout.pathStart;
   const far = layout.farHeight;
   const near = layout.arrivalHeight;
+  // Outside their phases the figures are empty: one shared empty path instead of new ones every frame.
+  const empty = useMemo(() => Skia.Path.Make(), []);
 
   // The group standing at the far end (all but the chosen one fade when the walk starts).
   const gathered = useDerivedValue(() => {
     const t = clock.value;
+    if (t < TIMELINE.gather.start || t >= TIMELINE.othersFade.end) return { main: empty, back: empty };
     const main = Skia.PathBuilder.Make();
     const back = Skia.PathBuilder.Make();
-    if (t < TIMELINE.gather.start || t >= TIMELINE.othersFade.end) return { main: main.build(), back: back.build() };
     for (let i = 1; i < gather.length; i++) {
       const g = gather[i];
       const h = far * g.spot.k;
@@ -110,11 +112,11 @@ export function FiguresLayer({
   // The chosen one: standing at the start during the gathering, then walking.
   const walker = useDerivedValue(() => {
     const t = clock.value;
+    if (t < TIMELINE.gather.start || t >= TIMELINE.reveal.start) {
+      return { main: empty, back: empty, x: start.x, y: start.y, h: far };
+    }
     const main = Skia.PathBuilder.Make();
     const back = Skia.PathBuilder.Make();
-    if (t < TIMELINE.gather.start || t >= TIMELINE.reveal.start) {
-      return { main: main.build(), back: back.build(), x: start.x, y: start.y, h: far };
-    }
     const u = easeInOutSine(windowProgress(t, TIMELINE.walk));
     const s = u * table.total;
     const p = pointAtDistance(table, s);

@@ -36,6 +36,15 @@ camera thread                         JS thread                 UI thread (canva
 frame -> renderToTexture -> CPU copy -> shared value image  ->  Image layer (cover)
 ```
 
+## Hidden layers are not drawn
+
+React Native Skia replays every mounted node on every frame, and its player has no shortcut for an opacity of 0: a
+hidden layer costs as much as a visible one. The scene keeps the next visit's layers mounted (so the touch shows them
+at once) and wraps every layer that is hidden part of the time in a `Gate` (`src/scene/Gate.tsx`): an empty clip
+while the layer is hidden, so Skia rejects every draw inside, including the offscreen layers of blurs and blend
+groups. Gated: the petal path and the figures (outside the walk), the reveal (outside the reveal), the camera under
+the full reveal, and the bloom of the arrival. The silhouettes' paths are built only while they are shown.
+
 ## Privacy
 
 - Camera frames exist only in memory; nothing is written or sent.

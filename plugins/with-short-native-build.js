@@ -16,7 +16,9 @@
  * Android toolchain otherwise assumes a large Linux limit; some React Native codegen object paths
  * exceed 260 characters even relative to their build folder). The hook lives in settings.gradle
  * because some modules are evaluated before the root build.gradle, and finalizeDsl is the last
- * point where the DSL can still change. Without the variable it does nothing.
+ * point where the DSL can still change. (3) It caps the parallel compilers of each native module with a
+ * CMake job pool (SENDERO_CXX_JOBS, default 4): ninja otherwise starts one per core, and a 32-core
+ * machine with several Gradle workers ran out of memory. Without SENDERO_CXX_ROOT it does nothing.
  */
 const { withSettingsGradle } = require('expo/config-plugins');
 
@@ -38,6 +40,13 @@ gradle.beforeProject { p ->
         // React Native passes 1024 (no shortening); replace it.
         args.removeAll { it.startsWith('-DCMAKE_OBJECT_PATH_MAX=') }
         args.add('-DCMAKE_OBJECT_PATH_MAX=250')
+        // Ninja starts one compiler per core for every native module; on a many-core machine with
+        // several Gradle workers that exhausts memory ("the paging file is too small"). A job pool
+        // caps the compilers of each module (SENDERO_CXX_JOBS, default 4).
+        def jobs = (System.getenv('SENDERO_CXX_JOBS') ?: '4')
+        args.add("-DCMAKE_JOB_POOLS=compile=" + jobs + ";link=1")
+        args.add('-DCMAKE_JOB_POOL_COMPILE=compile')
+        args.add('-DCMAKE_JOB_POOL_LINK=link')
       }
     }
   }

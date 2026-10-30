@@ -16,6 +16,8 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ### Added
 - One system-log line when the music starts, for each track, for each whisper, and when the music fails to start.
+- The native build caps its parallel compilers per module (CMake job pool, `-CxxJobs`, default 4): a 32-core machine
+  ran out of memory.
 
 ## [0.01.000] - 2026-10-30
 

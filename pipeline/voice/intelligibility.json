@@ -1,0 +1,76 @@
+{
+  "clips": [
+    {
+      "file": "mujer/m01.m4a",
+      "heard": "Siempre te recordaré.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m02.m4a",
+      "heard": "Siempre en mis pensamientos.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m03.m4a",
+      "heard": "Gracias.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m04.m4a",
+      "heard": "¡Sí que así!",
+      "wer": 1.0
+    },
+    {
+      "file": "mujer/m05.m4a",
+      "heard": "Lo estás haciendo bien.",
+      "wer": 0.0
+    },
+    {
+      "file": "mujer/m06.m4a",
+      "heard": "Descanza, lo estás haciendo bien.",
+      "wer": 0.2
+    },
+    {
+      "file": "mujer/m07.m4a",
+      "heard": "También te extraño.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m01.m4a",
+      "heard": "Siempre te recordaré.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m02.m4a",
+      "heard": "Siempre en mis pensamientos.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m03.m4a",
+      "heard": "¡Gracias!",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m04.m4a",
+      "heard": "¡Vas a seguir, vamos a seguir!",
+      "wer": 3.0
+    },
+    {
+      "file": "hombre/m05.m4a",
+      "heard": "Lo estás haciendo bien.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m06.m4a",
+      "heard": "Descansa, lo estás haciendo bien.",
+      "wer": 0.0
+    },
+    {
+      "file": "hombre/m07.m4a",
+      "heard": "También te extraño.",
+      "wer": 0.0
+    }
+  ],
+  "meanWer": 0.3,
+  "model": "openai/whisper-small"
+}

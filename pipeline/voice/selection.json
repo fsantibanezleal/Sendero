@@ -1,28 +1,28 @@
 {
   "candidates": {
     "es_MX-ald-medium": {
-      "medianF0Hz": 165.352,
-      "neutralPeriodicity": 0.782
+      "medianF0Hz": 165.83,
+      "neutralPeriodicity": 0.781
     },
     "es_MX-ald-x_low": {
       "medianF0Hz": 168.728,
-      "neutralPeriodicity": 0.785
+      "neutralPeriodicity": 0.766
     },
     "es_MX-claude-high": {
-      "medianF0Hz": 198.348,
-      "neutralPeriodicity": 0.793
+      "medianF0Hz": 202.984,
+      "neutralPeriodicity": 0.783
     },
     "kokoro-ef_dora": {
       "medianF0Hz": 170.689,
-      "neutralPeriodicity": 0.706
+      "neutralPeriodicity": 0.696
     },
     "kokoro-em_alex": {
-      "medianF0Hz": 130.488,
-      "neutralPeriodicity": 0.61
+      "medianF0Hz": 133.534,
+      "neutralPeriodicity": 0.608
     },
     "kokoro-em_santa": {
-      "medianF0Hz": 143.952,
-      "neutralPeriodicity": 0.56
+      "medianF0Hz": 135.086,
+      "neutralPeriodicity": 0.55
     }
   },
   "chosen": {

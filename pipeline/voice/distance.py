@@ -8,8 +8,10 @@ LOWPASS_HZ = 4500.0
 RT60_SECONDS = 1.4
 TAIL_LOWPASS_HZ = 6000.0
 PREDELAY_SECONDS = 0.025
-WET = 0.55
-DRY = 0.45
+# Wet 0.25: at 0.55 the room smeared the whispered consonants (Whisper small word error rate 0.81 against 0.18
+# before the chain); at 0.25 with the same room and low-pass it was 0.19 (sweep of 2026-10-30, docs/voice.md).
+WET = 0.25
+DRY = 0.75
 LEAD_SECONDS = 0.4
 MAX_TAIL_SECONDS = 2.0
 DECAY_FLOOR_DB = -60.0

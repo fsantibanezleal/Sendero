@@ -1,0 +1,12 @@
+{
+  "rule": "Each message is spoken as a sentence: its first letter in upper case and a final period. The words never change; an override only changes how one voice model pronounces a word, with raw phonemes in [[ ]] (Piper).",
+  "overrides": {
+    "es_MX-claude-high": {
+      "m04": "[[ sˈiɡe ]] así."
+    }
+  },
+  "why": {
+    "sentence": "Kokoro em_alex read the bare lower-case 'sigue así' as 'así que así' (Whisper small heard that); 'Sigue así.' was heard exactly (measured 2026-10-30).",
+    "es_MX-claude-high/m04": "espeak-ng gives 'sigue' a soft fricative g (ɣ); Piper's whisper of it was heard as 'si de'. A stop g (ɡ) is heard as 'sí que así', the closest of the variants tried (measured 2026-10-30)."
+  }
+}

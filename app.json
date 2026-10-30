@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Sendero",
+    "slug": "sendero",
+    "version": "0.0.0",
+    "platforms": ["android"],
+    "orientation": "landscape",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#14102B",
+    "android": {
+      "package": "com.faslwork.sendero",
+      "adaptiveIcon": {
+        "backgroundColor": "#14102B",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    }
+  }
+}

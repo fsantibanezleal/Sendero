@@ -1,0 +1,59 @@
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# generated native folders (expo prebuild; never committed)
+/ios
+/android
+modules/*/android/build/
+**/.gradle/
+.kotlin/
+
+# build outputs
+*.apk
+*.aab
+*.ipa
+
+# signing material and secrets: they live only in the private management vault, never here
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+keystore.properties
+.env
+.env.*
+!.env.example
+
+# offline pipeline (Python): virtual environment junction, caches, local data
+pipeline/.venv/
+**/__pycache__/
+*.pyc
+pipeline/out/
+
+# Metro
+.metro-health-check*
+
+# debug and tooling
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+coverage/
+*.tsbuildinfo
+*.orig.*
+
+# OS and IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+local.properties

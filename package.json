@@ -1,0 +1,22 @@
+{
+  "name": "sendero",
+  "version": "0.0.0",
+  "description": "Dia de Muertos kiosk app for Android: a cempasuchil petal path brings a soft silhouette of a loved one to stand behind the visitor on the front camera, with music and a whispered message.",
+  "license": "MIT",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android"
+  },
+  "dependencies": {
+    "expo": "~58.0.21",
+    "expo-status-bar": "~58.0.4",
+    "react": "19.3.0",
+    "react-native": "0.88.1"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  }
+}

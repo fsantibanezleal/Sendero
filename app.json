@@ -10,6 +10,7 @@
     "backgroundColor": "#14102B",
     "android": {
       "package": "com.faslwork.sendero",
+      "permissions": ["android.permission.CAMERA"],
       "adaptiveIcon": {
         "backgroundColor": "#14102B",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -17,6 +18,25 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
-    }
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
+      [
+        "react-native-fast-tflite",
+        {
+          "enableAndroidGpuLibraries": true
+        }
+      ],
+      "expo-audio",
+      "expo-font",
+      "expo-screen-orientation"
+    ]
   }
 }

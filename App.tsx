@@ -1,7 +1,7 @@
 import { useFonts } from 'expo-font';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NavigationBar } from 'expo-navigation-bar';
-import { StatusBar } from 'expo-status-bar';
+import { setStatusBarHidden, StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type GestureResponderEvent, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -42,6 +42,12 @@ export default function App() {
     [FONT_TITLE]: require('./assets/fonts/CormorantGaramond-SemiBold.ttf'),
   });
   const { hasPermission, canRequestPermission, requestPermission } = useCameraPermission();
+
+  useEffect(() => {
+    // The component alone left the status bar visible with edge-to-edge; hide it explicitly too (in kiosk
+    // mode the device owner disables the status bar entirely).
+    setStatusBarHidden(true, 'none');
+  }, []);
 
   useEffect(() => {
     if (!hasPermission && canRequestPermission) {

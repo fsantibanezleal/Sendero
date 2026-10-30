@@ -27,6 +27,10 @@
 .PARAMETER LogFile
   Where the full Gradle output is written (default: dist\gradle-<variant>.log).
 
+.PARAMETER MaxWorkers
+  Parallel Gradle workers (default 4). Each native task runs its own parallel compiler jobs; more workers can
+  exhaust memory (clang 'LLVM ERROR: out of memory') on a busy machine.
+
 .PARAMETER SigningProperties
   A properties file kept OUTSIDE the repository with SENDERO_UPLOAD_STORE_FILE (absolute, or relative to
   the properties file), SENDERO_UPLOAD_STORE_PASSWORD, SENDERO_UPLOAD_KEY_ALIAS and
@@ -42,7 +46,8 @@ param(
   [switch]$Clean,
   [string]$CxxRoot = $env:SENDERO_CXX_ROOT,
   [string]$LogFile,
-  [string]$SigningProperties
+  [string]$SigningProperties,
+  [int]$MaxWorkers = 4
 )
 # Native tools write progress to stderr; Windows PowerShell 5.1 would turn that into errors under 'Stop'.
 # Every native call below checks its exit code instead.
@@ -94,7 +99,7 @@ try {
   Push-Location android
   try {
     # Full output goes to the log file (a failing native step prints its cause far above the summary).
-    cmd /c ".\gradlew.bat $task -PreactNativeArchitectures=$Abi --no-daemon > `"$LogFile`" 2>&1"
+    cmd /c ".\gradlew.bat $task -PreactNativeArchitectures=$Abi --no-daemon --max-workers=$MaxWorkers > `"$LogFile`" 2>&1"
     $code = $LASTEXITCODE
     Get-Content $LogFile -Tail 5
     if ($code -ne 0) {

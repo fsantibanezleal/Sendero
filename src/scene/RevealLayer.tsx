@@ -81,9 +81,11 @@ export function RevealLayer({
     }));
   }, [visit.id, W, H]);
 
-  const ghostH = H * 0.98;
+  // Tall enough to stand behind the visitor (shown at 0.82), low enough that the head stays below the
+  // papel picado and the top garland (the owner saw it covered by the flowers at 0.98).
+  const ghostH = H * 0.82;
   const ghostX = W * 0.565;
-  const ghostGround = H * 1.02;
+  const ghostGround = H * 1.0;
   const appear = useDerivedValue(() => smoothstep(TIMELINE.reveal.start, TIMELINE.reveal.start + 1.6, clock.value));
   const ghostMain = useDerivedValue(() => {
     const tf: ScreenTransform = { ox: ghostX, oy: ghostGround, h: ghostH, facing: 1 };

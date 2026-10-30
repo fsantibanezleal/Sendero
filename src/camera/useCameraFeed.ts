@@ -86,6 +86,10 @@ export function useCameraFeed(active: boolean): CameraFeed {
   const [modelState, setModelState] = useState<ModelState>('loading');
 
   const flags = useMemo(() => createSynchronizable({ maskActive: false, frozen: false }), []);
+  // Backpressure: at most one frame on its way to the JS thread. Without it a slow device queues CPU
+  // frame copies (several MB each) faster than JS drains them, starving touches and React updates
+  // (seen on the emulator: 1.8 GB and taps never handled).
+  const inFlight = useMemo(() => createSynchronizable(false), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,6 +107,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
 
   const publish = useCallback(
     (next: SkImage, nextMask: SkImage | null) => {
+      inFlight.setBlocking(false);
       const previous = image.get();
       image.set(next);
       previous?.dispose();
@@ -118,7 +123,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
         }
       }
     },
-    [image, mask, maskRate, lastMaskAt],
+    [image, mask, maskRate, lastMaskAt, inFlight],
   );
 
   const setMaskActive = useCallback(
@@ -147,10 +152,10 @@ export function useCameraFeed(active: boolean): CameraFeed {
   const channels = info?.channels ?? 1;
 
   const frameOutput = useFrameOutput({
-    // YUV is the format every Android camera must support for image analysis; 'native' resolves to
-    // PRIVATE, which some devices refuse (seen on the emulator: 'PRIVATE format ... is not supported
-    // for ImageAnalysis'). Skia renders 8-bit YUV buffers directly.
-    pixelFormat: 'yuv',
+    // RGB: 'native' resolves to PRIVATE, which some devices refuse for image analysis, and YUV hardware
+    // buffers were imported as black frames on the emulator; RGBA buffers import everywhere (CameraX
+    // converts, a small CPU cost per frame).
+    pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     allowDeferredStart: false,
     enablePreviewSizedOutputBuffers: true,
@@ -159,7 +164,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
       let snapshot: SkImage | undefined;
       try {
         const state = flags.getBlocking();
-        if (state.frozen) {
+        if (state.frozen || inFlight.getBlocking()) {
           return;
         }
         snapshot = renderToTexture(frame, ({ canvas, frameTexture }) => {
@@ -182,6 +187,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
 
         const cpuImage = snapshot.makeNonTextureImage();
         if (cpuImage != null) {
+          inFlight.setBlocking(true);
           scheduleOnRN(publish, cpuImage, maskImage);
         } else {
           maskImage?.dispose();

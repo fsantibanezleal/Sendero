@@ -11,7 +11,7 @@ owner holds, imported on the tablet into the app's private storage.
 
 | File | Source | Licence | Notes |
 |---|---|---|---|
-| `assets/icon.png`, `assets/android-icon-*.png`, `assets/splash-icon.png`, `assets/favicon.png` | Expo `blank-typescript` template | MIT (650 Industries, Inc.) | Temporary; replaced by Sendero's own marigold icon at the first release |
+| `assets/icon.png`, `assets/android-icon-*.png`, `assets/splash-icon.png`, `assets/favicon.png` | Rendered by `pipeline/icon/make_icons.py` (procedural cempasuchil head, same construction as the app's flowers) | MIT (this repository) | Own work; regenerate with `python -m pipeline.icon.make_icons` |
 
 ## Music
 

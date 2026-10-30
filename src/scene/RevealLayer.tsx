@@ -1,4 +1,4 @@
-import { Circle, Group, Image, RadialGradient, rrect, Skia, vec } from '@shopify/react-native-skia';
+import { BlurMask, Circle, Group, Image, RadialGradient, RoundedRect, Skia, vec } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
@@ -10,40 +10,11 @@ import type { FlowerAtlas } from '../flowers/atlas';
 import { humanFrontPath, petSitPath, type ScreenTransform } from '../figures/draw';
 import { mulberry32, smoothstep } from '../procedural';
 import { palette } from '../theme/palette';
+import { Gate } from './Gate';
 import { Ghost } from './Ghost';
 import { NightLayer } from './NightLayer';
+import { coverInto, coverRect, PERSON_SCALE, personRect, portraitRect } from './revealGeometry';
 import { Sparkles } from './Sparkles';
-
-/** The visitor is shown smaller in the reveal (plan.md section 3). */
-export const PERSON_SCALE = 0.82;
-
-export interface CoverRect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-/** The rectangle an image of size iw x ih covers when cropped to fill W x H. */
-export function coverRect(iw: number, ih: number, W: number, H: number): CoverRect {
-  'worklet';
-  if (iw <= 0 || ih <= 0) return { x: 0, y: 0, width: W, height: H };
-  const s = Math.max(W / iw, H / ih);
-  const width = iw * s;
-  const height = ih * s;
-  return { x: (W - width) / 2, y: (H - height) / 2, width, height };
-}
-
-/** The cover rectangle shrunk about the bottom centre of the screen. */
-export function personRect(r: CoverRect, W: number, H: number, k: number): CoverRect {
-  'worklet';
-  return {
-    x: W / 2 + (r.x - W / 2) * k,
-    y: H + (r.y - H) * k,
-    width: r.width * k,
-    height: r.height * k,
-  };
-}
 
 /**
  * The magic (plan.md section 3, REVEAL): the night between the worlds, the soft front-view
@@ -118,11 +89,18 @@ export function RevealLayer({
   const rh = useDerivedValue(() => rect.value.height);
   const hasMask = useDerivedValue(() => (feed.mask.value != null ? 1 : 0));
   const noMask = useDerivedValue(() => 1 - hasMask.value);
-  const fallbackClip = useMemo(() => {
-    const fw = W * PERSON_SCALE * 0.78;
-    const fh = H * PERSON_SCALE * 0.86;
-    return rrect(Skia.XYWHRect((W - fw) / 2, H - fh - H * 0.04, fw, fh), H * 0.05, H * 0.05);
-  }, [W, H]);
+  const maskOn = useDerivedValue(() => feed.mask.value != null);
+  const maskOff = useDerivedValue(() => feed.mask.value == null);
+  const portrait = useMemo(() => portraitRect(W, H), [W, H]);
+  // The camera image crops to fill the portrait, so the visitor (in the middle of the camera view) stays in it.
+  const crop = useDerivedValue(() => {
+    const f = feed.size.value;
+    return coverInto(f.width, f.height, portrait);
+  });
+  const px = useDerivedValue(() => crop.value.x);
+  const py = useDerivedValue(() => crop.value.y);
+  const pw = useDerivedValue(() => crop.value.width);
+  const ph = useDerivedValue(() => crop.value.height);
 
   const sparkX = useDerivedValue(() => ghostX);
   const sparkY = useDerivedValue(() => H * 0.55);
@@ -149,14 +127,31 @@ export function RevealLayer({
         strength={appear}
       />
       {/* The visitor cut out by the person mask. */}
-      <Group opacity={hasMask} layer>
-        <Image image={feed.image} x={rx} y={ry} width={rw} height={rh} fit="fill" />
-        <Image image={feed.mask} x={rx} y={ry} width={rw} height={rh} fit="fill" blendMode="dstIn" />
-      </Group>
-      {/* Without a mask: the visitor, smaller, in a soft frame. */}
-      <Group opacity={noMask} clip={fallbackClip}>
-        <Image image={feed.image} x={rx} y={ry} width={rw} height={rh} fit="fill" />
-      </Group>
+      <Gate on={maskOn} width={W} height={H}>
+        <Group opacity={hasMask} layer>
+          <Image image={feed.image} x={rx} y={ry} width={rw} height={rh} fit="fill" />
+          <Image image={feed.mask} x={rx} y={ry} width={rw} height={rh} fit="fill" blendMode="dstIn" />
+        </Group>
+      </Gate>
+      {/* Without a mask: the visitor as a soft-edged portrait, the silhouette behind and beside it. */}
+      <Gate on={maskOff} width={W} height={H}>
+        <Group opacity={noMask} layer>
+          <Group clip={Skia.XYWHRect(portrait.x, portrait.y, portrait.width, portrait.height)}>
+            <Image image={feed.image} x={px} y={py} width={pw} height={ph} fit="fill" />
+          </Group>
+          <RoundedRect
+            x={portrait.x + H * 0.03}
+            y={portrait.y + H * 0.03}
+            width={portrait.width - H * 0.06}
+            height={portrait.height - H * 0.06}
+            r={H * 0.05}
+            color="white"
+            blendMode="dstIn"
+          >
+            <BlurMask blur={H * 0.025} style="normal" />
+          </RoundedRect>
+        </Group>
+      </Gate>
     </Group>
   );
 }

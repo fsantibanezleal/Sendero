@@ -2,9 +2,11 @@ import { AlphaType, ColorType, Skia, type SkImage } from '@shopify/react-native-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { loadTensorflowModel, type TensorflowModel } from 'react-native-fast-tflite';
-import { useCamera, useFrameOutput, useOrientation } from 'react-native-vision-camera';
+import { type Frame, useCamera, useFrameOutput, useOrientation } from 'react-native-vision-camera';
 import { renderToTexture } from 'react-native-vision-camera-skia';
 import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
+
+import { log } from '../diagnostics/log';
 
 /**
  * The live front camera as a stream of upright, mirrored Skia images, plus a person mask while the
@@ -64,6 +66,17 @@ const EDGE_HIGH = 0.7;
  * disposed object" in a UI-thread derived value).
  */
 const RETIRE_AFTER = 4;
+/**
+ * Frames probed at start to choose how frames reach Skia. The GPU path imports the camera's hardware
+ * buffer as a texture (`renderToTexture`); some GPUs return a black texture for it (the Android
+ * emulator does, while its camera delivers images). The CPU path builds the image from the frame's
+ * pixel buffer instead. The probe compares both and keeps the GPU path unless it is black while the
+ * pixels are not.
+ */
+const PROBE_FRAMES = 8;
+/** Mean channel value (0 to 255) under which an image counts as black, and over which as lit. */
+const BLACK_MEAN = 2;
+const LIT_MEAN = 6;
 
 // Metro bundles assets only through a static require().
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -123,6 +136,9 @@ export function useCameraFeed(active: boolean): CameraFeed {
   }, []);
 
   const lastMaskAt = useSharedValue(0);
+  const firstFrame = useRef(true);
+
+  const report = useCallback((message: string) => log(`camera: ${message}`), []);
 
   /** Disposes a replaced image only after RETIRE_AFTER more replacements (see RETIRE_AFTER). */
   const retire = useCallback((old: SkImage | null) => {
@@ -139,6 +155,10 @@ export function useCameraFeed(active: boolean): CameraFeed {
       inFlight.setBlocking(false);
       const w = next.width();
       const h = next.height();
+      if (firstFrame.current) {
+        firstFrame.current = false;
+        log(`camera: first frame ${w} x ${h}`);
+      }
       const current = size.get();
       if (current.width !== w || current.height !== h) {
         size.set({ width: w, height: h });
@@ -194,26 +214,53 @@ export function useCameraFeed(active: boolean): CameraFeed {
     onFrame: (frame) => {
       'worklet';
       let snapshot: SkImage | undefined;
+      let cpu: CpuFrame | null = null;
       try {
         const state = flags.getBlocking();
         if (state.frozen || inFlight.getBlocking()) {
           return;
         }
+        const g = globalThis as unknown as { __senderoSource?: SourceState; __senderoMask?: MaskScratch };
+        if (g.__senderoSource == null) {
+          g.__senderoSource = { mode: 'probe', probes: 0, gpuSum: 0, cpuSum: 0, maskError: false };
+        }
+        const source = g.__senderoSource;
+        if (source.mode !== 'gpu') {
+          cpu = cpuFrame(frame, source.mode === 'probe');
+        }
+        const raster = source.mode === 'cpu' && cpu != null ? cpu.image : null;
         snapshot = renderToTexture(frame, ({ canvas, frameTexture }) => {
-          canvas.drawImage(frameTexture, 0, 0);
+          canvas.drawImage(raster ?? frameTexture, 0, 0);
         });
+        if (source.mode === 'probe') {
+          source.gpuSum += meanOfImage(snapshot);
+          source.cpuSum += cpu?.mean ?? 0;
+          source.probes += 1;
+          if (source.probes >= PROBE_FRAMES) {
+            const gpu = source.gpuSum / source.probes;
+            const pixels = source.cpuSum / source.probes;
+            source.mode = cpu != null && gpu < BLACK_MEAN && pixels > LIT_MEAN ? 'cpu' : 'gpu';
+            scheduleOnRN(report, `${source.mode} frames (mean of the GPU copy ${gpu.toFixed(1)}, of the pixels ${pixels.toFixed(1)})`);
+          }
+        }
 
         let maskImage: SkImage | null = null;
         if (state.maskActive && model != null && inW > 0) {
           // Per-runtime scratch state survives between frames on the camera thread.
-          const g = globalThis as unknown as { __senderoMask?: MaskScratch };
           if (g.__senderoMask == null || g.__senderoMask.width !== inW) {
             g.__senderoMask = createScratch(inW, inH);
           }
           const scratch = g.__senderoMask;
           scratch.frame += 1;
           if (scratch.frame % MASK_EVERY === 0) {
-            maskImage = computeMask(snapshot, model, scratch, channels);
+            try {
+              maskImage = computeMask(snapshot, model, scratch, channels);
+            } catch (e) {
+              if (!source.maskError) {
+                source.maskError = true;
+                scheduleOnRN(report, `person mask failed: ${String(e)}`);
+              }
+            }
           }
         }
 
@@ -225,6 +272,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
           maskImage?.dispose();
         }
       } finally {
+        cpu?.image.dispose();
         snapshot?.dispose();
         frame.dispose();
       }
@@ -255,6 +303,75 @@ export function useCameraFeed(active: boolean): CameraFeed {
   );
 
   return { image, size, mask, maskRate, modelState, setMaskActive, setFrozen };
+}
+
+interface SourceState {
+  mode: 'probe' | 'gpu' | 'cpu';
+  probes: number;
+  gpuSum: number;
+  cpuSum: number;
+  maskError: boolean;
+}
+
+interface CpuFrame {
+  image: SkImage;
+  /** Mean channel value of a sample of the pixels (only while probing). */
+  mean: number;
+}
+
+/** The frame as a raster image built from its pixel buffer (RGBA or BGRA frames only). */
+function cpuFrame(frame: Frame, measure: boolean): CpuFrame | null {
+  'worklet';
+  if (!frame.hasPixelBuffer || frame.isPlanar) return null;
+  const format = frame.pixelFormat;
+  if (format !== 'rgb-rgba-8-bit' && format !== 'rgb-bgra-8-bit') return null;
+  const bytes = new Uint8Array(frame.getPixelBuffer());
+  let mean = 0;
+  if (measure) {
+    const samples = 256;
+    const step = Math.max(4, Math.floor(bytes.length / samples / 4) * 4);
+    let sum = 0;
+    let n = 0;
+    for (let o = 0; o + 2 < bytes.length && n < samples; o += step) {
+      sum += bytes[o] + bytes[o + 1] + bytes[o + 2];
+      n += 1;
+    }
+    mean = n > 0 ? sum / (3 * n) : 0;
+  }
+  const image = Skia.Image.MakeImage(
+    {
+      width: frame.width,
+      height: frame.height,
+      colorType: format === 'rgb-rgba-8-bit' ? ColorType.RGBA_8888 : ColorType.BGRA_8888,
+      alphaType: AlphaType.Unpremul,
+    },
+    Skia.Data.fromBytes(bytes),
+    frame.bytesPerRow,
+  );
+  return image == null ? null : { image, mean };
+}
+
+/** Mean channel value of an image, read back from a 32 x 18 copy (only while probing). */
+function meanOfImage(image: SkImage): number {
+  'worklet';
+  const w = 32;
+  const h = 18;
+  const surface = Skia.Surface.MakeOffscreen(w, h);
+  if (surface == null) return 0;
+  try {
+    surface.getCanvas().drawImageRect(image, Skia.XYWHRect(0, 0, image.width(), image.height()), Skia.XYWHRect(0, 0, w, h), Skia.Paint());
+    surface.flush();
+    const small = surface.makeImageSnapshot();
+    const px = small.readPixels(0, 0, { width: w, height: h, colorType: ColorType.RGBA_8888, alphaType: AlphaType.Unpremul });
+    small.dispose();
+    if (px == null) return 0;
+    const bytes = px as Uint8Array;
+    let sum = 0;
+    for (let i = 0; i < w * h; i++) sum += bytes[4 * i] + bytes[4 * i + 1] + bytes[4 * i + 2];
+    return sum / (3 * w * h);
+  } finally {
+    surface.dispose();
+  }
 }
 
 interface MaskScratch {

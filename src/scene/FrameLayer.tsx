@@ -14,7 +14,8 @@ import { palette } from '../theme/palette';
 import { bannerRow, type Banner } from './papelPicado';
 import { Gate } from './Gate';
 import { LayerBoundary } from './LayerBoundary';
-import { coverRect, RevealLayer } from './RevealLayer';
+import { RevealLayer } from './RevealLayer';
+import { coverRect } from './revealGeometry';
 
 /**
  * The framed camera: the live mirrored camera inside the cempasuchil garland, with papel picado

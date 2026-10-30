@@ -20,7 +20,11 @@ without its own canvas:
    resolves to PRIVATE, which some devices refuse for image analysis, and YUV hardware buffers imported as black
    frames on the emulator.
 2. On the camera thread, `renderToTexture` draws each frame upright on an offscreen GPU surface: it cancels the
-   sensor rotation and applies the selfie mirror.
+   sensor rotation and applies the selfie mirror. The frame reaches Skia as a GPU texture imported from the camera's
+   hardware buffer; some GPUs return a black texture for that import (the Android emulator does, while its camera
+   delivers images). The first 8 frames are probed: when the GPU copy is black (mean channel value under 2) while
+   the frame's own pixels are lit (over 6), the feed switches to a raster image built from the frame's pixel buffer
+   and draws that instead. The choice is logged once (`[Sendero] camera: gpu frames ...` or `cpu frames ...`).
 3. The result is copied to a CPU image (`makeNonTextureImage`) so it can cross threads, and published to a
    Reanimated shared value with `scheduleOnRN`. A replaced image is disposed a few publishes later, not at once:
    the shared value reaches the UI thread asynchronously, so the canvas may still use the previous image for a

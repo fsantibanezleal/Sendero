@@ -27,3 +27,7 @@
 - One `[Sendero]` line in the system log per touch, visit mark and failing layer.
 - Camera frames are disposed a few publishes after being replaced, and the layers measure the published frame
   size instead of the image: a frame disposed at once could still be read on the UI thread and crash the app.
+- Camera frames that a GPU imports as black textures (the Android emulator) are detected on the first 8 frames and
+  replaced by raster images built from the frames' pixels; the choice and any person-mask failure are logged.
+- Without a person mask, the reveal shows the visitor as a soft-edged portrait left of centre, so the silhouette
+  stays visible behind and beside them; only the variant on screen is drawn.

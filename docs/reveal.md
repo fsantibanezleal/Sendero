@@ -25,6 +25,8 @@ visitor is cut out of the live camera by a person mask.
   0.82 about the bottom centre of the screen (`coverRect`, `personRect`).
 - Compositing: the camera image is drawn into a layer and the mask over it with the `dstIn` blend mode, which keeps the
   camera pixels only where the mask is opaque.
+- A failing mask computation is caught on the camera thread and reported once in the system log
+  (`[Sendero] camera: person mask failed: ...`); the reveal then uses the portrait below.
 - The mask runs only from the start of the walk to the end of the message.
 
 ## Live or still
@@ -37,8 +39,11 @@ The live camera resumes at the return.
 
 ## Without a mask
 
-If the model cannot load on a device, the reveal shows the visitor smaller inside a soft rounded frame, with the
-silhouette glowing larger around it, so the moment still reads as "behind".
+If the model cannot load, or no mask arrives, the reveal shows the visitor as a soft-edged portrait left of centre
+(`PORTRAIT` in `src/scene/revealGeometry.ts`: 40 percent of the width and 58 percent of the height, its right edge at
+54 percent of the width), with the camera image cropped to fill it, so the silhouette (centred at 56.5 percent) stands
+visibly behind and beside the visitor and the moment still reads as "behind". Only the variant on screen is drawn
+(`Gate`).
 
 ## The scene of the reveal
 

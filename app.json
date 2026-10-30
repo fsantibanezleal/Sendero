@@ -43,7 +43,8 @@
       "expo-audio",
       "expo-font",
       "expo-screen-orientation",
-      "./plugins/with-short-native-build"
+      "./plugins/with-short-native-build",
+      "./plugins/with-kiosk"
     ]
   }
 }

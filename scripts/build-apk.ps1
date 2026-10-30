@@ -27,6 +27,12 @@
 .PARAMETER LogFile
   Where the full Gradle output is written (default: dist\gradle-<variant>.log).
 
+.PARAMETER SigningProperties
+  A properties file kept OUTSIDE the repository with SENDERO_UPLOAD_STORE_FILE (absolute, or relative to
+  the properties file), SENDERO_UPLOAD_STORE_PASSWORD, SENDERO_UPLOAD_KEY_ALIAS and
+  SENDERO_UPLOAD_KEY_PASSWORD. Passed to Gradle as ORG_GRADLE_PROJECT_* environment variables (never on
+  the command line). Without it a release is signed with the debug key and the script says so.
+
 .EXAMPLE
   .\scripts\build-apk.ps1 -Abi arm64-v8a,x86_64
 #>
@@ -35,7 +41,8 @@ param(
   [ValidateSet('release', 'debug')][string]$Variant = 'release',
   [switch]$Clean,
   [string]$CxxRoot = $env:SENDERO_CXX_ROOT,
-  [string]$LogFile
+  [string]$LogFile,
+  [string]$SigningProperties
 )
 # Native tools write progress to stderr; Windows PowerShell 5.1 would turn that into errors under 'Stop'.
 # Every native call below checks its exit code instead.
@@ -53,6 +60,26 @@ if (-not $CxxRoot) { throw 'Set -CxxRoot (or SENDERO_CXX_ROOT) to a short folder
 if ($CxxRoot.Length -gt 20) { Write-Warning "CxxRoot '$CxxRoot' is long; keep it under about 20 characters." }
 New-Item -ItemType Directory -Force $CxxRoot | Out-Null
 $env:SENDERO_CXX_ROOT = (Resolve-Path $CxxRoot).Path
+
+$signed = $false
+if ($SigningProperties) {
+  if (-not (Test-Path $SigningProperties)) { throw "Signing properties not found: $SigningProperties" }
+  $propsDir = Split-Path -Parent (Resolve-Path $SigningProperties).Path
+  foreach ($line in Get-Content $SigningProperties) {
+    if ($line -match '^\s*(SENDERO_UPLOAD_[A-Z_]+)\s*=\s*(.+?)\s*$') {
+      $value = $Matches[2]
+      if ($Matches[1] -eq 'SENDERO_UPLOAD_STORE_FILE' -and -not [IO.Path]::IsPathRooted($value)) { $value = Join-Path $propsDir $value }
+      Set-Item -Path "env:ORG_GRADLE_PROJECT_$($Matches[1])" -Value $value
+    }
+  }
+  foreach ($k in 'STORE_FILE', 'STORE_PASSWORD', 'KEY_ALIAS', 'KEY_PASSWORD') {
+    if (-not (Test-Path "env:ORG_GRADLE_PROJECT_SENDERO_UPLOAD_$k")) { throw "SENDERO_UPLOAD_$k missing in $SigningProperties" }
+  }
+  if (-not (Test-Path $env:ORG_GRADLE_PROJECT_SENDERO_UPLOAD_STORE_FILE)) { throw 'The keystore named in the signing properties does not exist.' }
+  $signed = $true
+} elseif ($Variant -eq 'release') {
+  Write-Warning 'No -SigningProperties: the release APK is signed with the DEBUG key (test installs only).'
+}
 
 Push-Location $root
 try {
@@ -81,5 +108,6 @@ try {
   $apk = "android\app\build\outputs\apk\$Variant\app-$Variant.apk"
   $out = "dist\sendero-$version-$Variant-$($Abi -replace ',', '+').apk"
   Copy-Item $apk $out -Force
-  Write-Host "APK: $out ($([math]::Round((Get-Item $out).Length / 1MB, 1)) MB)" -ForegroundColor Green
+  $how = if ($signed) { 'release key' } else { 'debug key' }
+  Write-Host "APK: $out ($([math]::Round((Get-Item $out).Length / 1MB, 1)) MB, signed with the $how)" -ForegroundColor Green
 } finally { Pop-Location }

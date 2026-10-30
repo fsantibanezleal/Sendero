@@ -5,12 +5,14 @@
 # Release signing reads SENDERO_UPLOAD_* Gradle properties when present (see build-apk.ps1).
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
-abi="arm64-v8a"; variant="release"; clean=0
+abi="arm64-v8a"; variant="release"; clean=0; signing=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --abi) abi="$2"; shift 2 ;;
     --variant) variant="$2"; shift 2 ;;
     --clean) clean=1; shift ;;
+    # A properties file kept outside the repository (see build-apk.ps1 -SigningProperties).
+    --signing) signing="$2"; shift 2 ;;
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -22,6 +24,19 @@ major="$(node --version | sed 's/^v//' | cut -d. -f1)"
 # Optional on Linux and macOS: SENDERO_CXX_ROOT moves the native C++ build trees to a short folder
 # (needed on Windows, where the native build passes the 260-character path limit otherwise).
 if [ -n "${SENDERO_CXX_ROOT:-}" ]; then mkdir -p "$SENDERO_CXX_ROOT"; export SENDERO_CXX_ROOT; fi
+
+if [ -n "$signing" ]; then
+  props_dir="$(cd "$(dirname "$signing")" && pwd)"
+  while IFS='=' read -r key value; do
+    key="$(echo "$key" | tr -d '[:space:]')"; value="$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+    case "$key" in
+      SENDERO_UPLOAD_STORE_FILE) case "$value" in /*) ;; *) value="$props_dir/$value" ;; esac; export "ORG_GRADLE_PROJECT_$key=$value" ;;
+      SENDERO_UPLOAD_*) export "ORG_GRADLE_PROJECT_$key=$value" ;;
+    esac
+  done < "$signing"
+elif [ "$variant" = "release" ]; then
+  echo "warning: no --signing file: the release APK is signed with the DEBUG key (test installs only)" >&2
+fi
 
 cd "$root"
 args=(expo prebuild --platform android --no-install)

@@ -44,7 +44,8 @@
       "expo-font",
       "expo-screen-orientation",
       "./plugins/with-short-native-build",
-      "./plugins/with-kiosk"
+      "./plugins/with-kiosk",
+      "./plugins/with-release-signing"
     ]
   }
 }

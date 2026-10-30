@@ -57,3 +57,4 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 local.properties
+pipeline/voice/.venv/

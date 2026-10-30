@@ -1,22 +1,52 @@
 {
   "name": "sendero",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Dia de Muertos kiosk app for Android: a cempasuchil petal path brings a soft silhouette of a loved one to stand behind the visitor on the front camera, with music and a whispered message.",
   "license": "MIT",
   "private": true,
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android"
+    "android": "expo run:android",
+    "typecheck": "tsc --noEmit",
+    "lint": "expo lint",
+    "test": "jest",
+    "gen:assets": "node scripts/gen-asset-index.mjs",
+    "guards": "node scripts/gen-asset-index.mjs --check && python scripts/check_ci_budget.py && python scripts/check_content_standards.py && python scripts/check_repo_integrity.py",
+    "check": "npm run typecheck && npm run lint -- --max-warnings 0 && npm run test -- --ci && npm run guards"
   },
   "dependencies": {
+    "@shopify/react-native-skia": "2.14.0",
     "expo": "~58.0.21",
+    "expo-audio": "~58.0.10",
+    "expo-build-properties": "~58.0.11",
+    "expo-crypto": "~58.0.7",
+    "expo-file-system": "~58.0.13",
+    "expo-font": "~58.0.11",
+    "expo-keep-awake": "~58.0.3",
+    "expo-navigation-bar": "~58.0.4",
+    "expo-screen-orientation": "~58.0.3",
     "expo-status-bar": "~58.0.4",
     "react": "19.3.0",
-    "react-native": "0.88.1"
+    "react-native": "0.88.1",
+    "react-native-fast-tflite": "3.0.1",
+    "react-native-gesture-handler": "~3.3.0",
+    "react-native-nitro-image": "0.15.2",
+    "react-native-nitro-modules": "0.37.1",
+    "react-native-reanimated": "4.7.1",
+    "react-native-vision-camera": "5.2.4",
+    "react-native-vision-camera-resizer": "5.2.4",
+    "react-native-vision-camera-skia": "5.2.4",
+    "react-native-vision-camera-worklets": "5.2.4",
+    "react-native-worklets": "0.13.0"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "^58.0.4",
+    "jest": "^30.5.2",
+    "jest-expo": "^58.0.13",
     "typescript": "~6.0.3"
   }
 }

@@ -1,0 +1,16 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'expo-module-gradle-plugin'
+
+group = 'expo.modules.senderokiosk'
+version = '0.1.0'
+
+android {
+  namespace 'expo.modules.senderokiosk'
+  defaultConfig {
+    // The Expo root project sets minSdk 26 for the app.
+    minSdkVersion 26
+    versionCode 1
+    versionName '0.1.0'
+  }
+}

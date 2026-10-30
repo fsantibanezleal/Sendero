@@ -10,6 +10,7 @@ import { TIMELINE, windowProgress } from '../experience/timeline';
 import type { FlowerAtlas } from '../flowers/atlas';
 import { buildPetalPath } from '../path/petalPath';
 import { palette } from '../theme/palette';
+import { FarewellLayer } from './FarewellLayer';
 import { FiguresLayer } from './FiguresLayer';
 import { FrameLayer } from './FrameLayer';
 import { Gate } from './Gate';
@@ -55,6 +56,7 @@ export function Scene({
   );
   const pathOn = useDerivedValue(() => clock.value >= TIMELINE.path.start && clock.value < TIMELINE.reveal.start);
   const figuresOn = useDerivedValue(() => clock.value >= TIMELINE.family.start && clock.value < TIMELINE.reveal.start);
+  const farewellOn = useDerivedValue(() => clock.value >= TIMELINE.reveal.start - 0.3);
   return (
     <Canvas style={styles.fill}>
       <NightLayer layout={layout} time={time} />
@@ -63,10 +65,15 @@ export function Scene({
           <PathLayer data={path} atlas={atlas} clock={clock} height={H} />
         </LayerBoundary>
       </Gate>
-      <FrameLayer layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} visit={visit} />
+      <FrameLayer layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} />
       <Gate on={figuresOn} width={W} height={H}>
         <LayerBoundary name="figures" resetKey={visit.id}>
           <FiguresLayer visit={visit} layout={layout} path={path} atlas={atlas} clock={clock} time={time} />
+        </LayerBoundary>
+      </Gate>
+      <Gate on={farewellOn} width={W} height={H}>
+        <LayerBoundary name="farewell" resetKey={visit.id}>
+          <FarewellLayer visit={visit} layout={layout} atlas={atlas} clock={clock} time={time} />
         </LayerBoundary>
       </Gate>
       <Bloom layout={layout} clock={clock} />

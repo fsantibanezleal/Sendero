@@ -5,6 +5,18 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ## [Unreleased]
 
+## [0.01.001] - 2026-10-30
+
+### Changed
+- The farewell, after the owner's review ("the final overlay of the frame and the silhouette are messy ... render the
+  silhouettes at the sides of the frames, like resting on it, not overlapping it"): the frame grows from the corner
+  to a stage on the right (60 percent of the screen) with the live camera, and the silhouette stands beside it on the
+  left with one hand resting on the garland; the pet sits at its other side. No person mask is run any more.
+- The staff panel no longer offers the cut-out mode, which the farewell does not use.
+
+### Added
+- One system-log line when the music starts, for each track, for each whisper, and when the music fails to start.
+
 ## [0.01.000] - 2026-10-30
 
 First release: the full altar experience, built as a signed APK for an Android tablet.

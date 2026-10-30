@@ -28,7 +28,18 @@ export interface Layout {
   arrivalHeight: number;
   /** Height of a figure standing at the far end of the path. */
   farHeight: number;
+  /** Where the framed camera stands during the farewell: on the right, so the silhouette fits beside it. */
+  stage: Rect;
+  /** Uniform scale from the full frame to the stage. */
+  stageScale: number;
+  /** The silhouette beside the stage: the centre of its feet, the ground and its height (a person of height 1). */
+  companion: { x: number; ground: number; height: number };
+  /** Where the pet sits, beside the silhouette on the side away from the frame. */
+  petSpot: { x: number; ground: number };
 }
+
+/** Fraction of the screen the frame keeps during the farewell. */
+export const STAGE_FRACTION = 0.6;
 
 /** Fraction of the screen width the mini frame occupies (plan.md section 3: about 34 percent). */
 export const MINI_FRACTION = 0.34;
@@ -44,6 +55,12 @@ export function computeLayout(width: number, height: number): Layout {
     x: width - margin - width * miniScale,
     y: height - margin - height * miniScale,
   };
+  const stage: Rect = {
+    width: width * STAGE_FRACTION,
+    height: height * STAGE_FRACTION,
+    x: width - margin - width * STAGE_FRACTION,
+    y: height * 0.2,
+  };
   // Low enough that the family of six waiting around it fits below the top edge.
   const pathStart = { x: 0.11 * width, y: 0.22 * height };
   const pathEnd = { x: mini.x + 0.02 * width, y: mini.y + 0.62 * mini.height };
@@ -57,6 +74,12 @@ export function computeLayout(width: number, height: number): Layout {
     pathEnd,
     arrivalHeight: 0.92 * mini.height,
     farHeight: 0.92 * mini.height * 0.42,
+    stage,
+    stageScale: STAGE_FRACTION,
+    // Beside the frame on the left, the side the walker came from, standing on the ground a little in front
+    // of the frame's bottom edge; tall enough to reach the frame's side with a hand.
+    companion: { x: stage.x * 0.64, ground: height * 0.94, height: height * 0.74 },
+    petSpot: { x: stage.x * 0.15, ground: height * 0.95 },
   };
 }
 
@@ -71,4 +94,26 @@ export function frameTransform(layout: Layout, k: number): { tx: number; ty: num
   const tx = layout.mini.x * k;
   const ty = layout.mini.y * k;
   return { tx, ty, s };
+}
+
+/** The frame's transform between two placements a and b (k from 0 to 1). */
+function between(a: { tx: number; ty: number; s: number }, b: { tx: number; ty: number; s: number }, k: number) {
+  'worklet';
+  return { tx: a.tx + (b.tx - a.tx) * k, ty: a.ty + (b.ty - a.ty) * k, s: a.s + (b.s - a.s) * k };
+}
+
+/**
+ * Where the frame is at a moment of the visit: full screen while waiting, shrinking to the mini frame
+ * during the walk (`shrink` in [0, 1]), growing from the mini frame to the stage at the arrival
+ * (`arrive`), at the stage for the farewell and the message, and back to full screen at the return
+ * (`back`). Exactly one of the three progress values is between 0 and 1 at a time.
+ */
+export function frameAt(layout: Layout, shrink: number, arrive: number, back: number): { tx: number; ty: number; s: number } {
+  'worklet';
+  const full = { tx: 0, ty: 0, s: 1 };
+  const mini = { tx: layout.mini.x, ty: layout.mini.y, s: layout.miniScale };
+  const stage = { tx: layout.stage.x, ty: layout.stage.y, s: layout.stageScale };
+  if (back > 0) return between(stage, full, back);
+  if (arrive > 0) return between(mini, stage, arrive);
+  return between(full, mini, shrink);
 }

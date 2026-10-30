@@ -1,4 +1,4 @@
-import { computeLayout, frameTransform } from '../layout';
+import { computeLayout, frameAt, frameTransform } from '../layout';
 import { inWindow, phaseAt, TIMELINE, windowProgress } from '../timeline';
 
 describe('timeline', () => {
@@ -63,5 +63,24 @@ describe('layout', () => {
     expect(end.ty).toBeCloseTo(layout.mini.y, 6);
     // The scaled screen corner lands on the mini frame corner.
     expect(end.tx + 1600 * end.s).toBeCloseTo(layout.mini.x + layout.mini.width, 6);
+  });
+
+  it('puts the frame on a stage on the right for the farewell, with room for the silhouette on its left', () => {
+    const { stage, companion, petSpot } = layout;
+    expect(stage.x + stage.width).toBeLessThanOrEqual(1600);
+    expect(stage.y + stage.height).toBeLessThanOrEqual(1000);
+    expect(stage.width / stage.height).toBeCloseTo(1.6, 5);
+    // The silhouette stands left of the frame, the pet further left, both on the screen.
+    expect(companion.x).toBeLessThan(stage.x);
+    expect(companion.x - 0.15 * companion.height).toBeGreaterThan(petSpot.x);
+    expect(petSpot.x).toBeGreaterThan(0);
+    expect(companion.ground - companion.height).toBeGreaterThan(0.1 * 1000);
+    // The frame transform passes through the three placements.
+    expect(frameAt(layout, 0, 0, 0)).toEqual({ tx: 0, ty: 0, s: 1 });
+    expect(frameAt(layout, 1, 0, 0).s).toBeCloseTo(layout.miniScale, 6);
+    const st = frameAt(layout, 1, 1, 0);
+    expect(st.tx).toBeCloseTo(stage.x, 6);
+    expect(st.s).toBeCloseTo(layout.stageScale, 6);
+    expect(frameAt(layout, 1, 1, 1)).toEqual({ tx: 0, ty: 0, s: 1 });
   });
 });

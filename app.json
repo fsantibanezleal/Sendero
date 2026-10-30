@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sendero",
     "slug": "sendero",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "platforms": ["android"],
     "orientation": "default",
     "icon": "./assets/icon.png",

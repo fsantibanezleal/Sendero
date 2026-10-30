@@ -20,7 +20,11 @@ VERBATIM = {
 
 
 def test_messages_are_verbatim():
-    assert {m["id"]: m["text"] for m in MESSAGES} == VERBATIM
+    # The owner's seven, word for word; the rest follow the owner's brief of at least about fifty.
+    by_id = {m["id"]: m["text"] for m in MESSAGES}
+    assert {k: by_id[k] for k in VERBATIM} == VERBATIM
+    assert len(MESSAGES) >= 50
+    assert len(set(by_id.values())) == len(MESSAGES)
 
 
 def good_catalog():

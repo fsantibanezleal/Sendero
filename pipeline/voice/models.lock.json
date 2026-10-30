@@ -1,0 +1,113 @@
+{
+  "es_MX-ald-medium": {
+    "engine": "piper",
+    "files": {
+      "es_MX-ald-medium.onnx": {
+        "bytes": 63201294,
+        "sha256": "019b3803293c93e34a206dd2e53a3889209a514e786fd7144f7b70196c579b63",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/ald/medium/es_MX-ald-medium.onnx"
+      },
+      "es_MX-ald-medium.onnx.json": {
+        "bytes": 4878,
+        "sha256": "5a71498158e04afc8099bfd019c7e87c68eb9d042505a2b1a87e5c1ac2b1a61d",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/ald/medium/es_MX-ald-medium.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset Unlicense"
+  },
+  "es_MX-ald-x_low": {
+    "engine": "piper",
+    "files": {
+      "es_MX-ald-x_low.onnx": {
+        "bytes": 20986952,
+        "sha256": "d8aae54aee9eafb37fb85d6da676facafca31c2d84d11acdca1a5b6dd82b1df6",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/ald/x_low/es_MX-ald-x_low.onnx"
+      },
+      "es_MX-ald-x_low.onnx.json": {
+        "bytes": 4877,
+        "sha256": "5b372adf1f8c8d8f0610b9057fc2df001ad3f5f42cd9d6f853a78bef3f8b0644",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/ald/x_low/es_MX-ald-x_low.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset Unlicense"
+  },
+  "es_MX-claude-high": {
+    "engine": "piper",
+    "files": {
+      "es_MX-claude-high.onnx": {
+        "bytes": 63122309,
+        "sha256": "3ef40a71ea63852cd8ab7e6fa7d2ecdcfa67a0b47c9c48e3f10e02ee02083ea0",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/es_MX-claude-high.onnx"
+      },
+      "es_MX-claude-high.onnx.json": {
+        "bytes": 4963,
+        "sha256": "1afc81f703c0e4cb3b4d7c0dca096b8b54a98806807f0170cf5eb5557723c12d",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_MX/claude/high/es_MX-claude-high.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset Apache-2.0"
+  },
+  "kokoro-ef_dora": {
+    "engine": "kokoro",
+    "files": {
+      "config.json": {
+        "bytes": 2351,
+        "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/config.json"
+      },
+      "kokoro-v1_0.pth": {
+        "bytes": 327212226,
+        "sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/kokoro-v1_0.pth"
+      },
+      "voices/ef_dora.pt": {
+        "bytes": 523420,
+        "sha256": "d9d69b0f8a2b87a345f269d89639f89dfbd1a6c9da0c498ae36dd34afcf35530",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/voices/ef_dora.pt"
+      }
+    },
+    "license": "Apache-2.0 (hexgrad/Kokoro-82M weights and kokoro package)"
+  },
+  "kokoro-em_alex": {
+    "engine": "kokoro",
+    "files": {
+      "config.json": {
+        "bytes": 2351,
+        "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/config.json"
+      },
+      "kokoro-v1_0.pth": {
+        "bytes": 327212226,
+        "sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/kokoro-v1_0.pth"
+      },
+      "voices/em_alex.pt": {
+        "bytes": 523420,
+        "sha256": "5eac53f767c3f31a081918ba531969aea850bed18fe56419b804d642c6973431",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/voices/em_alex.pt"
+      }
+    },
+    "license": "Apache-2.0 (hexgrad/Kokoro-82M weights and kokoro package)"
+  },
+  "kokoro-em_santa": {
+    "engine": "kokoro",
+    "files": {
+      "config.json": {
+        "bytes": 2351,
+        "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/config.json"
+      },
+      "kokoro-v1_0.pth": {
+        "bytes": 327212226,
+        "sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/kokoro-v1_0.pth"
+      },
+      "voices/em_santa.pt": {
+        "bytes": 523430,
+        "sha256": "aa8620cb96cec705823efca0d956a63e158e09ad41aca934d354b7f0778f63cb",
+        "source": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/main/voices/em_santa.pt"
+      }
+    },
+    "license": "Apache-2.0 (hexgrad/Kokoro-82M weights and kokoro package)"
+  }
+}

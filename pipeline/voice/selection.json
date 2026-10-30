@@ -1,0 +1,36 @@
+{
+  "candidates": {
+    "es_MX-ald-medium": {
+      "medianF0Hz": 165.352,
+      "neutralPeriodicity": 0.782
+    },
+    "es_MX-ald-x_low": {
+      "medianF0Hz": 168.728,
+      "neutralPeriodicity": 0.785
+    },
+    "es_MX-claude-high": {
+      "medianF0Hz": 198.348,
+      "neutralPeriodicity": 0.793
+    },
+    "kokoro-ef_dora": {
+      "medianF0Hz": 170.689,
+      "neutralPeriodicity": 0.706
+    },
+    "kokoro-em_alex": {
+      "medianF0Hz": 130.488,
+      "neutralPeriodicity": 0.61
+    },
+    "kokoro-em_santa": {
+      "medianF0Hz": 143.952,
+      "neutralPeriodicity": 0.56
+    }
+  },
+  "chosen": {
+    "hombre": "kokoro-em_alex",
+    "mujer": "es_MX-claude-high"
+  },
+  "rule": {
+    "femaleMinHz": 165.0,
+    "maleMaxHz": 155.0
+  }
+}

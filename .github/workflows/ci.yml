@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Asset index matches the catalogs
+        run: node scripts/gen-asset-index.mjs --check
+
       - name: Typecheck
         run: npm run typecheck
 

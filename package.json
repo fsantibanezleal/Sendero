@@ -11,7 +11,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "test": "jest",
-    "guards": "python scripts/check_ci_budget.py && python scripts/check_content_standards.py && python scripts/check_repo_integrity.py",
+    "gen:assets": "node scripts/gen-asset-index.mjs",
+    "guards": "node scripts/gen-asset-index.mjs --check && python scripts/check_ci_budget.py && python scripts/check_content_standards.py && python scripts/check_repo_integrity.py",
     "check": "npm run typecheck && npm run lint -- --max-warnings 0 && npm run test -- --ci && npm run guards"
   },
   "dependencies": {

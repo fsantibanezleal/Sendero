@@ -18,4 +18,22 @@ export const BUNDLED_TRACKS: BundledTrack[] = [
 
 /** Whispered clips by voice id, then message id. */
 export const VOICE_CLIPS: Record<string, Record<string, number>> = {
+  "hombre": {
+    "m01": require('../../assets/voice/hombre/m01.m4a'),
+    "m02": require('../../assets/voice/hombre/m02.m4a'),
+    "m03": require('../../assets/voice/hombre/m03.m4a'),
+    "m04": require('../../assets/voice/hombre/m04.m4a'),
+    "m05": require('../../assets/voice/hombre/m05.m4a'),
+    "m06": require('../../assets/voice/hombre/m06.m4a'),
+    "m07": require('../../assets/voice/hombre/m07.m4a'),
+  },
+  "mujer": {
+    "m01": require('../../assets/voice/mujer/m01.m4a'),
+    "m02": require('../../assets/voice/mujer/m02.m4a'),
+    "m03": require('../../assets/voice/mujer/m03.m4a'),
+    "m04": require('../../assets/voice/mujer/m04.m4a'),
+    "m05": require('../../assets/voice/mujer/m05.m4a'),
+    "m06": require('../../assets/voice/mujer/m06.m4a'),
+    "m07": require('../../assets/voice/mujer/m07.m4a'),
+  },
 };

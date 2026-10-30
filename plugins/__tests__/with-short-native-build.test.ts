@@ -2,14 +2,17 @@
 const plugin = require('../with-short-native-build');
 
 describe('short native build staging plugin', () => {
-  const gradle = 'allprojects {\n  repositories { google() }\n}\n';
+  const gradle = "rootProject.name = 'Sendero'\ninclude ':app'\n";
 
   it('appends the staging block driven by SENDERO_CXX_ROOT', () => {
     const out: string = plugin.addShortNativeBuild(gradle);
-    expect(out.startsWith('allprojects')).toBe(true);
+    expect(out.startsWith('rootProject.name')).toBe(true);
+    expect(out).toContain('gradle.beforeProject');
+    expect(out).toContain('finalizeDsl');
     expect(out).toContain(plugin.MARKER);
     expect(out).toContain("System.getenv('SENDERO_CXX_ROOT')");
     expect(out).toContain('buildStagingDirectory');
+    expect(out).toContain('-DCMAKE_OBJECT_PATH_MAX=250');
   });
 
   it('is idempotent across repeated prebuilds', () => {

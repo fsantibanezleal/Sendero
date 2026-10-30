@@ -4,8 +4,8 @@ import { MESSAGES } from '../messages';
 jest.mock('../../audio/assets.generated', () => {
   // Metro requires of .m4a files cannot run under Jest: read the generated index as text instead.
   const fs = require('fs');
-  const path = require('path');
-  const text: string = fs.readFileSync(path.join(__dirname, '../../audio/assets.generated.ts'), 'utf8');
+  // Jest runs from the repository root.
+  const text: string = fs.readFileSync('src/audio/assets.generated.ts', 'utf8');
   const clips: Record<string, Record<string, number>> = {};
   let voice = '';
   for (const line of text.split('\n')) {

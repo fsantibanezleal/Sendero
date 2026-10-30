@@ -1,6 +1,6 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
 
-import { applyPrivacy } from './src/config/privacy';
+import { applyPrivacy } from './plugins/privacy';
 
 /**
  * Dynamic config on top of app.json: applies the privacy rule (no INTERNET permission unless

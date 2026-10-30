@@ -1,33 +1,32 @@
+// @ts-check
 /**
  * Privacy rule of the build: the kiosk app never needs the network, so every build blocks the
  * INTERNET permission unless a developer explicitly opts in for a Metro debug session.
  *
- * Kept free of Expo imports so the rule is unit-tested in isolation (see __tests__/privacy.test.ts).
+ * Plain CommonJS because the Expo config loader transpiles only app.config.ts itself; typed by
+ * privacy.d.ts and unit-tested in __tests__/privacy.test.ts.
  */
 
-export const INTERNET_PERMISSION = 'android.permission.INTERNET';
+const INTERNET_PERMISSION = 'android.permission.INTERNET';
 
 /** Environment variable that keeps the network permission for a debug session with Metro. */
-export const DEV_NETWORK_FLAG = 'SENDERO_DEV_NETWORK';
+const DEV_NETWORK_FLAG = 'SENDERO_DEV_NETWORK';
 
-export interface AndroidPermissionConfig {
-  permissions?: string[];
-  blockedPermissions?: string[];
-}
-
-/** True only when the developer set the flag to exactly "1". */
-export function networkAllowed(env: Record<string, string | undefined>): boolean {
+/**
+ * True only when the developer set the flag to exactly "1".
+ * @param {Record<string, string | undefined>} env
+ */
+function networkAllowed(env) {
   return env[DEV_NETWORK_FLAG] === '1';
 }
 
 /**
  * Returns the Android permission block with INTERNET blocked (and never requested) unless the
  * debug flag is set. Other permissions are kept as they are.
+ * @param {{ permissions?: string[], blockedPermissions?: string[] }} android
+ * @param {Record<string, string | undefined>} env
  */
-export function applyPrivacy(
-  android: AndroidPermissionConfig,
-  env: Record<string, string | undefined>,
-): AndroidPermissionConfig {
+function applyPrivacy(android, env) {
   const permissions = (android.permissions ?? []).filter((p) => p !== INTERNET_PERMISSION);
   const blocked = new Set(android.blockedPermissions ?? []);
   if (networkAllowed(env)) {
@@ -37,3 +36,5 @@ export function applyPrivacy(
   }
   return { ...android, permissions, blockedPermissions: [...blocked] };
 }
+
+module.exports = { INTERNET_PERMISSION, DEV_NETWORK_FLAG, networkAllowed, applyPrivacy };

@@ -11,6 +11,12 @@
     "android": {
       "package": "com.faslwork.sendero",
       "permissions": ["android.permission.CAMERA"],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#14102B",
         "foregroundImage": "./assets/android-icon-foreground.png",

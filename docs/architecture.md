@@ -34,7 +34,7 @@ frame -> renderToTexture -> CPU copy -> shared value image  ->  Image layer (cov
 ## Privacy
 
 - Camera frames exist only in memory; nothing is written or sent.
-- The build blocks `android.permission.INTERNET` (`app.config.ts` and `src/config/privacy.ts`). A developer can keep
+- The build blocks `android.permission.INTERNET` (`app.config.ts` and `plugins/privacy.js`). A developer can keep
   it for a Metro debug session with `SENDERO_DEV_NETWORK=1`; it is never requested by the release APK.
 
 ## Screen

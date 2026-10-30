@@ -1,7 +1,7 @@
 """Orchestrator: synthesize, select voices by measured F0, whisper, distance, loudness, encode, write the catalog.
 
 Run from the repository root:  pipeline/voice/.venv/Scripts/python.exe -m pipeline.voice.render
-Environment: SENDERO_MODELS_ROOT (models root), SENDERO_SCRATCH (scratch folder, default: a folder in the system temp).
+Environment: SENDERO_MODELS_ROOT (models root), SENDERO_SCRATCH (scratch folder, required: a folder in the device's temp root, never the system temp).
 """
 from __future__ import annotations
 
@@ -10,7 +10,6 @@ import json
 import os
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import imageio_ffmpeg
@@ -35,7 +34,10 @@ SELECTION_PATH = HERE / "selection.json"
 
 
 def scratch_dir() -> Path:
-    p = Path(os.environ.get("SENDERO_SCRATCH") or Path(tempfile.gettempdir()) / "sendero-voice")
+    value = os.environ.get("SENDERO_SCRATCH")
+    if not value:
+        raise SystemExit("Set SENDERO_SCRATCH to a folder in your temp root, for example <temp root>/sendero-voice.")
+    p = Path(value)
     p.mkdir(parents=True, exist_ok=True)
     return p
 

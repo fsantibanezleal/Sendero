@@ -19,6 +19,9 @@ major="$(node --version | sed 's/^v//' | cut -d. -f1)"
 "${JAVA_HOME:?JAVA_HOME must point to a JDK 17}/bin/java" -version 2>&1 | head -1 | grep -q '"17\.' \
   || { echo "JDK 17 is required for the Android build" >&2; exit 1; }
 : "${ANDROID_HOME:?ANDROID_HOME must point to the Android SDK}"
+# Optional on Linux and macOS: SENDERO_CXX_ROOT moves the native C++ build trees to a short folder
+# (needed on Windows, where the native build passes the 260-character path limit otherwise).
+if [ -n "${SENDERO_CXX_ROOT:-}" ]; then mkdir -p "$SENDERO_CXX_ROOT"; export SENDERO_CXX_ROOT; fi
 
 cd "$root"
 args=(expo prebuild --platform android --no-install)

@@ -37,6 +37,13 @@ npm run check             # typecheck, lint, tests, guards
 scripts/build-apk.sh --abi arm64-v8a,x86_64
 ```
 
+On Windows the native C++ builds pass the 260-character path limit (CMake names object folders after
+the absolute source path, so the repository path appears twice), and ninja fails with
+`mkdir(...): No such file or directory`. Pass a short folder for those build trees:
+`-CxxRoot <temp root>\sx` (or set `SENDERO_CXX_ROOT`); the config plugin
+`plugins/with-short-native-build.js` moves each module's CMake staging folder there. The full Gradle
+output is written to `dist\gradle-<variant>.log`.
+
 The script runs `expo prebuild` (the `android` folder is generated and never committed), then
 `gradlew assembleRelease` with the chosen ABIs, and copies the result to `dist/sendero-<version>-release-<abi>.apk`.
 The first build compiles every native library and takes a long time; later builds are incremental.

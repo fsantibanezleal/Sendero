@@ -43,7 +43,8 @@ silhouette glowing larger around it, so the moment still reads as "behind".
 ## The scene of the reveal
 
 `src/scene/RevealLayer.tsx`: the night between the worlds with slow, warm bokeh lights; the front-view silhouette of
-the same person (about the screen's height, its centre slightly to the right, breathing slowly) with their pet sitting
+the same person (0.82 of the screen's height, standing on the bottom edge so the head stays below the papel picado
+and the top garland, its centre slightly to the right, breathing slowly) with their pet sitting
 to the left; small lights rising around it; the visitor in front. The garland, the papel picado and the candles stay
 around it.
 

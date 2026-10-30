@@ -88,12 +88,13 @@ export function RevealLayer({
   const ghostMain = useDerivedValue(() => {
     const tf: ScreenTransform = { ox: ghostX, oy: ghostGround, h: ghostH, facing: 1 };
     const breath = 0.5 + 0.5 * Math.sin(time.value * 1.25);
-    const path = humanFrontPath(human, tf, breath);
-    if (pet != null) {
-      const pt: ScreenTransform = { ox: W * 0.27, oy: H * 1.0, h: H * 0.62, facing: 1 };
-      path.addPath(petSitPath(pet, pt));
-    }
-    return path;
+    const person = humanFrontPath(human, tf, breath);
+    if (pet == null) return person;
+    const pt: ScreenTransform = { ox: W * 0.27, oy: H * 1.0, h: H * 0.62, facing: 1 };
+    const both = Skia.PathBuilder.Make();
+    both.addPath(person);
+    both.addPath(petSitPath(pet, pt));
+    return both.build();
   });
   const empty = useMemo(() => Skia.Path.Make(), []);
   const ghostFar = useDerivedValue(() => empty);

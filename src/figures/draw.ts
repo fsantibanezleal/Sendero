@@ -8,7 +8,7 @@
  * Body units: H = 1 is the person's height, ground at y = 0, y up, facing +x. A transform maps
  * them to the screen: X = ox + facing * x * h, Y = oy - y * h.
  */
-import { Skia, type SkPath } from '@shopify/react-native-skia';
+import { Skia, type SkPath, type SkPathBuilder } from '@shopify/react-native-skia';
 
 import type { HumanKind, PetKind } from './catalog';
 import { BODY, type HumanPose, type Vec } from './rig';
@@ -35,7 +35,7 @@ function sy(t: ScreenTransform, y: number): number {
 }
 
 /** A closed polygon from flat coordinate arrays, wound clockwise on screen. */
-export function addPolygon(path: SkPath, xs: number[], ys: number[]): void {
+export function addPolygon(path: SkPathBuilder, xs: number[], ys: number[]): void {
   'worklet';
   const n = xs.length;
   if (n < 3) {
@@ -57,7 +57,7 @@ export function addPolygon(path: SkPath, xs: number[], ys: number[]): void {
 }
 
 /** A tapered capsule between two screen points with end radii ra and rb (pixels). */
-export function addCapsule(path: SkPath, ax: number, ay: number, ra: number, bx: number, by: number, rb: number): void {
+export function addCapsule(path: SkPathBuilder, ax: number, ay: number, ra: number, bx: number, by: number, rb: number): void {
   'worklet';
   const dx = bx - ax;
   const dy = by - ay;
@@ -77,7 +77,7 @@ export function addCapsule(path: SkPath, ax: number, ay: number, ra: number, bx:
 }
 
 /** An ellipse rotated by `angle` radians, as a 24-sided polygon. */
-export function addEllipse(path: SkPath, cx: number, cy: number, rx: number, ry: number, angle: number): void {
+export function addEllipse(path: SkPathBuilder, cx: number, cy: number, rx: number, ry: number, angle: number): void {
   'worklet';
   const xs: number[] = [];
   const ys: number[] = [];
@@ -94,13 +94,13 @@ export function addEllipse(path: SkPath, cx: number, cy: number, rx: number, ry:
 }
 
 /** Capsule between two body-unit points with body-unit radii. */
-function limb(path: SkPath, t: ScreenTransform, a: Vec, ra: number, b: Vec, rb: number): void {
+function limb(path: SkPathBuilder, t: ScreenTransform, a: Vec, ra: number, b: Vec, rb: number): void {
   'worklet';
   addCapsule(path, sx(t, a.x), sy(t, a.y), ra * t.h, sx(t, b.x), sy(t, b.y), rb * t.h);
 }
 
 /** Polygon from body-unit coordinates. */
-function poly(path: SkPath, t: ScreenTransform, xs: number[], ys: number[]): void {
+function poly(path: SkPathBuilder, t: ScreenTransform, xs: number[], ys: number[]): void {
   'worklet';
   const px: number[] = [];
   const py: number[] = [];
@@ -111,7 +111,7 @@ function poly(path: SkPath, t: ScreenTransform, xs: number[], ys: number[]): voi
   addPolygon(path, px, py);
 }
 
-function blob(path: SkPath, t: ScreenTransform, c: Vec, rx: number, ry: number, angle: number): void {
+function blob(path: SkPathBuilder, t: ScreenTransform, c: Vec, rx: number, ry: number, angle: number): void {
   'worklet';
   addEllipse(path, sx(t, c.x), sy(t, c.y), rx * t.h, ry * t.h, -t.facing * angle);
 }
@@ -128,14 +128,14 @@ function trunkPoint(pose: HumanPose, along: number, depth: number): Vec {
   };
 }
 
-function legPath(path: SkPath, t: ScreenTransform, leg: HumanPose['near']['leg']): void {
+function legPath(path: SkPathBuilder, t: ScreenTransform, leg: HumanPose['near']['leg']): void {
   'worklet';
   limb(path, t, leg.hip, 0.06, leg.knee, 0.041);
   limb(path, t, leg.knee, 0.04, leg.ankle, 0.025);
   limb(path, t, { x: leg.heel.x, y: leg.heel.y + 0.02 }, 0.021, { x: leg.toe.x, y: leg.toe.y + 0.012 }, 0.012);
 }
 
-function armPath(path: SkPath, t: ScreenTransform, arm: HumanPose['near']['arm']): void {
+function armPath(path: SkPathBuilder, t: ScreenTransform, arm: HumanPose['near']['arm']): void {
   'worklet';
   limb(path, t, arm.shoulder, 0.034, arm.elbow, 0.027);
   limb(path, t, arm.elbow, 0.026, arm.hand, 0.02);
@@ -148,16 +148,16 @@ function armPath(path: SkPath, t: ScreenTransform, arm: HumanPose['near']['arm']
 /** The far-side limbs of a person in profile (drawn dimmer, behind the body). */
 export function humanFarPath(pose: HumanPose, t: ScreenTransform): SkPath {
   'worklet';
-  const path = Skia.Path.Make();
+  const path = Skia.PathBuilder.Make();
   legPath(path, t, pose.far.leg);
   armPath(path, t, pose.far.arm);
-  return path;
+  return path.build();
 }
 
 /** The body, head, near limbs and the clothing that identifies each person, in profile. */
 export function humanMainPath(kind: HumanKind, pose: HumanPose, t: ScreenTransform): SkPath {
   'worklet';
-  const path = Skia.Path.Make();
+  const path = Skia.PathBuilder.Make();
   const broad = kind === 'hombre' || kind === 'abuelo' ? 1.08 : 1;
 
   // Torso: back line up, front line down, in trunk coordinates (along, depth).
@@ -232,7 +232,7 @@ export function humanMainPath(kind: HumanKind, pose: HumanPose, t: ScreenTransfo
     blob(path, t, { x: hx - 0.004, y: hy + 0.056 }, 0.095, 0.016, 0);
     poly(path, t, [hx - 0.045, hx - 0.04, hx + 0.036, hx + 0.042], [hy + 0.06, hy + 0.118, hy + 0.118, hy + 0.06]);
   }
-  return path;
+  return path.build();
 }
 
 /** Leg phases of the lateral-sequence walk: left hind, left fore, right hind, right fore. */
@@ -294,8 +294,8 @@ export function petWalkPaths(kind: PetKind, p: number, t: ScreenTransform): PetP
   const lift = -lowest + 0.012 + bob;
   const tt: ScreenTransform = { ox: t.ox, oy: t.oy - lift * k * t.h, h: t.h * k, facing: t.facing };
 
-  const far = Skia.Path.Make();
-  const main = Skia.Path.Make();
+  const far = Skia.PathBuilder.Make();
+  const main = Skia.PathBuilder.Make();
   for (let i = 0; i < 4; i++) {
     const target = i < 2 ? far : main;
     const leg = legs[i];
@@ -325,7 +325,7 @@ export function petWalkPaths(kind: PetKind, p: number, t: ScreenTransform): PetP
     limb(main, tt, { x: -0.14, y: 0.28 }, 0.022, { x: -0.2, y: 0.37 + wag }, 0.018);
     limb(main, tt, { x: -0.2, y: 0.37 + wag }, 0.018, { x: -0.17, y: 0.46 + wag }, 0.014);
   }
-  return { far, main };
+  return { far: far.build(), main: main.build() };
 }
 
 /** A pet sitting in profile, for the reveal. */
@@ -333,7 +333,7 @@ export function petSitPath(kind: PetKind, t: ScreenTransform): SkPath {
   'worklet';
   const k = PET_SHAPE[kind].scale;
   const tt: ScreenTransform = { ox: t.ox, oy: t.oy, h: t.h * k, facing: t.facing };
-  const path = Skia.Path.Make();
+  const path = Skia.PathBuilder.Make();
   blob(path, tt, { x: -0.05, y: 0.085 }, 0.1, 0.082, 0);
   limb(path, tt, { x: -0.035, y: 0.11 }, 0.08, { x: 0.065, y: 0.27 }, 0.068);
   limb(path, tt, { x: 0.085, y: 0.24 }, 0.026, { x: 0.095, y: 0.012 }, 0.02);
@@ -351,7 +351,7 @@ export function petSitPath(kind: PetKind, t: ScreenTransform): SkPath {
     poly(path, tt, [0.125, 0.146, 0.156], [0.454, 0.508, 0.438]);
     limb(path, tt, { x: -0.13, y: 0.03 }, 0.018, { x: 0.05, y: 0.016 }, 0.012);
   }
-  return path;
+  return path.build();
 }
 
 /**
@@ -360,7 +360,7 @@ export function petSitPath(kind: PetKind, t: ScreenTransform): SkPath {
  */
 export function humanFrontPath(kind: HumanKind, t: ScreenTransform, breath: number): SkPath {
   'worklet';
-  const path = Skia.Path.Make();
+  const path = Skia.PathBuilder.Make();
   const stoop = kind === 'abuela' || kind === 'abuelo' ? 0.02 : 0;
   const sw = (BODY.shoulderWidth / 2) * (kind === 'hombre' || kind === 'abuelo' ? 1.06 : 0.97) * (1 + 0.012 * breath);
   const hw = BODY.hipWidth / 2;
@@ -406,5 +406,5 @@ export function humanFrontPath(kind: HumanKind, t: ScreenTransform, breath: numb
     blob(path, t, { x: 0, y: headY + 0.056 }, 0.11, 0.018, 0);
     poly(path, t, [-0.045, 0.045, 0.04, -0.04], [headY + 0.06, headY + 0.06, headY + 0.12, headY + 0.12]);
   }
-  return path;
+  return path.build();
 }

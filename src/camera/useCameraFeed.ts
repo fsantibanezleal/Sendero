@@ -48,6 +48,8 @@ const MASK_EMA = 0.6;
 const EDGE_LOW = 0.3;
 const EDGE_HIGH = 0.7;
 
+// Metro bundles assets only through a static require().
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const MODEL_SOURCE = require('../../assets/models/selfie_segmenter_landscape.tflite');
 
 interface ModelInfo {

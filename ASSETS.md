@@ -34,11 +34,17 @@ None yet.
 
 ## Models
 
-None yet.
+| File | Source | Licence | Notes |
+|---|---|---|---|
+| `assets/models/selfie_segmenter_landscape.tflite` | MediaPipe Selfie Segmenter, landscape (144 x 256), float16, https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite | Apache License 2.0 (model card: https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Selfie%20Segmentation.pdf) | Person mask for the reveal, computed on the tablet; SHA-256 490e9ea734313e0de10fa0cd9e3c6133e36ea4db2b7a49bde9ef019f72796b8e; authors Tingbo Hou, Siargey Pisarchyk, Karthik Raveendran (Google), 2021 |
 
 ## Fonts
 
-None yet.
+| File | Source | Licence | Notes |
+|---|---|---|---|
+| `assets/fonts/CormorantGaramond-MediumItalic.ttf` | Cormorant, https://github.com/CatharsisFonts/Cormorant (fonts/ttf) | SIL Open Font License 1.1 (`assets/fonts/OFL-Cormorant.txt`) | The remembrance messages; SHA-256 cd32b8503bbd972f67a26ca39ba52ef3926706eb6725975fa7ebf9d105f461c0 |
+| `assets/fonts/CormorantGaramond-SemiBold.ttf` | Cormorant, https://github.com/CatharsisFonts/Cormorant (fonts/ttf) | SIL Open Font License 1.1 (`assets/fonts/OFL-Cormorant.txt`) | The hint and the staff panel titles; SHA-256 de1b7923fbc20ce742f6498d085ad0b64dc3625efbd8bdb2f01dc70e1e7a6edd |
+| `assets/fonts/OFL-Cormorant.txt` | Cormorant repository | SIL Open Font License 1.1 | The licence text, kept with the fonts as the licence requires |
 
 ## Data
 

@@ -16,13 +16,13 @@ export function NightLayer({ layout, time }: { layout: Layout; time: SharedValue
   const stars = useMemo(() => {
     const rng = mulberry32(77);
     const points = poissonDisk({ width: W, height: H * 0.75, rMin: Math.max(18, W * 0.025), rng });
-    const a = Skia.Path.Make();
-    const b = Skia.Path.Make();
+    const a = Skia.PathBuilder.Make();
+    const b = Skia.PathBuilder.Make();
     points.forEach((p, i) => {
       const r = 0.6 + rng() * 1.4;
       (i % 2 === 0 ? a : b).addCircle(p.x, p.y, r);
     });
-    return { a, b };
+    return { a: a.build(), b: b.build() };
   }, [W, H]);
   const twinkleA = useDerivedValue(() => 0.45 + 0.35 * Math.sin(time.value * 0.9));
   const twinkleB = useDerivedValue(() => 0.45 + 0.35 * Math.sin(time.value * 0.9 + Math.PI));

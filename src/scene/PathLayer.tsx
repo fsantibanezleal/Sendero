@@ -28,9 +28,9 @@ export function PathLayer({
   height: number;
 }) {
   const guide = useMemo(() => {
-    const p = Skia.Path.Make();
+    const p = Skia.PathBuilder.Make();
     data.polyline.forEach((pt, i) => (i === 0 ? p.moveTo(pt.x, pt.y) : p.lineTo(pt.x, pt.y)));
-    return p;
+    return p.build();
   }, [data]);
 
   const n = data.petals.length;

@@ -230,7 +230,7 @@ function Stepper({ label, value, onChange }: { label: string; value: number; onC
 }
 
 const styles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(20, 16, 43, 0.92)', alignItems: 'center', justifyContent: 'center' },
+  backdrop: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, backgroundColor: 'rgba(20, 16, 43, 0.92)', alignItems: 'center', justifyContent: 'center' },
   card: { maxHeight: '92%', width: '62%', backgroundColor: palette.deepViolet, borderRadius: 18, padding: 20 },
   cardContent: { paddingBottom: 12 },
   title: { fontFamily: FONT_TITLE, fontSize: 34, color: palette.marigoldLight, marginBottom: 8 },

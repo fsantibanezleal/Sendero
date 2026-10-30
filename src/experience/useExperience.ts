@@ -96,7 +96,7 @@ export function useExperience(events: ExperienceEvents): Experience {
       pathSeed: Math.floor(Math.random() * 2 ** 31),
     };
     setVisit(v);
-    clock.value = 0;
+    clock.set(0);
 
     const at = (seconds: number, fn: () => void) => {
       timers.current.push(setTimeout(fn, seconds * 1000));
@@ -110,7 +110,7 @@ export function useExperience(events: ExperienceEvents): Experience {
       eventsRef.current.onMask(false);
     });
     at(TIMELINE.total, () => {
-      clock.value = -1;
+      clock.set(-1);
       running.current = false;
       timers.current = [];
       setVisit(null);

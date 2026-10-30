@@ -4,7 +4,7 @@
  * a border of small diamonds and a central flower, mirrored left to right as if the paper had been
  * folded before cutting. No skulls (research-culture D3 rule 1: calm, never grotesque).
  */
-import { FillType, Skia, type SkPath } from '@shopify/react-native-skia';
+import { FillType, Skia, type SkPath, type SkPathBuilder } from '@shopify/react-native-skia';
 
 import { palette } from '../theme/palette';
 
@@ -22,11 +22,11 @@ export interface Banner {
   path: SkPath;
 }
 
-function addCircleHole(path: SkPath, cx: number, cy: number, r: number) {
+function addCircleHole(path: SkPathBuilder, cx: number, cy: number, r: number) {
   path.addCircle(cx, cy, r);
 }
 
-function addDiamond(path: SkPath, cx: number, cy: number, rx: number, ry: number) {
+function addDiamond(path: SkPathBuilder, cx: number, cy: number, rx: number, ry: number) {
   path.moveTo(cx, cy - ry);
   path.lineTo(cx + rx, cy);
   path.lineTo(cx, cy + ry);
@@ -36,7 +36,7 @@ function addDiamond(path: SkPath, cx: number, cy: number, rx: number, ry: number
 
 /** The outline and holes of one banner, in its own frame (top-left at the origin). */
 export function bannerPath(w: number, h: number): SkPath {
-  const path = Skia.Path.Make();
+  const path = Skia.PathBuilder.Make();
   path.setFillType(FillType.EvenOdd);
   // Outline with a scalloped lower edge.
   const scallops = 7;
@@ -81,7 +81,7 @@ export function bannerPath(w: number, h: number): SkPath {
     addDiamond(path, cx + side * R * 1.3, cy + R * 0.55, R * 0.22, R * 0.12);
     addDiamond(path, cx + side * R * 1.3, cy - R * 0.55, R * 0.22, R * 0.12);
   }
-  return path;
+  return path.build();
 }
 
 /** A string of banners across a width, starting at y. */

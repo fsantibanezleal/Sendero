@@ -6,10 +6,10 @@ import type { CameraFeed } from '../camera/useCameraFeed';
 import type { Layout } from '../experience/layout';
 import { frameTransform } from '../experience/layout';
 import type { Visit } from '../experience/useExperience';
-import { TIMELINE } from '../experience/timeline';
+import { TIMELINE, windowProgress } from '../experience/timeline';
 import { CELL, type FlowerAtlas, HEAD_VARIANTS, LEAF_VARIANTS } from '../flowers/atlas';
 import { garlandSprites } from '../flowers/garland';
-import { easeInOutCubic, easeOutCubic, smoothstep, windowProgress } from '../procedural';
+import { easeInOutCubic, easeOutCubic, smoothstep } from '../procedural';
 import { palette } from '../theme/palette';
 import { bannerRow, type Banner } from './papelPicado';
 import { coverRect, RevealLayer } from './RevealLayer';
@@ -122,7 +122,7 @@ function PapelPicado({ banner, time }: { banner: Banner; time: SharedValue<numbe
 
 /** A veladora: a cream candle, a flickering flame and its warm glow (research-visuals D3 item 7). */
 function Candle({ x, y, size, time, phase }: { x: number; y: number; size: number; time: SharedValue<number>; phase: number }) {
-  const body = useMemo(() => rrect(Skia.XYWHRect(x - size * 0.16, y - size * 0.1, size * 0.32, size * 0.5), size * 0.05, size * 0.05), [x, y, size]);
+  const body = useMemo(() => Skia.Path.RRect(rrect(Skia.XYWHRect(x - size * 0.16, y - size * 0.1, size * 0.32, size * 0.5), size * 0.05, size * 0.05)), [x, y, size]);
   const flicker = useDerivedValue(() => {
     const t = time.value + phase;
     return 1 + 0.06 * Math.sin(t * 7.3) + 0.04 * Math.sin(t * 11.9) + 0.03 * Math.sin(t * 17.1);
@@ -133,12 +133,12 @@ function Candle({ x, y, size, time, phase }: { x: number; y: number; size: numbe
     const fy = y - size * 0.12;
     const h = size * 0.34 * f;
     const w = size * 0.075;
-    const p = Skia.Path.Make();
+    const p = Skia.PathBuilder.Make();
     p.moveTo(fx, fy - h);
     p.cubicTo(fx + w * 1.4, fy - h * 0.45, fx + w, fy, fx, fy);
     p.cubicTo(fx - w, fy, fx - w * 1.4, fy - h * 0.45, fx, fy - h);
     p.close();
-    return p;
+    return p.build();
   });
   const glowR = useDerivedValue(() => size * 1.1 * flicker.value);
   const glowOpacity = useDerivedValue(() => 0.5 * flicker.value);

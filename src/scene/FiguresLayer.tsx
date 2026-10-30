@@ -78,9 +78,9 @@ export function FiguresLayer({
   // The group standing at the far end (all but the chosen one fade when the walk starts).
   const gathered = useDerivedValue(() => {
     const t = clock.value;
-    const main = Skia.Path.Make();
-    const back = Skia.Path.Make();
-    if (t < TIMELINE.gather.start || t >= TIMELINE.othersFade.end) return { main, back };
+    const main = Skia.PathBuilder.Make();
+    const back = Skia.PathBuilder.Make();
+    if (t < TIMELINE.gather.start || t >= TIMELINE.othersFade.end) return { main: main.build(), back: back.build() };
     for (let i = 1; i < gather.length; i++) {
       const g = gather[i];
       const h = far * g.spot.k;
@@ -95,7 +95,7 @@ export function FiguresLayer({
         back.addPath(pet.far);
       }
     }
-    return { main, back };
+    return { main: main.build(), back: back.build() };
   });
   const gatheredMain = useDerivedValue(() => gathered.value.main);
   const gatheredFar = useDerivedValue(() => gathered.value.back);
@@ -110,10 +110,10 @@ export function FiguresLayer({
   // The chosen one: standing at the start during the gathering, then walking.
   const walker = useDerivedValue(() => {
     const t = clock.value;
-    const main = Skia.Path.Make();
-    const back = Skia.Path.Make();
+    const main = Skia.PathBuilder.Make();
+    const back = Skia.PathBuilder.Make();
     if (t < TIMELINE.gather.start || t >= TIMELINE.reveal.start) {
-      return { main, back, x: start.x, y: start.y, h: far };
+      return { main: main.build(), back: back.build(), x: start.x, y: start.y, h: far };
     }
     const u = easeInOutSine(windowProgress(t, TIMELINE.walk));
     const s = u * table.total;
@@ -143,7 +143,7 @@ export function FiguresLayer({
       main.addPath(pet.main);
       back.addPath(pet.far);
     }
-    return { main, back, x: p.x, y: p.y, h };
+    return { main: main.build(), back: back.build(), x: p.x, y: p.y, h };
   });
   const walkerMain = useDerivedValue(() => walker.value.main);
   const walkerFar = useDerivedValue(() => walker.value.back);

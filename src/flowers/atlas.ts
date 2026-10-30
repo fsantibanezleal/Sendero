@@ -28,12 +28,13 @@ function cell(col: number, row: number): SkRect {
   return Skia.XYWHRect(col * CELL, row * CELL, CELL, CELL);
 }
 
-function polygonPath(xs: number[], ys: number[]) {
-  const p = Skia.Path.Make();
+function polygonPath(xs: number[], ys: number[], m?: ReturnType<typeof Skia.Matrix>) {
+  const p = Skia.PathBuilder.Make();
   p.moveTo(xs[0], ys[0]);
   for (let i = 1; i < xs.length; i++) p.lineTo(xs[i], ys[i]);
   p.close();
-  return p;
+  if (m) p.transform(m);
+  return p.build();
 }
 
 function drawHead(canvas: SkCanvas, cx: number, cy: number, radius: number, seed: number) {
@@ -65,13 +66,12 @@ function drawHead(canvas: SkCanvas, cx: number, cy: number, radius: number, seed
     const L = f.length * radius;
     const W = f.width * radius;
     const { xs, ys } = liguleOutline(L, W);
-    const path = polygonPath(xs, ys);
     const bx = cx + f.x * radius;
     const by = cy + f.y * radius;
     const m = Skia.Matrix();
     m.translate(bx, by);
     m.rotate(f.angle);
-    path.transform(m);
+    const path = polygonPath(xs, ys, m);
     const fill = Skia.Paint();
     fill.setAntiAlias(true);
     const tipX = bx + Math.cos(f.angle) * L;
@@ -128,10 +128,9 @@ export function bakeFlowerAtlas(): FlowerAtlas {
     const L = CELL * randRange(rng, 0.62, 0.72);
     const W = CELL * randRange(rng, 0.42, 0.5);
     const { xs, ys } = liguleOutline(L, W, 3);
-    const path = polygonPath(xs, ys);
     const m = Skia.Matrix();
     m.translate(r.x + CELL / 2 - L / 2, r.y + CELL / 2);
-    path.transform(m);
+    const path = polygonPath(xs, ys, m);
     const fill = Skia.Paint();
     fill.setAntiAlias(true);
     fill.setShader(
@@ -162,12 +161,12 @@ export function bakeFlowerAtlas(): FlowerAtlas {
       const lx = cx + t * span;
       const size = CELL * (0.11 - 0.025 * Math.abs(t));
       for (const side of [-1, 1]) {
-        const p = Skia.Path.Make();
+        const p = Skia.PathBuilder.Make();
         p.moveTo(lx, cy);
         p.quadTo(lx + size * 0.4, cy + side * size * 0.9, lx + size * 1.1, cy + side * size * 0.25);
         p.quadTo(lx + size * 0.5, cy + side * size * 0.15, lx, cy);
         p.close();
-        canvas.drawPath(p, leaf);
+        canvas.drawPath(p.build(), leaf);
       }
     }
     const rib = Skia.Paint();

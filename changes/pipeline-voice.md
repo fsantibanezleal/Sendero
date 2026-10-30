@@ -1,0 +1,1 @@
+- Offline voice pipeline (`pipeline/voice`): whispered, distant clips of the seven remembrance messages in a woman's voice (Piper `es_MX-claude-high`) and a man's voice (Kokoro-82M `em_alex`), chosen by measured F0, with `assets/voice/catalog.json`, 14 `.m4a` clips at -20 LUFS, the whisper conversion by LPC resynthesis and `docs/voice.md`.

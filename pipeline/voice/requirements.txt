@@ -1,0 +1,11 @@
+piper-tts==1.8.0
+numpy==2.5.4
+scipy==1.18.1
+librosa==1.0.0
+soundfile==0.14.0
+pyloudnorm==0.2.0
+imageio-ffmpeg==0.7.0
+pytest==9.2.0
+# Kokoro-82M (Spanish male voice): installed after the lines above, CPU wheel of torch first:
+#   uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   uv pip install kokoro==0.9.4

@@ -1,0 +1,218 @@
+{
+  "items": [
+    {
+      "composer": {
+        "deathYear": null,
+        "name": "Traditional",
+        "note": "Mexican folk song of obscure origin; the Henestrosa verses date from about 1941, after this 1917 recording",
+        "source": "https://en.wikipedia.org/wiki/La_Llorona_(song)",
+        "traditional": true
+      },
+      "id": "llorona-1917",
+      "identifier": "loc-jukebox-23117-la-llorona",
+      "include": true,
+      "instrumental": false,
+      "performer": "Carmen García Cornejo with Miguel Lerdo de Tejada",
+      "reason": "traditional composition, published 1917",
+      "title": "La llorona",
+      "year": 1917
+    },
+    {
+      "composer": {
+        "deathYear": 1957,
+        "name": "Quirino Mendoza y Cortés",
+        "source": "https://en.wikipedia.org/wiki/Cielito_Lindo",
+        "traditional": false
+      },
+      "id": "cielito-lindo-1919",
+      "identifier": "loc-jukebox-32729-cielito-lindo",
+      "include": false,
+      "instrumental": false,
+      "performer": "Trío González",
+      "reason": "composer Quirino Mendoza y Cortés died 1957; Mexican term (life plus 100 years) runs to 2057",
+      "title": "Cielito lindo",
+      "year": 1919
+    },
+    {
+      "composer": {
+        "deathYear": 1910,
+        "name": "Narciso Serradell",
+        "note": "composition identified from the title and the Mexican genre tag; the item metadata does not name the composer",
+        "source": "https://en.wikipedia.org/wiki/La_golondrina",
+        "traditional": false
+      },
+      "id": "golondrinas-1920",
+      "identifier": "loc-jukebox-36709-las-golondrinas",
+      "include": true,
+      "instrumental": true,
+      "performer": "Luis Alfonso Marrón",
+      "reason": "composer Narciso Serradell died 1910 (before 1926), published 1920 (before 1931)",
+      "title": "Las golondrinas",
+      "year": 1920
+    },
+    {
+      "composer": {
+        "deathYear": null,
+        "name": null,
+        "note": "Ecuadorian Spanish recording; the composition (Serradell or a Becquer setting) cannot be told from the metadata",
+        "traditional": false
+      },
+      "id": "golondrinas-1917-teran",
+      "identifier": "loc-jukebox-192292-las-golondrinas",
+      "include": false,
+      "instrumental": false,
+      "performer": "María Terán de Peralta",
+      "reason": "composer not named in the Internet Archive or Library of Congress metadata and not identified from a cited source; excluded",
+      "title": "Las golondrinas",
+      "year": 1917
+    },
+    {
+      "composer": {
+        "deathYear": null,
+        "name": null,
+        "note": "Becquer-text song; composer not named in the metadata",
+        "traditional": false
+      },
+      "id": "golondrinas-de-becker-1908",
+      "identifier": "loc-jukebox-258026-las-golondrinas-de-becker",
+      "include": false,
+      "instrumental": false,
+      "performer": "Jesús Abrego and Leopoldo Picazo",
+      "reason": "composer not named in the Internet Archive or Library of Congress metadata and not identified from a cited source; excluded",
+      "title": "Las golondrinas de Becker",
+      "year": 1908
+    },
+    {
+      "composer": {
+        "deathYear": null,
+        "name": null,
+        "note": "Cuban recording; the composition is not identified in the metadata (probably Cielito lindo, protected)",
+        "traditional": false
+      },
+      "id": "cielito-1921",
+      "identifier": "loc-jukebox-8001-cielito",
+      "include": false,
+      "instrumental": true,
+      "performer": "Orquesta Tata Pereira",
+      "reason": "composer not named in the Internet Archive or Library of Congress metadata and not identified from a cited source; excluded",
+      "title": "Cielito",
+      "year": 1921
+    },
+    {
+      "composer": {
+        "deathYear": 1894,
+        "name": "Juventino Rosas",
+        "note": "named as creator in the Internet Archive metadata",
+        "source": "https://en.wikipedia.org/wiki/Juventino_Rosas",
+        "traditional": false
+      },
+      "id": "sobre-las-olas-1904",
+      "identifier": "loc-jukebox-120146-sobre-las-olas",
+      "include": true,
+      "instrumental": true,
+      "performer": "Victor Dance Orchestra",
+      "reason": "composer Juventino Rosas died 1894 (before 1926), published 1904 (before 1931)",
+      "title": "Sobre las olas",
+      "year": 1904
+    },
+    {
+      "composer": {
+        "deathYear": null,
+        "name": null,
+        "note": "medley of national airs; composers not named in the metadata",
+        "traditional": false
+      },
+      "id": "aires-nacionales-1908",
+      "identifier": "loc-jukebox-257162-aires-nacionales-mexicanos",
+      "include": false,
+      "instrumental": true,
+      "performer": "Banda de Artillería de México",
+      "reason": "composer not named in the Internet Archive or Library of Congress metadata and not identified from a cited source; excluded",
+      "title": "Aires nacionales mexicanos",
+      "year": 1908
+    },
+    {
+      "composer": {
+        "deathYear": null,
+        "name": null,
+        "note": "not named in the Internet Archive metadata",
+        "traditional": false
+      },
+      "id": "ultimo-adios-1907",
+      "identifier": "loc-jukebox-6594-el-ltimo-adi-s",
+      "include": false,
+      "instrumental": false,
+      "performer": "Jesús Abrego and Leopoldo Picazo",
+      "reason": "composer not named in the Internet Archive or Library of Congress metadata and not identified from a cited source; excluded",
+      "title": "El último adiós",
+      "year": 1907
+    },
+    {
+      "composer": {
+        "deathYear": null,
+        "name": null,
+        "note": "not named in the Internet Archive metadata",
+        "traditional": false
+      },
+      "id": "adios-a-guaymas-1920",
+      "identifier": "loc-jukebox-35392-adi-s-a-guaymas",
+      "include": false,
+      "instrumental": false,
+      "performer": "Trío González",
+      "reason": "composer not named in the Internet Archive or Library of Congress metadata and not identified from a cited source; excluded",
+      "title": "Adiós a Guaymas",
+      "year": 1920
+    },
+    {
+      "composer": {
+        "deathYear": null,
+        "name": null,
+        "note": "not named in the Internet Archive metadata",
+        "traditional": false
+      },
+      "id": "adios-para-siempre-1917",
+      "identifier": "loc-jukebox-23564-adi-s-para-siempre",
+      "include": false,
+      "instrumental": false,
+      "performer": "Carmen García Cornejo with Miguel Lerdo de Tejada",
+      "reason": "composer not named in the Internet Archive or Library of Congress metadata and not identified from a cited source; excluded",
+      "title": "Adiós para siempre",
+      "year": 1917
+    },
+    {
+      "composer": {
+        "deathYear": null,
+        "name": null,
+        "note": "not named in the Internet Archive metadata",
+        "traditional": false
+      },
+      "id": "adios-a-mi-amada-1905",
+      "identifier": "loc-jukebox-6217-adi-s-mi-amada",
+      "include": false,
+      "instrumental": false,
+      "performer": "Leopoldo Picazo and Jesús Abrego",
+      "reason": "composer not named in the Internet Archive or Library of Congress metadata and not identified from a cited source; excluded",
+      "title": "Adiós a mi amada",
+      "year": 1905
+    },
+    {
+      "composer": {
+        "deathYear": 1921,
+        "name": "Ivan Caryll",
+        "note": "named as creator in the Internet Archive metadata",
+        "source": "https://en.wikipedia.org/wiki/Ivan_Caryll",
+        "traditional": false
+      },
+      "id": "adios-muchachas-1915",
+      "identifier": "loc-jukebox-15477-adi-s-muchachas",
+      "include": true,
+      "instrumental": true,
+      "performer": "Marimba Azul y Blanco",
+      "reason": "composer Ivan Caryll died 1921 (before 1926), published 1915 (before 1931)",
+      "title": "¡Adiós, muchachas!",
+      "year": 1915
+    }
+  ],
+  "rule": "traditional, or composer died before 1926 and published before 1931; unknown composers excluded",
+  "version": 1
+}

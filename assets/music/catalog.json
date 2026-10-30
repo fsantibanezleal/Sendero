@@ -1,0 +1,69 @@
+{
+  "tracks": [
+    {
+      "composer": "Traditional",
+      "credit": "Library of Congress National Jukebox",
+      "durationSec": 176.1,
+      "file": "llorona-1917.m4a",
+      "id": "llorona-1917",
+      "instrumental": false,
+      "license": "Public Domain Mark 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "loudnessLufs": -16.01,
+      "performer": "Carmen García Cornejo with Miguel Lerdo de Tejada",
+      "source": "https://archive.org/details/loc-jukebox-23117-la-llorona",
+      "title": "La llorona",
+      "truePeakDbtp": -1.2,
+      "year": 1917
+    },
+    {
+      "composer": "Narciso Serradell",
+      "credit": "Library of Congress National Jukebox",
+      "durationSec": 152.8,
+      "file": "golondrinas-1920.m4a",
+      "id": "golondrinas-1920",
+      "instrumental": true,
+      "license": "Public Domain Mark 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "loudnessLufs": -16.06,
+      "performer": "Luis Alfonso Marrón",
+      "source": "https://archive.org/details/loc-jukebox-36709-las-golondrinas",
+      "title": "Las golondrinas",
+      "truePeakDbtp": -1.2,
+      "year": 1920
+    },
+    {
+      "composer": "Juventino Rosas",
+      "credit": "Library of Congress National Jukebox",
+      "durationSec": 224.7,
+      "file": "sobre-las-olas-1904.m4a",
+      "id": "sobre-las-olas-1904",
+      "instrumental": true,
+      "license": "Public Domain Mark 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "loudnessLufs": -16.0,
+      "performer": "Victor Dance Orchestra",
+      "source": "https://archive.org/details/loc-jukebox-120146-sobre-las-olas",
+      "title": "Sobre las olas",
+      "truePeakDbtp": -1.42,
+      "year": 1904
+    },
+    {
+      "composer": "Ivan Caryll",
+      "credit": "Library of Congress National Jukebox",
+      "durationSec": 224.0,
+      "file": "adios-muchachas-1915.m4a",
+      "id": "adios-muchachas-1915",
+      "instrumental": true,
+      "license": "Public Domain Mark 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "loudnessLufs": -16.06,
+      "performer": "Marimba Azul y Blanco",
+      "source": "https://archive.org/details/loc-jukebox-15477-adi-s-muchachas",
+      "title": "¡Adiós, muchachas!",
+      "truePeakDbtp": -1.16,
+      "year": 1915
+    }
+  ],
+  "version": 1
+}

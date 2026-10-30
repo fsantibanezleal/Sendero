@@ -38,7 +38,9 @@ export function FarewellLayer({
   const { companion, petSpot, stage, stageScale, band } = layout;
 
   // As tall as a person beside the frame, with the head and any hat below the top of the screen.
-  const ghostH = Math.min(companion.height, (companion.ground - 0.1 * H) / silhouetteTop(look));
+  // Computed here, on the JS thread: the UI-thread callbacks below may only call worklets.
+  const topFactor = silhouetteTop(look);
+  const ghostH = Math.min(companion.height, (companion.ground - 0.1 * H) / topFactor);
   // The hand rests on the garland along the frame's left side, below the middle, the elbow bent.
   const rest = useMemo(
     () => ({ x: stage.x + band * stageScale * 0.35, y: stage.y + stage.height * 0.66 }),
@@ -75,7 +77,7 @@ export function FarewellLayer({
   });
   const ghostFar = useDerivedValue(() => empty);
   const ghostOpacity = useDerivedValue(() => appear.value * (0.84 + 0.08 * Math.sin(time.value * 1.25)));
-  const ghostTop = useDerivedValue(() => companion.ground - ghostH * silhouetteTop(look));
+  const ghostTop = useDerivedValue(() => companion.ground - ghostH * topFactor);
   const ghostBottom = useDerivedValue(() => companion.ground - ghostH * 0.1);
   const ghostGlow = useDerivedValue(() => H * 0.04 + (1 - appear.value) * H * 0.06);
 

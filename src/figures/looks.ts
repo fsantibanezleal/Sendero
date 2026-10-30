@@ -215,6 +215,7 @@ export function describePet(p: PetLook): string {
  * the hair above the head (draw.ts).
  */
 export function silhouetteTop(look: Look): number {
+  'worklet';
   const hat =
     look.headwear === 'sombrero' ? 0.08 : look.headwear === 'texana' || look.headwear === 'fedora' || look.headwear === 'palma' ? 0.068 : look.headwear === 'gorra' || look.headwear === 'boina' ? 0.025 : 0;
   const hair = look.hair === 'curly' ? 0.03 : look.hair === 'bun' || look.hair === 'pompadour' ? 0.038 : 0;

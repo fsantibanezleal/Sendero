@@ -1,0 +1,167 @@
+import { Circle, Group, Image, RadialGradient, rrect, Skia, type SkImage, vec } from '@shopify/react-native-skia';
+import { useMemo } from 'react';
+import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
+
+import type { CameraFeed } from '../camera/useCameraFeed';
+import type { Layout } from '../experience/layout';
+import type { Visit } from '../experience/useExperience';
+import { TIMELINE } from '../experience/timeline';
+import type { FlowerAtlas } from '../flowers/atlas';
+import { humanFrontPath, petSitPath, type ScreenTransform } from '../figures/draw';
+import { mulberry32, smoothstep } from '../procedural';
+import { palette } from '../theme/palette';
+import { Ghost } from './Ghost';
+import { NightLayer } from './NightLayer';
+import { Sparkles } from './Sparkles';
+
+/** The visitor is shown smaller in the reveal (plan.md section 3). */
+export const PERSON_SCALE = 0.82;
+
+export interface CoverRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** The rectangle an image of size iw x ih covers when cropped to fill W x H. */
+export function coverRect(iw: number, ih: number, W: number, H: number): CoverRect {
+  'worklet';
+  if (iw <= 0 || ih <= 0) return { x: 0, y: 0, width: W, height: H };
+  const s = Math.max(W / iw, H / ih);
+  const width = iw * s;
+  const height = ih * s;
+  return { x: (W - width) / 2, y: (H - height) / 2, width, height };
+}
+
+/** The cover rectangle shrunk about the bottom centre of the screen. */
+export function personRect(r: CoverRect, W: number, H: number, k: number): CoverRect {
+  'worklet';
+  return {
+    x: W / 2 + (r.x - W / 2) * k,
+    y: H + (r.y - H) * k,
+    width: r.width * k,
+    height: r.height * k,
+  };
+}
+
+/**
+ * The magic (plan.md section 3, REVEAL): the night between the worlds, the soft front-view
+ * silhouette of the same person standing behind the visitor (with their pet sitting beside), and
+ * the visitor in front, cut out of the live camera by the person mask and shown smaller. Without a
+ * mask (model unavailable), the visitor is shown smaller inside a soft rounded frame, with the
+ * silhouette glowing around it.
+ */
+export function RevealLayer({
+  visit,
+  layout,
+  feed,
+  atlas,
+  clock,
+  time,
+}: {
+  visit: Visit;
+  layout: Layout;
+  feed: CameraFeed;
+  atlas: FlowerAtlas;
+  clock: SharedValue<number>;
+  time: SharedValue<number>;
+}) {
+  const { width: W, height: H } = layout.screen;
+  const human = visit.group.human;
+  const pet = visit.group.pet;
+
+  const bokeh = useMemo(() => {
+    const rng = mulberry32(visit.id * 31 + 5);
+    return new Array(9).fill(0).map(() => ({
+      x: rng() * W,
+      y: H * (0.25 + rng() * 0.7),
+      r: H * (0.05 + rng() * 0.09),
+      phase: rng() * 6.28,
+    }));
+  }, [visit.id, W, H]);
+
+  const ghostH = H * 0.98;
+  const ghostX = W * 0.565;
+  const ghostGround = H * 1.02;
+  const appear = useDerivedValue(() => smoothstep(TIMELINE.reveal.start, TIMELINE.reveal.start + 1.6, clock.value));
+  const ghostMain = useDerivedValue(() => {
+    const tf: ScreenTransform = { ox: ghostX, oy: ghostGround, h: ghostH, facing: 1 };
+    const breath = 0.5 + 0.5 * Math.sin(time.value * 1.25);
+    const path = humanFrontPath(human, tf, breath);
+    if (pet != null) {
+      const pt: ScreenTransform = { ox: W * 0.27, oy: H * 1.0, h: H * 0.62, facing: 1 };
+      path.addPath(petSitPath(pet, pt));
+    }
+    return path;
+  });
+  const empty = useMemo(() => Skia.Path.Make(), []);
+  const ghostFar = useDerivedValue(() => empty);
+  const ghostOpacity = useDerivedValue(() => appear.value * (0.82 + 0.08 * Math.sin(time.value * 1.25)));
+  const ghostTop = useDerivedValue(() => ghostGround - ghostH);
+  const ghostBottom = useDerivedValue(() => ghostGround - ghostH * 0.1);
+  const ghostGlow = useDerivedValue(() => H * 0.05 + (1 - appear.value) * H * 0.08);
+
+  // Camera and mask share one rectangle, so the cut-out lines up with the visitor.
+  const rect = useDerivedValue(() => {
+    const img = feed.image.value as SkImage | null;
+    const r = coverRect(img?.width() ?? W, img?.height() ?? H, W, H);
+    return personRect(r, W, H, PERSON_SCALE);
+  });
+  const rx = useDerivedValue(() => rect.value.x);
+  const ry = useDerivedValue(() => rect.value.y);
+  const rw = useDerivedValue(() => rect.value.width);
+  const rh = useDerivedValue(() => rect.value.height);
+  const hasMask = useDerivedValue(() => (feed.mask.value != null ? 1 : 0));
+  const noMask = useDerivedValue(() => 1 - hasMask.value);
+  const fallbackClip = useMemo(() => {
+    const fw = W * PERSON_SCALE * 0.78;
+    const fh = H * PERSON_SCALE * 0.86;
+    return rrect(Skia.XYWHRect((W - fw) / 2, H - fh - H * 0.04, fw, fh), H * 0.05, H * 0.05);
+  }, [W, H]);
+
+  const sparkX = useDerivedValue(() => ghostX);
+  const sparkY = useDerivedValue(() => H * 0.55);
+  const sparkSpread = useDerivedValue(() => W * 0.25);
+  const sparkSize = useDerivedValue(() => H * 0.03);
+
+  return (
+    <Group>
+      <NightLayer layout={layout} time={time} />
+      {bokeh.map((b, i) => (
+        <Bokeh key={i} x={b.x} y={b.y} r={b.r} phase={b.phase} time={time} />
+      ))}
+      <Ghost main={ghostMain} far={ghostFar} opacity={ghostOpacity} top={ghostTop} bottom={ghostBottom} glow={ghostGlow} />
+      <Sparkles
+        image={atlas.image}
+        sprite={atlas.glow}
+        count={40}
+        seed={visit.id + 100}
+        cx={sparkX}
+        cy={sparkY}
+        spread={sparkSpread}
+        size={sparkSize}
+        time={time}
+        strength={appear}
+      />
+      {/* The visitor cut out by the person mask. */}
+      <Group opacity={hasMask} layer>
+        <Image image={feed.image} x={rx} y={ry} width={rw} height={rh} fit="fill" />
+        <Image image={feed.mask} x={rx} y={ry} width={rw} height={rh} fit="fill" blendMode="dstIn" />
+      </Group>
+      {/* Without a mask: the visitor, smaller, in a soft frame. */}
+      <Group opacity={noMask} clip={fallbackClip}>
+        <Image image={feed.image} x={rx} y={ry} width={rw} height={rh} fit="fill" />
+      </Group>
+    </Group>
+  );
+}
+
+function Bokeh({ x, y, r, phase, time }: { x: number; y: number; r: number; phase: number; time: SharedValue<number> }) {
+  const opacity = useDerivedValue(() => 0.22 + 0.12 * Math.sin(time.value * 0.5 + phase));
+  return (
+    <Circle cx={x} cy={y} r={r} opacity={opacity} blendMode="plus">
+      <RadialGradient c={vec(x, y)} r={r} colors={[palette.candle, 'rgba(255, 213, 138, 0)']} />
+    </Circle>
+  );
+}

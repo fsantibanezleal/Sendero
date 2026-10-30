@@ -25,3 +25,5 @@
 - Hidden layers are not drawn (an empty clip instead of an opacity of 0, which Skia still draws): the path, the
   figures, the reveal, the camera under the full reveal and the bloom.
 - One `[Sendero]` line in the system log per touch, visit mark and failing layer.
+- Camera frames are disposed a few publishes after being replaced, and the layers measure the published frame
+  size instead of the image: a frame disposed at once could still be read on the UI thread and crash the app.

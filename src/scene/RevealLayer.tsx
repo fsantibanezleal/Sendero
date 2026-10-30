@@ -1,4 +1,4 @@
-import { Circle, Group, Image, RadialGradient, rrect, Skia, type SkImage, vec } from '@shopify/react-native-skia';
+import { Circle, Group, Image, RadialGradient, rrect, Skia, vec } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
@@ -109,9 +109,8 @@ export function RevealLayer({
 
   // Camera and mask share one rectangle, so the cut-out lines up with the visitor.
   const rect = useDerivedValue(() => {
-    const img = feed.image.value as SkImage | null;
-    const r = coverRect(img?.width() ?? W, img?.height() ?? H, W, H);
-    return personRect(r, W, H, PERSON_SCALE);
+    const f = feed.size.value;
+    return personRect(coverRect(f.width, f.height, W, H), W, H, PERSON_SCALE);
   });
   const rx = useDerivedValue(() => rect.value.x);
   const ry = useDerivedValue(() => rect.value.y);

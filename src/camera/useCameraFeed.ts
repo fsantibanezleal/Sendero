@@ -1,5 +1,5 @@
 import { AlphaType, ColorType, Skia, type SkImage } from '@shopify/react-native-skia';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { loadTensorflowModel, type TensorflowModel } from 'react-native-fast-tflite';
 import { useCamera, useFrameOutput, useOrientation } from 'react-native-vision-camera';
@@ -26,9 +26,19 @@ import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
 
 export type ModelState = 'loading' | 'ready' | 'unavailable';
 
+export interface FrameSize {
+  width: number;
+  height: number;
+}
+
 export interface CameraFeed {
   /** The latest upright, mirrored camera frame, or null before the first frame. */
   image: SharedValue<SkImage | null>;
+  /**
+   * The size of the camera frames (0 x 0 before the first one). Layout reads this, never the image
+   * object: a frame read on the UI thread may already be retired.
+   */
+  size: SharedValue<FrameSize>;
   /** The latest person mask (alpha), or null when the mask is off or not computed yet. */
   mask: SharedValue<SkImage | null>;
   /** Masks per second actually produced (exponential average), for the automatic mode choice. */
@@ -47,6 +57,13 @@ const MASK_EMA = 0.6;
 /** Probability band mapped to the soft edge of the cut-out. */
 const EDGE_LOW = 0.3;
 const EDGE_HIGH = 0.7;
+/**
+ * Replaced images are disposed this many publishes later, not at once: the shared value reaches the UI
+ * thread asynchronously, so the canvas may still draw (or a layer measure) the previous image for a
+ * frame after the JS thread replaced it. Disposing it at once crashed the app ("Attempted to access a
+ * disposed object" in a UI-thread derived value).
+ */
+const RETIRE_AFTER = 4;
 
 // Metro bundles assets only through a static require().
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -80,7 +97,9 @@ async function loadSegmenter(): Promise<ModelInfo | null> {
 
 export function useCameraFeed(active: boolean): CameraFeed {
   const image = useSharedValue<SkImage | null>(null);
+  const size = useSharedValue<FrameSize>({ width: 0, height: 0 });
   const mask = useSharedValue<SkImage | null>(null);
+  const retired = useRef<SkImage[]>([]);
   const maskRate = useSharedValue(0);
   const [info, setInfo] = useState<ModelInfo | null>(null);
   const [modelState, setModelState] = useState<ModelState>('loading');
@@ -105,16 +124,30 @@ export function useCameraFeed(active: boolean): CameraFeed {
 
   const lastMaskAt = useSharedValue(0);
 
+  /** Disposes a replaced image only after RETIRE_AFTER more replacements (see RETIRE_AFTER). */
+  const retire = useCallback((old: SkImage | null) => {
+    if (old == null) return;
+    const queue = retired.current;
+    queue.push(old);
+    while (queue.length > RETIRE_AFTER * 2) {
+      queue.shift()?.dispose();
+    }
+  }, []);
+
   const publish = useCallback(
     (next: SkImage, nextMask: SkImage | null) => {
       inFlight.setBlocking(false);
-      const previous = image.get();
+      const w = next.width();
+      const h = next.height();
+      const current = size.get();
+      if (current.width !== w || current.height !== h) {
+        size.set({ width: w, height: h });
+      }
+      retire(image.get());
       image.set(next);
-      previous?.dispose();
       if (nextMask != null) {
-        const old = mask.get();
+        retire(mask.get());
         mask.set(nextMask);
-        old?.dispose();
         const now = Date.now();
         const dt = (now - lastMaskAt.get()) / 1000;
         lastMaskAt.set(now);
@@ -123,20 +156,19 @@ export function useCameraFeed(active: boolean): CameraFeed {
         }
       }
     },
-    [image, mask, maskRate, lastMaskAt, inFlight],
+    [image, size, mask, maskRate, lastMaskAt, inFlight, retire],
   );
 
   const setMaskActive = useCallback(
     (on: boolean) => {
       flags.setBlocking((f) => ({ ...f, maskActive: on }));
       if (!on) {
-        const old = mask.get();
+        retire(mask.get());
         mask.set(null);
-        old?.dispose();
         maskRate.set(0);
       }
     },
-    [flags, mask, maskRate],
+    [flags, mask, maskRate, retire],
   );
 
   const setFrozen = useCallback(
@@ -214,7 +246,15 @@ export function useCameraFeed(active: boolean): CameraFeed {
     frameOutput.outputOrientation = orientation;
   }, [frameOutput, orientation]);
 
-  return { image, mask, maskRate, modelState, setMaskActive, setFrozen };
+  useEffect(
+    () => () => {
+      for (const old of retired.current) old.dispose();
+      retired.current = [];
+    },
+    [],
+  );
+
+  return { image, size, mask, maskRate, modelState, setMaskActive, setFrozen };
 }
 
 interface MaskScratch {

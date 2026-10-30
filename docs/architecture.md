@@ -22,7 +22,11 @@ without its own canvas:
 2. On the camera thread, `renderToTexture` draws each frame upright on an offscreen GPU surface: it cancels the
    sensor rotation and applies the selfie mirror.
 3. The result is copied to a CPU image (`makeNonTextureImage`) so it can cross threads, and published to a
-   Reanimated shared value with `scheduleOnRN`; the previous image is disposed. Backpressure: at most one frame
+   Reanimated shared value with `scheduleOnRN`. A replaced image is disposed a few publishes later, not at once:
+   the shared value reaches the UI thread asynchronously, so the canvas may still use the previous image for a
+   frame (disposing it at once crashed the app with "Attempted to access a disposed object"). The frame size is
+   published as plain numbers (`size`), which is what the layers measure; they never call the image object for
+   layout. Backpressure: at most one frame
    is in flight to the JS thread (a cross-thread flag); the camera thread skips frames while one is pending.
    Without it a slow device queued several-megabyte copies faster than JS drained them, and touches and React
    updates starved.

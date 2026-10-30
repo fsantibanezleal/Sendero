@@ -63,8 +63,8 @@ export function FrameLayer({
 
   const clip = useMemo(() => rrect(Skia.XYWHRect(0, 0, W, H), layout.radius, layout.radius), [W, H, layout.radius]);
   const cover = useDerivedValue(() => {
-    const img = feed.image.value;
-    return coverRect(img?.width() ?? W, img?.height() ?? H, W, H);
+    const f = feed.size.value;
+    return coverRect(f.width, f.height, W, H);
   });
   const cx = useDerivedValue(() => cover.value.x);
   const cy = useDerivedValue(() => cover.value.y);

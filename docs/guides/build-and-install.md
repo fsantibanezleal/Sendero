@@ -62,3 +62,20 @@ Connect the tablet by USB with developer options and USB debugging on, then:
 ```
 
 The camera permission is granted at install (`adb install -g`).
+
+## Try it on the Android emulator with your own camera
+
+The emulator can use the computer's webcam as the tablet's front camera, so the real image, the person cut-out and
+the reveal can be tried without the tablet. List the webcams, then start the emulator with one as the front camera
+(`webcam0` is usually the built-in camera), and install the APK built for `x86_64`:
+
+```powershell
+& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -webcam-list
+& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -avd <your AVD> -camera-front webcam0 -camera-back emulated
+.\scripts\install-apk.ps1
+```
+
+On some computers the emulator's GPU returns camera frames as black textures; Sendero detects it on the first frames
+and switches to frames built from the camera's pixels (the system log says which: `adb logcat -s ReactNativeJS`, lines
+`[Sendero] camera: ...`). Use a landscape tablet AVD (for example 2560 x 1600). The emulator is slower than a tablet:
+the animation shows fewer frames there, but a visit still takes about 27 seconds.

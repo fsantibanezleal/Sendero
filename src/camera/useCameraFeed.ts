@@ -222,7 +222,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
         }
         const g = globalThis as unknown as { __senderoSource?: SourceState; __senderoMask?: MaskScratch };
         if (g.__senderoSource == null) {
-          g.__senderoSource = { mode: 'probe', probes: 0, gpuSum: 0, cpuSum: 0, maskError: false };
+          g.__senderoSource = { mode: 'probe', probes: 0, gpuSum: 0, cpuSum: 0, cpuReads: 0, maskError: false, frameError: false };
         }
         const source = g.__senderoSource;
         if (source.mode !== 'gpu') {
@@ -234,13 +234,17 @@ export function useCameraFeed(active: boolean): CameraFeed {
         });
         if (source.mode === 'probe') {
           source.gpuSum += meanOfImage(snapshot);
-          source.cpuSum += cpu?.mean ?? 0;
           source.probes += 1;
+          if (cpu != null) {
+            source.cpuSum += cpu.mean;
+            source.cpuReads += 1;
+          }
           if (source.probes >= PROBE_FRAMES) {
             const gpu = source.gpuSum / source.probes;
-            const pixels = source.cpuSum / source.probes;
-            source.mode = cpu != null && gpu < BLACK_MEAN && pixels > LIT_MEAN ? 'cpu' : 'gpu';
-            scheduleOnRN(report, `${source.mode} frames (mean of the GPU copy ${gpu.toFixed(1)}, of the pixels ${pixels.toFixed(1)})`);
+            const pixels = source.cpuReads > 0 ? source.cpuSum / source.cpuReads : -1;
+            source.mode = source.cpuReads === source.probes && gpu < BLACK_MEAN && pixels > LIT_MEAN ? 'cpu' : 'gpu';
+            const cpuNote = source.cpuReads === 0 ? 'pixels not readable on the CPU' : `mean of the pixels ${pixels.toFixed(1)}`;
+            scheduleOnRN(report, `${source.mode} frames (mean of the GPU copy ${gpu.toFixed(1)}, ${cpuNote})`);
           }
         }
 
@@ -270,6 +274,13 @@ export function useCameraFeed(active: boolean): CameraFeed {
           scheduleOnRN(publish, cpuImage, maskImage);
         } else {
           maskImage?.dispose();
+        }
+      } catch (e) {
+        // Reported once; the next frame tries again.
+        const g = globalThis as unknown as { __senderoSource?: SourceState };
+        if (g.__senderoSource != null && !g.__senderoSource.frameError) {
+          g.__senderoSource.frameError = true;
+          scheduleOnRN(report, `frame failed: ${String(e)}`);
         }
       } finally {
         cpu?.image.dispose();
@@ -310,7 +321,10 @@ interface SourceState {
   probes: number;
   gpuSum: number;
   cpuSum: number;
+  /** Probe frames whose pixels could be read on the CPU. */
+  cpuReads: number;
   maskError: boolean;
+  frameError: boolean;
 }
 
 interface CpuFrame {
@@ -319,13 +333,38 @@ interface CpuFrame {
   mean: number;
 }
 
-/** The frame as a raster image built from its pixel buffer (RGBA or BGRA frames only). */
+/**
+ * The frame's pixels read on the CPU: from its single plane, else from its pixel buffer. Either read
+ * can fail (the Android emulator reports its camera buffers as CPU-readable and then refuses the
+ * read): every failure returns null, never an exception that would stop the camera.
+ */
+function readPixels(frame: Frame): { bytes: Uint8Array; rowBytes: number } | null {
+  'worklet';
+  try {
+    if (frame.isPlanar) return null;
+    const planes = frame.getPlanes();
+    if (planes.length === 1) {
+      return { bytes: new Uint8Array(planes[0].getPixelBuffer()), rowBytes: planes[0].bytesPerRow };
+    }
+  } catch {
+    // Try the pixel buffer next.
+  }
+  try {
+    if (!frame.hasPixelBuffer) return null;
+    return { bytes: new Uint8Array(frame.getPixelBuffer()), rowBytes: frame.bytesPerRow };
+  } catch {
+    return null;
+  }
+}
+
+/** The frame as a raster image built from its pixels (RGBA or BGRA frames only), or null. */
 function cpuFrame(frame: Frame, measure: boolean): CpuFrame | null {
   'worklet';
-  if (!frame.hasPixelBuffer || frame.isPlanar) return null;
   const format = frame.pixelFormat;
   if (format !== 'rgb-rgba-8-bit' && format !== 'rgb-bgra-8-bit') return null;
-  const bytes = new Uint8Array(frame.getPixelBuffer());
+  const read = readPixels(frame);
+  if (read == null || read.bytes.length < frame.height * read.rowBytes) return null;
+  const bytes = read.bytes;
   let mean = 0;
   if (measure) {
     const samples = 256;
@@ -346,7 +385,7 @@ function cpuFrame(frame: Frame, measure: boolean): CpuFrame | null {
       alphaType: AlphaType.Unpremul,
     },
     Skia.Data.fromBytes(bytes),
-    frame.bytesPerRow,
+    read.rowBytes,
   );
   return image == null ? null : { image, mean };
 }

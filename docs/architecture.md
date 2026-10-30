@@ -24,7 +24,10 @@ without its own canvas:
    hardware buffer; some GPUs return a black texture for that import (the Android emulator does, while its camera
    delivers images). The first 8 frames are probed: when the GPU copy is black (mean channel value under 2) while
    the frame's own pixels are lit (over 6), the feed switches to a raster image built from the frame's pixel buffer
-   and draws that instead. The choice is logged once (`[Sendero] camera: gpu frames ...` or `cpu frames ...`).
+   and draws that instead. The pixels are read from the frame's single plane, else from its pixel buffer; a device
+   can refuse both (the emulator reports its camera buffers as CPU-readable, then refuses the read), and then the GPU
+   path is kept. No read failure stops the camera. The choice is logged once (`[Sendero] camera: gpu frames ...` or
+   `cpu frames ...`), and so is the first error of a frame (`frame failed: ...`).
 3. The result is copied to a CPU image (`makeNonTextureImage`) so it can cross threads, and published to a
    Reanimated shared value with `scheduleOnRN`. A replaced image is disposed a few publishes later, not at once:
    the shared value reaches the UI thread asynchronously, so the canvas may still use the previous image for a

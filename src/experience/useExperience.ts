@@ -38,8 +38,10 @@ export interface ExperienceEvents {
 export interface Experience {
   clock: SharedValue<number>;
   time: SharedValue<number>;
-  /** The visit the next touch starts (planned while idle), or the one running. */
+  /** The visit the next touch starts: its path and family are mounted, hidden, ahead of the touch. */
   visit: Visit;
+  /** The visit on screen: its farewell, message and voice. */
+  shown: Visit;
   /**
    * Starts the planned visit from a UI-thread worklet (the touch gesture); returns false while a
    * visit runs or the next one is still being prepared (the touch is ignored).
@@ -59,18 +61,24 @@ export function useExperience(events: ExperienceEvents): Experience {
     return { history: h, visit: planVisit(h) };
   });
   const history = useRef<History>(first.history);
+  // Two visits: the one the next touch starts (path, family, walk) and the one on screen (farewell,
+  // message, voice). The next one is planned when the farewell begins, while its layers are hidden, so a
+  // touch is accepted the moment a visit ends (planning at the end left the altar deaf for seconds).
   const [visit, setVisit] = useState<Visit>(first.visit);
+  const [shown, setShown] = useState<Visit>(first.visit);
   const visitRef = useRef(first.visit);
+  const shownRef = useRef(first.visit);
   const eventsRef = useRef(events);
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
 
   useEffect(() => {
-    // Effects run after the commit: the planned visit's path and figures are mounted now.
+    // Effects run after the commit: the planned visit's path and figures are mounted now. A touch may
+    // start it as soon as no visit is running.
     visitRef.current = visit;
-    ready.set(true);
-  }, [visit, ready]);
+    if (clock.get() < 0) ready.set(true);
+  }, [visit, ready, clock]);
 
   useFrameCallback((frame) => {
     'worklet';
@@ -111,19 +119,29 @@ export function useExperience(events: ExperienceEvents): Experience {
 
   const onStage = useCallback(
     (current: number, previous: number) => {
-      const v = visitRef.current;
       if (previous < 0 && current >= 0) {
-        log(`visit ${v.id} started: ${describeLook(v.people[v.walker])}${v.companion != null ? ` with ${describePet(v.pets[v.companion])}` : ''}, message ${MESSAGES[v.messageIndex].id}`);
+        // The touch started the planned visit: it becomes the one on screen.
+        const started = visitRef.current;
+        shownRef.current = started;
+        setShown(started);
+        log(`visit ${started.id} started: ${describeLook(started.people[started.walker])}${started.companion != null ? ` with ${describePet(started.pets[started.companion])}` : ''}, message ${MESSAGES[started.messageIndex].id}`);
       }
+      const v = shownRef.current;
       if (current >= 0) {
         for (let k = Math.max(previous, 0) + 1; k <= current; k++) fire(k, v);
+        if (previous < 2 && current >= 2) {
+          // The walk is over and its layers are hidden: plan the next visit now.
+          setVisit(planVisit(history.current));
+        }
         return;
       }
       // The visit ended. The mask and the music are always released, even if a mark was missed.
       if (previous < LAST_STAGE) fire(LAST_STAGE, v);
       log(`visit ${v.id} ended`);
       eventsRef.current.onEnd();
-      setVisit(planVisit(history.current));
+      if (previous < 2) setVisit(planVisit(history.current));
+      // The next visit is ready when its layers are mounted (else the effect above opens the altar).
+      if (visitRef.current.id !== v.id) ready.set(true);
     },
     [fire],
   );
@@ -151,5 +169,5 @@ export function useExperience(events: ExperienceEvents): Experience {
     return true;
   }, [clock, ready]);
 
-  return { clock, time, visit, begin, start };
+  return { clock, time, visit, shown, begin, start };
 }

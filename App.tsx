@@ -211,9 +211,9 @@ function Altar() {
     <View style={styles.root}>
       <GestureDetector gesture={touch}>
         <View style={styles.root} collapsable={false}>
-          <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} />
+          <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} shown={experience.shown} />
           <Hint clock={experience.clock} time={experience.time} visible={settings.showHint} />
-          <MessageOverlay visit={experience.visit} clock={experience.clock} />
+          <MessageOverlay visit={experience.shown} clock={experience.clock} />
         </View>
       </GestureDetector>
       {/* Outside the touch detector, so the panel's buttons never start a visit. */}

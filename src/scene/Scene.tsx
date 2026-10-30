@@ -33,6 +33,7 @@ export function Scene({
   clock,
   time,
   visit,
+  shown,
 }: {
   layout: Layout;
   feed: CameraFeed;
@@ -40,6 +41,8 @@ export function Scene({
   clock: SharedValue<number>;
   time: SharedValue<number>;
   visit: Visit;
+  /** The visit on screen (the farewell); `visit` is the one the next touch starts. */
+  shown: Visit;
 }) {
   const { width: W, height: H } = layout.screen;
   const path = useMemo(
@@ -72,8 +75,8 @@ export function Scene({
         </LayerBoundary>
       </Gate>
       <Gate on={farewellOn} width={W} height={H}>
-        <LayerBoundary name="farewell" resetKey={visit.id}>
-          <FarewellLayer visit={visit} layout={layout} atlas={atlas} clock={clock} time={time} />
+        <LayerBoundary name="farewell" resetKey={shown.id}>
+          <FarewellLayer visit={shown} layout={layout} atlas={atlas} clock={clock} time={time} />
         </LayerBoundary>
       </Gate>
       <Bloom layout={layout} clock={clock} />

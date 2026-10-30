@@ -1,0 +1,21 @@
+{
+  "files": {
+    "adios-muchachas-1915": {
+      "file": "jukebox-15477_adi-s-muchachas.mp3",
+      "sha256": "7c6987fcb339567d8c02a95a9eba896166d3b7e6e395442f6074181502268e30"
+    },
+    "golondrinas-1920": {
+      "file": "jukebox-36709_las-golondrinas.mp3",
+      "sha256": "2f5f7db5229cc67215537474c25af89d3b0c83429e4563a5b6cabbdfbbadb361"
+    },
+    "llorona-1917": {
+      "file": "jukebox-23117_la-llorona.mp3",
+      "sha256": "15d25cfd6399abc29a722cb5862e19e49c309404961d35fb3ea0e0fd18cb17ec"
+    },
+    "sobre-las-olas-1904": {
+      "file": "jukebox-120146_sobre-las-olas.mp3",
+      "sha256": "d13537e85a10e1f760419dec42ed37201b3df4e7937834f74078d810e1feae83"
+    }
+  },
+  "version": 1
+}

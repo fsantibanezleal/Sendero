@@ -7,7 +7,10 @@
 
 export type HumanKind = 'abuela' | 'abuelo' | 'mujer' | 'hombre';
 export type PetKind = 'perro' | 'gato';
-export type VoiceId = 'mujer' | 'hombre';
+export type VoiceId = 'mujer' | 'hombre' | 'mujer-2' | 'hombre-2';
+
+/** The voices of each gender; a visit takes one at random, so the same person does not always sound the same. */
+export const VOICES: Record<'mujer' | 'hombre', VoiceId[]> = { mujer: ['mujer', 'mujer-2'], hombre: ['hombre', 'hombre-2'] };
 
 export const HUMANS: readonly HumanKind[] = ['abuela', 'abuelo', 'mujer', 'hombre'];
 export const PETS: readonly PetKind[] = ['perro', 'gato'];

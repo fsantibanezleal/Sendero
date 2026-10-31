@@ -13,8 +13,9 @@ spiritual" appearance. A figure is a silhouette of warm light that fades toward 
 
 - no face details at all (the owner, 2026-10-31: "no face details please"): the head is pure light;
 - a few flowers in the hair or at the hat, and small ones at the collar and sometimes the waist;
-- at the farewell, a frontal drawing of the person holding a white candle with a marigold band, whose light breathes;
-- for a pet, its outline and two flowers at the neck.
+- at the farewell, a frontal drawing of the person with several veladoras (glass votive candles) on the ground around
+  their feet, whose light breathes;
+- a pet is an alebrije, the painted spirit animal of Oaxaca: a strong colour, waves, dots and flowers, a ringed eye.
 
 The flowers come from how people appear on Día de Muertos: cempasúchil and roses in the hair (https://hiplatina.com/dia-de-los-muertos-6-things-you-should-know-before-painting-your-face/,
 https://rancholapuerta.com/2016/10/28/how-to-apply-la-catrina-makeup-a-day-of-the-dead-tutorial/).

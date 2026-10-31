@@ -12,6 +12,7 @@ export interface SenderoKioskNative {
   externalMusicDirectory(): string;
   setKioskEnabled(enabled: boolean): void;
   isKioskEnabled(): boolean;
+  rawResourceToFile(name: string, fileName: string): string;
 }
 
 export default requireNativeModule<SenderoKioskNative>('SenderoKiosk');

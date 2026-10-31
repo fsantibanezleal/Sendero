@@ -35,3 +35,12 @@ export const setKioskEnabled = (enabled: boolean): void => {
 };
 
 export const isKioskEnabled = (): boolean => native?.isKioskEnabled() ?? false;
+
+/** Copies a bundled raw resource (a release build's asset) to a file and returns its path, or null. */
+export const rawResourceToFile = (name: string, fileName: string): string | null => {
+  try {
+    return native?.rawResourceToFile(name, fileName) ?? null;
+  } catch {
+    return null;
+  }
+};

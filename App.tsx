@@ -108,12 +108,12 @@ function Altar() {
       // The farewell shows the visitor in the frame and the silhouette beside it: no person mask is needed.
       onMask: feed.setMaskActive,
       onReveal: (v: Visit) => {
-        const clip = VOICE_CLIPS[v.voice]?.[MESSAGES[v.messageIndex].id];
+        const clip = clipFor(v);
         if (clip != null) engine.current?.prepareVoice(clip);
       },
       onMessage: () => engine.current?.duckMusic(),
       onWhisper: (v: Visit) => {
-        const clip = VOICE_CLIPS[v.voice]?.[MESSAGES[v.messageIndex].id];
+        const clip = clipFor(v);
         if (clip != null) engine.current?.playVoice(clip);
         else log(`voice: no clip for ${v.voice} ${MESSAGES[v.messageIndex].id}`);
       },
@@ -236,6 +236,12 @@ function Waiting({ needsCamera }: { needsCamera: boolean }) {
       {needsCamera ? <Text style={styles.notice}>Sendero necesita permiso para usar la cámara frontal.</Text> : null}
     </View>
   );
+}
+
+/** The visit's voice clip; a voice without its clips falls back to the first voice of the same gender. */
+function clipFor(v: Visit): number | undefined {
+  const id = MESSAGES[v.messageIndex].id;
+  return VOICE_CLIPS[v.voice]?.[id] ?? VOICE_CLIPS[v.voice.replace(/-\d+$/, '')]?.[id];
 }
 
 const styles = StyleSheet.create({

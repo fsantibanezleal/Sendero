@@ -4,7 +4,7 @@
  * so they are tested directly.
  */
 import { MESSAGES } from '../content/messages';
-import { chooseCompanion, chooseMessage, chooseWalker, HUMAN_PROFILE, HUMANS, type HumanKind, type PetKind, PETS, type Rand, type VoiceId } from '../figures/catalog';
+import { VOICES, chooseCompanion, chooseMessage, chooseWalker, HUMAN_PROFILE, HUMANS, type HumanKind, type PetKind, PETS, type Rand, type VoiceId } from '../figures/catalog';
 import { ART, artOf, FRONT_ART } from '../figures/artData';
 import { type Look, type PetLook, randomLook, randomPetLook } from '../figures/looks';
 import { TIMELINE } from './timeline';
@@ -78,6 +78,12 @@ function pickStillArt(random: Rand, kind: PetKind, last: string | undefined): st
   return pickFrom(random, ART.filter((a) => a.archetype === kind).map((a) => a.id), last);
 }
 
+/** One of the voices of the walker's gender, at random. */
+function pickVoice(random: Rand, gender: VoiceId): VoiceId {
+  const list = VOICES[gender === 'mujer' || gender === 'mujer-2' ? 'mujer' : 'hombre'];
+  return list[Math.min(list.length - 1, Math.floor(random() * list.length))];
+}
+
 export function emptyHistory(): History {
   return { human: null, message: null, count: 0, messageBag: [], lastArt: {} };
 }
@@ -140,7 +146,7 @@ export function planVisit(h: History, random: Rand = Math.random): Visit {
     companion: companionKind == null ? null : PETS.indexOf(companionKind),
     spots,
     messageIndex,
-    voice: HUMAN_PROFILE[walkerKind].voice,
+    voice: pickVoice(random, HUMAN_PROFILE[walkerKind].voice),
     pathSeed: Math.floor(random() * 2 ** 31),
   };
 }

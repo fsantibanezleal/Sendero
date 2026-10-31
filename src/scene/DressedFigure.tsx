@@ -22,13 +22,15 @@ export function DressedFigure({
         <Image image={figure.glow} x={figure.x} y={figure.y} width={figure.width} height={figure.height} fit="fill" blendMode="plus" opacity={0.75} />
       ) : null}
       <Image image={figure.image} x={figure.x} y={figure.y} width={figure.width} height={figure.height} fit="fill" />
-      {figure.flame != null ? <CandleLight x={figure.flame.x} y={figure.flame.y} time={time} /> : null}
+      {figure.flames.map((f, i) => (
+        <CandleLight key={i} x={f.x} y={f.y} time={time} />
+      ))}
     </Group>
   );
 }
 
 function CandleLight({ x, y, time }: { x: number; y: number; time: SharedValue<number> }) {
-  const r = useDerivedValue(() => 0.09 + 0.012 * Math.sin(time.value * 7.1 + x * 40) + 0.008 * Math.sin(time.value * 11.3));
+  const r = useDerivedValue(() => 0.06 + 0.01 * Math.sin(time.value * 7.1 + x * 40) + 0.008 * Math.sin(time.value * 11.3));
   const c = vec(x, y);
   return (
     <Circle cx={x} cy={y} r={r} blendMode="plus">

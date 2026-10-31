@@ -12,6 +12,7 @@ import { garlandSprites } from '../flowers/garland';
 import { easeInOutCubic, easeOutCubic } from '../procedural';
 import { palette } from '../theme/palette';
 import { bannerRow, type Banner } from './papelPicado';
+import { Sparkles } from './Sparkles';
 import { coverRect } from './revealGeometry';
 
 /**
@@ -37,12 +38,15 @@ export function FrameLayer({
   atlas,
   clock,
   time,
+  seed,
 }: {
   layout: Layout;
   feed: CameraFeed;
   atlas: FlowerAtlas;
   clock: SharedValue<number>;
   time: SharedValue<number>;
+  /** Chooses the visitor's flowers: a new choice for each visit. */
+  seed: number;
 }) {
   const { width: W, height: H } = layout.screen;
 
@@ -60,14 +64,29 @@ export function FrameLayer({
   });
 
   // The flowers in the visitor's hair: a little wider than the head, the arc resting on its top.
-  const crown = useMemo(() => visitorCrown(), []);
+  const crown = useMemo(() => visitorCrown(seed), [seed]);
   const crownTransform = useDerivedValue((): Transforms3d => {
     const c = cover.value;
     const head = feed.head.value;
-    const s = head.width * c.width * 1.25;
-    return [{ translateX: c.x + head.x * c.width - s / 2 }, { translateY: c.y + head.y * c.height - s * 0.3 }, { scale: s }];
+    const s = head.width * c.width * 1.15;
+    // The crown image is one unit wide; its arc rests at (0.5, 0.35): turned about that point with the head's tilt.
+    return [{ translateX: c.x + head.x * c.width }, { translateY: c.y + head.y * c.height }, { rotate: head.angle }, { scale: s }, { translateX: -0.5 }, { translateY: -0.35 }];
   });
   const crownOpacity = useDerivedValue(() => feed.head.value.seen);
+  // The same rising lights as the silhouettes, around the visitor: at their head once it is found, else the middle.
+  const lightX = useDerivedValue(() => {
+    const c = cover.value;
+    const h = feed.head.value;
+    return W / 2 + (c.x + h.x * c.width - W / 2) * h.seen;
+  });
+  const lightY = useDerivedValue(() => {
+    const c = cover.value;
+    const h = feed.head.value;
+    return H * 0.55 + (c.y + (h.y + h.width * 0.9) * c.height - H * 0.55) * h.seen;
+  });
+  const lightSpread = useDerivedValue(() => H * 0.42);
+  const lightSize = useDerivedValue(() => H * 0.03);
+  const lightStrength = useDerivedValue(() => 0.85);
 
   const garland = useMemo(() => {
     const sprites = garlandSprites({ width: W, height: H, band: layout.band, seed: 1102, headVariants: HEAD_VARIANTS, leafVariants: LEAF_VARIANTS });
@@ -87,6 +106,7 @@ export function FrameLayer({
     <Group transform={transform}>
       <Group clip={clip}>
         <Image image={crown} x={0} y={0} width={1} height={1} transform={crownTransform} opacity={crownOpacity} fit="fill" />
+        <Sparkles image={atlas.image} sprite={atlas.glow} count={22} seed={4242} cx={lightX} cy={lightY} spread={lightSpread} size={lightSize} time={time} strength={lightStrength} />
       </Group>
       <Atlas image={atlas.image} sprites={garland.rects} transforms={garland.transforms} />
       <Line p1={vec(0, string.y + 2)} p2={vec(W, string.y + 2)} color="rgba(255, 244, 224, 0.5)" strokeWidth={2} />

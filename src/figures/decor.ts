@@ -99,52 +99,66 @@ function bodyFlowers(c: SkCanvas, a: PersonAnchors, art: SkPath, rand: Rand) {
   });
 }
 
-/** Where the flame of a person's candle is, in figure units. */
-function flameAt(a: PersonAnchors): { x: number; y: number } {
-  const cx = a.waist.x + a.waist.w * 0.2;
-  return { x: cx, y: a.shoulder.y + (a.waist.y - a.shoulder.y) * 0.34 - 0.03 };
+
+/** Where the veladoras stand around a person's feet, in figure units: beside the body, never over it. */
+function candlePlaces(entry: ArtEntry): { x: number; y: number; k: number }[] {
+  const half = entry.aspect / 2;
+  return [
+    { x: -half - 0.05, y: 0, k: 1.5 },
+    { x: -half - 0.15, y: -0.006, k: 1.2 },
+    { x: half + 0.05, y: 0, k: 1.6 },
+    { x: half + 0.15, y: -0.005, k: 1.25 },
+    { x: half + 0.1, y: 0.014, k: 1.05 },
+  ];
+}
+
+/** The flames of those veladoras, for the light that breathes over them. */
+function flamesOf(entry: ArtEntry): { x: number; y: number }[] {
+  return candlePlaces(entry).map((p) => ({ x: p.x, y: p.y - 0.062 * p.k - 0.03 * p.k }));
 }
 
 /**
- * The veladora of the altars, held before the chest: a small glass of amber light with a marigold on it, a slender
- * flame above. Soft shapes and the figure's own warm light, nothing hard.
+ * A veladora of the altars standing on the ground: a small glass of amber light with a marigold on it, a slender
+ * flame above. (x, y) is the foot of the glass, k its scale.
  */
-function candle(c: SkCanvas, a: PersonAnchors, rand: Rand) {
-  const flame = flameAt(a);
-  const x = flame.x;
-  const top = flame.y + 0.032;
-  const w = 0.05;
-  const h = 0.062;
-  // The glass, narrower at the foot, glowing from inside.
+function veladora(c: SkCanvas, x: number, y: number, k: number, rand: Rand) {
+  const w = 0.05 * k;
+  const h = 0.062 * k;
+  const top = y - h;
   const glass = Skia.PathBuilder.Make();
   glass.moveTo(x - w / 2, top);
   glass.lineTo(x + w / 2, top);
-  glass.quadTo(x + w * 0.44, top + h, x + w * 0.36, top + h);
-  glass.lineTo(x - w * 0.36, top + h);
-  glass.quadTo(x - w * 0.44, top + h, x - w / 2, top);
+  glass.quadTo(x + w * 0.44, y, x + w * 0.36, y);
+  glass.lineTo(x - w * 0.36, y);
+  glass.quadTo(x - w * 0.44, y, x - w / 2, top);
   glass.close();
   const body = glass.build();
   const light = fill('#FFFFFF');
   light.setShader(
-    Skia.Shader.MakeLinearGradient(vec(0, top), vec(0, top + h), [Skia.Color('#FFE7A8'), Skia.Color('#F6A33A'), Skia.Color('#C9611E')], [0, 0.55, 1], TileMode.Clamp),
+    Skia.Shader.MakeLinearGradient(vec(0, top), vec(0, y), [Skia.Color('#FFE7A8'), Skia.Color('#F6A33A'), Skia.Color('#C9611E')], [0, 0.55, 1], TileMode.Clamp),
   );
   c.drawPath(body, light);
-  c.drawPath(body, line('#FFF3DC', 0.0022, 0.7));
-  c.drawLine(x - w / 2, top + 0.004, x + w / 2, top + 0.004, line('#FFF7E6', 0.003, 0.85));
-  flower(c, x, top + h * 0.56, 0.013, COLORS.marigoldLight, rand);
-  // The flame: a slender drop with a white heart.
+  c.drawPath(body, line('#FFF3DC', 0.0022 * k, 0.7));
+  c.drawLine(x - w / 2, top + 0.004 * k, x + w / 2, top + 0.004 * k, line('#FFF7E6', 0.003 * k, 0.85));
+  flower(c, x, top + h * 0.56, 0.013 * k, COLORS.marigoldLight, rand);
+  const f = 0.052 * k;
   const drop = Skia.PathBuilder.Make();
-  drop.moveTo(x, top - 0.052);
-  drop.cubicTo(x + 0.004, top - 0.03, x + 0.013, top - 0.016, x, top - 0.002);
-  drop.cubicTo(x - 0.013, top - 0.016, x - 0.004, top - 0.03, x, top - 0.052);
+  drop.moveTo(x, top - f);
+  drop.cubicTo(x + 0.004 * k, top - f * 0.58, x + 0.013 * k, top - f * 0.31, x, top - 0.002 * k);
+  drop.cubicTo(x - 0.013 * k, top - f * 0.31, x - 0.004 * k, top - f * 0.58, x, top - f);
   drop.close();
   c.drawPath(drop.build(), fill(COLORS.flame, 0.95));
   const heart = Skia.PathBuilder.Make();
-  heart.moveTo(x, top - 0.03);
-  heart.cubicTo(x + 0.002, top - 0.018, x + 0.006, top - 0.01, x, top - 0.004);
-  heart.cubicTo(x - 0.006, top - 0.01, x - 0.002, top - 0.018, x, top - 0.03);
+  heart.moveTo(x, top - f * 0.58);
+  heart.cubicTo(x + 0.002 * k, top - f * 0.35, x + 0.006 * k, top - f * 0.2, x, top - 0.004 * k);
+  heart.cubicTo(x - 0.006 * k, top - f * 0.2, x - 0.002 * k, top - f * 0.35, x, top - f * 0.58);
   heart.close();
   c.drawPath(heart.build(), fill(COLORS.flameCore));
+}
+
+/** Several veladoras around the feet, as on an altar. */
+function candles(c: SkCanvas, entry: ArtEntry, rand: Rand) {
+  for (const p of candlePlaces(entry)) veladora(c, p.x, p.y, p.k, rand);
 }
 
 /** The inner stroke that gives the shape an edge against its own light. */
@@ -160,19 +174,53 @@ function paintPerson(c: SkCanvas, entry: ArtEntry, art: SkPath, rand: Rand, hold
   contour(c, art, 0.007);
   hairFlowers(c, a, art, entry.archetype, rand);
   bodyFlowers(c, a, art, rand);
-  if (holdsCandle) candle(c, a, rand);
+  if (holdsCandle) candles(c, entry, rand);
 }
 
-/** A pet of light: its outline and a few flowers at the neck. */
+/** The colours of the alebrijes, the painted spirit animals of Oaxaca. */
+const ALEBRIJE = ['#E4007C', '#00A6A6', '#F58A07', '#2456C8', '#6B3FA0', '#C8102E', '#2E8B57'];
+
+/**
+ * A pet as an alebrije (the owner, 2026-10-31): one strong colour, waves of two others edged in cream, dots and
+ * flowers over it, the eye ringed like a calavera's, an inner outline. The people stay figures of light.
+ */
 function paintPet(c: SkCanvas, entry: ArtEntry, art: SkPath, rand: Rand) {
   const a = entry.anchors as PetAnchors;
-  contour(c, art, 0.02);
-  const cluster: [number, number][] = [[-0.16, 0.02], [-0.2, 0.1]];
-  cluster.forEach(([dx, dy], i) => {
-    const x = a.head.x + dx;
-    const y = a.head.y + dy;
-    if (art.contains(x, y)) flower(c, x, y, 0.06, PETALS[i], rand);
-  });
+  const pool = [...ALEBRIJE];
+  const pick = () => pool.splice(Math.floor(rand() * pool.length), 1)[0];
+  const [base, waveA, waveB] = [pick(), pick(), pick()];
+  const w = entry.aspect;
+  c.save();
+  c.clipPath(art, ClipOp.Intersect, true);
+  c.drawRect(Skia.XYWHRect(-w, -1.1, 2 * w, 1.2), fill(base, 0.95));
+  const waves = 5;
+  for (let i = 0; i < waves; i++) {
+    const y = -0.92 + (i / (waves - 1)) * 0.86;
+    const b = Skia.PathBuilder.Make();
+    b.moveTo(-w, y);
+    for (let x = -w; x < w; x += 0.24) {
+      b.quadTo(x + 0.06, y + (Math.round((x + w) / 0.24) % 2 === 0 ? -0.14 : 0.14), x + 0.12, y);
+      b.quadTo(x + 0.18, y, x + 0.24, y);
+    }
+    const path = b.build();
+    c.drawPath(path, line(i % 2 === 0 ? waveA : waveB, 0.045));
+    c.drawPath(path, line(COLORS.wax, 0.01));
+  }
+  for (let i = 0; i < 46; i++) {
+    const x = -w / 2 + rand() * w;
+    const y = -rand();
+    if (i % 5 === 0) flower(c, x, y, 0.05, i % 2 === 0 ? COLORS.marigold : COLORS.rose, rand);
+    else c.drawCircle(x, y, 0.012 + rand() * 0.012, fill(COLORS.wax));
+  }
+  c.drawPath(art, line('#3A1A3E', 0.022, 0.9));
+  const er = 0.055;
+  for (let i = 0; i < 8; i++) {
+    const t = (i / 8) * 2 * Math.PI;
+    c.drawCircle(a.head.x + Math.cos(t) * er * 1.05, a.head.y + Math.sin(t) * er * 1.05, er * 0.32, fill(COLORS.marigoldLight));
+  }
+  c.drawCircle(a.head.x, a.head.y, er * 0.95, fill(COLORS.wax));
+  c.drawCircle(a.head.x, a.head.y, er * 0.55, fill('#3A1A3E'));
+  c.restore();
 }
 
 /** The strokes and flowers of a drawing, in figure units. `seed` varies the flowers. */
@@ -196,13 +244,13 @@ export interface Dressed {
   y: number;
   width: number;
   height: number;
-  flame: { x: number; y: number } | null;
+  flames: { x: number; y: number }[];
 }
 
 /** Pixels per figure height at each size on screen, and of the glow, which is only soft light. */
 export const FIGURE_PX = { family: 340, walk: 560, farewell: 760 };
 const GLOW_PX = 110;
-const MARGIN = 0.14;
+const MARGIN = 0.22;
 const CACHE_SIZE = 12;
 const cache = new Map<string, Dressed>();
 
@@ -264,37 +312,45 @@ export function dressedFigure(id: string, seed: number, px: number, holdsCandle 
   canvas.drawPicture(picture);
   surface.flush();
   const person = holdsCandle && entry.archetype !== 'perro' && entry.archetype !== 'gato';
-  const dressed = { image: snapshotOf(surface) ?? surface.makeImageSnapshot(), glow: glowOf(id, width, height, x, y), x, y, width, height, flame: person ? flameAt(entry.anchors as PersonAnchors) : null };
+  const dressed = { image: snapshotOf(surface) ?? surface.makeImageSnapshot(), glow: glowOf(id, width, height, x, y), x, y, width, height, flames: person ? flamesOf(entry) : [] };
   if (cache.size >= CACHE_SIZE) cache.delete(cache.keys().next().value as string);
   cache.set(key, dressed);
   return dressed;
 }
 
 /**
- * The little crown for the visitor's hair: flowers along an arc, one unit wide (one head width), its middle at the
- * origin of the unit box's top third, the top of the head. Rendered once.
+ * The flowers for the visitor's hair: two or three, chosen at random for each visit (the owner, 2026-10-31: keep the
+ * design, randomize the two or three), each at its own spot along the top of the head with a leaf behind it. In a unit
+ * box, one head wide; the top of the head is at (0.5, 0.35).
  */
-let visitorCrownImage: SkImage | null = null;
-const CROWN_PX = 320;
+const CROWN_PX = 720;
+const crowns = new Map<number, SkImage | null>();
 
-export function visitorCrown(): SkImage | null {
-  if (visitorCrownImage != null) return visitorCrownImage;
+export function visitorCrown(seed: number): SkImage | null {
+  if (crowns.has(seed)) return crowns.get(seed) ?? null;
   const surface = Skia.Surface.MakeOffscreen(CROWN_PX, CROWN_PX);
   if (surface == null) return null;
   const c = surface.getCanvas();
   c.scale(CROWN_PX, CROWN_PX);
-  c.translate(0.5, 0.35);
-  const rand = mulberry32(7);
-  const n = 9;
-  for (let i = 0; i < n; i++) {
-    const t = (i / (n - 1)) * 2 - 1;
-    if (i % 2 === 0) leaf(c, t * 0.42, t * t * 0.24, 0.1, -Math.PI / 2 + t);
+  const rand = mulberry32(seed * 7919 + 13);
+  const count = rand() < 0.5 ? 2 : 3;
+  // Spots along the top of the head as an ellipse, from one temple to the other, kept apart from each other.
+  const spots: number[] = [];
+  while (spots.length < count) {
+    const u = 0.08 + rand() * 0.84;
+    if (spots.every((v) => Math.abs(v - u) > 0.16)) spots.push(u);
   }
-  for (let i = 0; i < n; i++) {
-    const t = (i / (n - 1)) * 2 - 1;
-    flower(c, t * 0.42, t * t * 0.24, i % 2 === 0 ? 0.06 : 0.045, PETALS[i % 3], rand);
+  const petals = [COLORS.marigold, COLORS.marigoldLight, COLORS.rose];
+  for (const u of spots) {
+    const a = Math.PI * (1.06 + 0.88 * u);
+    const x = 0.5 + 0.47 * Math.cos(a);
+    const y = 0.6 + 0.25 * Math.sin(a);
+    leaf(c, x, y, 0.12, a + (rand() < 0.5 ? -0.6 : 0.6));
+    flower(c, x, y, 0.065 + rand() * 0.025, petals[Math.floor(rand() * petals.length)], rand);
   }
   surface.flush();
-  visitorCrownImage = snapshotOf(surface);
-  return visitorCrownImage;
+  const image = snapshotOf(surface);
+  if (crowns.size > 8) crowns.delete(crowns.keys().next().value as number);
+  crowns.set(seed, image);
+  return image;
 }

@@ -76,3 +76,53 @@ const seed = Number(process.env.SENDERO_PREVIEW_SEED ?? '1');
   },
   60000,
 );
+
+/**
+ * The farewell composition for design review: the frame on the stage and random silhouettes beside it
+ * with the hand resting on the garland, and a pet. SENDERO_PREVIEW_FAREWELL names the PNG.
+ */
+const farewellOut = process.env.SENDERO_PREVIEW_FAREWELL;
+(farewellOut ? it : it.skip)(
+  'writes the farewell sheet',
+  async () => {
+    const init = require('canvaskit-wasm/bin/full/canvaskit');
+    const CK = await init({});
+    (globalThis as unknown as { CanvasKit: unknown }).CanvasKit = CK;
+    const draw = require('../draw');
+    const looks = require('../looks');
+    const { computeLayout } = require('../../experience/layout');
+    const { mulberry32 } = require('../../procedural');
+    const rand = mulberry32(seed);
+    const W = 2560;
+    const H = 1600;
+    const layout = computeLayout(W, H);
+    const surface = CK.MakeSurface(W * 2, H * 2);
+    const canvas = surface.getCanvas();
+    canvas.clear(CK.Color(28, 22, 58, 1));
+    const toPath = (p: { ref: { snapshot?: () => unknown; detach?: () => unknown } }) => p.ref.snapshot?.() ?? p.ref.detach?.() ?? p.ref;
+    const kinds = ['abuela', 'abuelo', 'mujer', 'hombre'];
+    for (let q = 0; q < 4; q++) {
+      const ox = (q % 2) * W;
+      const oy = Math.floor(q / 2) * H;
+      const { stage, stageScale, band, companion, petSpot } = layout;
+      const frame = new CK.Paint();
+      frame.setColor(CK.Color(235, 140, 30, 1));
+      canvas.drawRect(CK.XYWHRect(ox + stage.x, oy + stage.y, stage.width, stage.height), frame);
+      const cam = new CK.Paint();
+      cam.setColor(CK.Color(90, 110, 130, 1));
+      const inset = band * stageScale;
+      canvas.drawRect(CK.XYWHRect(ox + stage.x + inset, oy + stage.y + inset, stage.width - 2 * inset, stage.height - 2 * inset), cam);
+      const look = looks.randomLook(rand, kinds[q]);
+      const ghostH = Math.min(companion.height, (companion.ground - 0.1 * H) / looks.silhouetteTop(look));
+      const ink = new CK.Paint();
+      ink.setColor(CK.Color(246, 236, 216, 1));
+      ink.setAntiAlias(true);
+      const rest = { x: ox + stage.x + band * stageScale * 0.35, y: oy + stage.y + stage.height * 0.66 };
+      canvas.drawPath(toPath(draw.humanFrontPath(look, { ox: ox + companion.x, oy: oy + companion.ground, h: ghostH, facing: 1 }, 0.5, rest)), ink);
+      const pet = looks.randomPetLook(rand, q % 2 === 0 ? 'perro' : 'gato');
+      canvas.drawPath(toPath(draw.petSitPath(pet, { ox: ox + petSpot.x, oy: oy + petSpot.ground, h: ghostH, facing: 1 })), ink);
+    }
+    require('fs').writeFileSync(farewellOut as string, surface.makeImageSnapshot().encodeToBytes());
+  },
+  60000,
+);

@@ -10,10 +10,16 @@ export interface BundledTrack {
 }
 
 export const BUNDLED_TRACKS: BundledTrack[] = [
-  { id: "llorona-1917", title: "La llorona", performer: "Carmen García Cornejo with Miguel Lerdo de Tejada", year: 1917, source: require('../../assets/music/llorona-1917.m4a') },
-  { id: "golondrinas-1920", title: "Las golondrinas", performer: "Luis Alfonso Marrón", year: 1920, source: require('../../assets/music/golondrinas-1920.m4a') },
-  { id: "sobre-las-olas-1904", title: "Sobre las olas", performer: "Victor Dance Orchestra", year: 1904, source: require('../../assets/music/sobre-las-olas-1904.m4a') },
-  { id: "adios-muchachas-1915", title: "¡Adiós, muchachas!", performer: "Marimba Azul y Blanco", year: 1915, source: require('../../assets/music/adios-muchachas-1915.m4a') },
+  { id: "gymnopedie-no-1", title: "Gymnopedie No 1", performer: "Kevin MacLeod", year: 2011, source: require('../../assets/music/gymnopedie-no-1.m4a') },
+  { id: "lost-time", title: "Lost Time", performer: "Kevin MacLeod", year: 2015, source: require('../../assets/music/lost-time.m4a') },
+  { id: "gymnopedie-no-3", title: "Gymnopedie No 3", performer: "Kevin MacLeod", year: 2011, source: require('../../assets/music/gymnopedie-no-3.m4a') },
+  { id: "bittersweet", title: "Bittersweet", performer: "Kevin MacLeod", year: 2017, source: require('../../assets/music/bittersweet.m4a') },
+  { id: "autumn-day", title: "Autumn Day", performer: "Kevin MacLeod", year: 2010, source: require('../../assets/music/autumn-day.m4a') },
+  { id: "angel-share", title: "Angel Share", performer: "Kevin MacLeod", year: 2017, source: require('../../assets/music/angel-share.m4a') },
+  { id: "dreamer", title: "Dreamer", performer: "Kevin MacLeod", year: 2016, source: require('../../assets/music/dreamer.m4a') },
+  { id: "private-reflection", title: "Private Reflection", performer: "Kevin MacLeod", year: 2009, source: require('../../assets/music/private-reflection.m4a') },
+  { id: "heartwarming", title: "Heartwarming", performer: "Kevin MacLeod", year: 2007, source: require('../../assets/music/heartwarming.m4a') },
+  { id: "touching-moments-two", title: "Touching Moments Two - Higher", performer: "Kevin MacLeod", year: 2006, source: require('../../assets/music/touching-moments-two.m4a') },
 ];
 
 /** Whispered clips by voice id, then message id. */

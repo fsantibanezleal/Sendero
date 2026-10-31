@@ -19,6 +19,27 @@ _EARLY_MS = (8.0, 13.0, 19.0, 26.0, 33.0, 40.0)
 _EARLY_GAINS = (0.5, 0.42, 0.35, 0.3, 0.25, 0.2)
 
 
+# The close chain (2026-10-30): the owner found the whisper "so digital", and the naturalness score agreed (UTMOS 1.3
+# whispered against 3.3 here, on 3.5 for the clean voice), so the voice now stays a voice, soft and near.
+CLOSE_LOWPASS_HZ = 7000.0
+CLOSE_WET = 0.12
+CLOSE_ROOM_SECONDS = 0.7
+CLOSE_DECAY = 4.0
+
+
+def close_chain(x: np.ndarray, sr: int, seed: int) -> np.ndarray:
+    """A soft voice in a small warm room: gentle low-pass, a short wet mix, lead silence."""
+    x = np.asarray(x, dtype=np.float64)
+    lp = sosfilt(butter(2, CLOSE_LOWPASS_HZ, btype="lowpass", fs=sr, output="sos"), x)
+    h = room_impulse_response(sr, seed)[: int(CLOSE_ROOM_SECONDS * sr)]
+    h = h * np.exp(-np.arange(len(h)) / sr * CLOSE_DECAY)
+    wet = fftconvolve(lp, h)
+    y = np.zeros(len(wet))
+    y[: len(lp)] += lp
+    y += CLOSE_WET * wet / max(1e-9, np.sqrt(np.sum(h**2)))
+    return np.concatenate([np.zeros(int(LEAD_SECONDS * sr)), y])
+
+
 def room_impulse_response(sr: int, seed: int) -> np.ndarray:
     """6 early reflections (8 to 40 ms, gains 0.5 to 0.2) plus a seeded Gaussian-noise tail with RT60 1.4 s; unit energy."""
     rng = np.random.default_rng(seed)

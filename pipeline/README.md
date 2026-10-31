@@ -18,15 +18,14 @@ repository.
 
 3. Run every command from the repository root.
 
-## Music: public-domain recordings (`docs/music.md`)
+## Music: the bundled pieces (`docs/music.md`)
 
 ```powershell
 pipeline/.venv/Scripts/python.exe -m pipeline.music.fetch    # raw MP3 into <data root>/music/raw, hashes checked
 pipeline/.venv/Scripts/python.exe -m pipeline.music.master   # assets/music/*.m4a and assets/music/catalog.json
 ```
 
-`pipeline/music/manifest.json` lists every candidate with the composition rule applied (`include`, `reason`).
-`fetch` checks the Public Domain Mark licence URL of each item and the SHA-256 against
+`pipeline/music/manifest.json` lists the pieces with their source. `fetch` checks each file against the SHA-256 in
 `pipeline/music/manifest.lock.json`. Exit code 3 means an item was unreachable after retries: the others are done,
 the catalog omits it.
 

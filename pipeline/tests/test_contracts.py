@@ -29,14 +29,14 @@ def test_catalog_shape():
         ids.add(t["id"])
         assert t["file"] == f"{t['id']}.m4a" and (ROOT / "assets/music" / t["file"]).is_file()
         assert isinstance(t["instrumental"], bool)
-        assert isinstance(t["year"], int) and 1900 <= t["year"] <= 1930
+        assert isinstance(t["year"], int) and 2000 <= t["year"] <= 2030
         assert t["durationSec"] > 30
         assert abs(t["loudnessLufs"] + 16.0) <= 0.3, t["id"]
         assert t["truePeakDbtp"] <= -1.0, t["id"]
-        assert t["licenseUrl"] == "https://creativecommons.org/publicdomain/mark/1.0/"
-        assert t["license"] == "Public Domain Mark 1.0"
-        assert re.fullmatch(r"https://archive\.org/details/[\w-]+", t["source"])
-        assert t["credit"] == "Library of Congress National Jukebox"
+        assert t["licenseUrl"] == "https://creativecommons.org/licenses/by/4.0/"
+        assert t["license"] == "CC BY 4.0"
+        assert t["source"].startswith("https://incompetech.com/")
+        assert t["title"] in t["credit"] and "Kevin MacLeod" in t["credit"] and "Attribution 4.0" in t["credit"]
         assert t["composer"] not in ("", None, "Unknown")
 
 

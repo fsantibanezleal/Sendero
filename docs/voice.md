@@ -1,6 +1,13 @@
-# Whispered distant voice
+# The soft voice
 
-At the end of each visit a message covers the screen and a voice whispers it from a distance, behind the music, while
+On 2026-10-30 the owner found the whispered clips "so digital". The measurement agreed: UTMOS naturalness on six messages
+was about 1.3 for every whisper conversion (LPC, WORLD), 1.3 for a breathy WORLD voice and 1.5 to 1.9 for a soft voice
+through the distant room, against 3.5 to 3.8 for the clean voice. A soft voice in a small room with 18 percent of its
+own whisper under it (`distance.close_chain`, `whisper.add_breath`) measured 3.3 with no word errors on the first
+clips, so all the clips now use it. The sections below on the whisper conversion and the distance chain describe the parts
+it builds on; the far chain is kept in the code but no clip uses it.
+
+At the end of each visit a message covers the screen and a soft voice says it, near, over the music, while
 the music softens a little. The voice matches the silhouette that walked to the visitor: a grandmother or a woman gets
 `mujer`, a grandfather or a man gets `hombre`. This page records how the 14 clips (7 messages by 2 voices) are made,
 what was measured on them, and how to replace them with a recorded family voice. The code is in

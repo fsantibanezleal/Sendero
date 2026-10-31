@@ -1,60 +1,35 @@
-# The reveal
+# The farewell
 
-The moment the frame returns: "showing the real person, but now smaller, and behind a soft silhouette of the random
-person". The visitor must be drawn in front of the silhouette, and the silhouette in front of the background, so the
-visitor is cut out of the live camera by a person mask.
+The moment the walk ends. The owner first asked for the visitor "smaller, and behind a soft silhouette of the random
+person"; after seeing it, on 2026-10-30, he asked for the silhouettes "at the sides of the frames, like resting on it,
+not overlapping it". This page describes the farewell as built since 0.01.001.
 
-## The person mask
+## The composition
 
-`src/camera/useCameraFeed.ts`.
+`src/scene/FarewellLayer.tsx`, `src/experience/layout.ts` (`stage`, `companion`, `petSpot`).
 
-- Model: MediaPipe Selfie Segmentation, landscape variant (`assets/models/selfie_segmenter_landscape.tflite`, 250 KB,
-  Apache License 2.0). Its model card gives the input as a 144 x 256 x 3 tensor of RGB values in [0, 1] and the output
-  as a 144 x 256 x 1 person probability in [0, 1]; it is meant for one prominent person within about 4 metres and is
-  run on the phone GPU or CPU in real time
-  (https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Selfie%20Segmentation.pdf). The landscape
-  variant matches a landscape tablet (research-android D2). The code reads the input and output shapes at load and
-  accepts one or two output channels.
-- Runtime: `react-native-fast-tflite` 3.0.1, GPU delegate first, CPU if the GPU delegate fails to load.
-- Pipeline, on the camera thread: each frame is drawn upright and mirrored (the same image the screen shows); while the
-  mask is on, every second frame that image is drawn into a 256 x 144 surface, read back, converted to RGB floats,
-  segmented, smoothed over time with an exponential moving average (weight 0.6 for the newest mask), and turned into an
-  alpha image with a soft edge (a smoothstep from probability 0.3 to 0.7).
-- Alignment: because the mask is computed from the upright, mirrored image itself, drawing the camera image and the
-  mask into the same rectangle lines them up exactly. The rectangle is the camera image's cover rectangle, shrunk by
-  0.82 about the bottom centre of the screen (`coverRect`, `personRect`).
-- Compositing: the camera image is drawn into a layer and the mask over it with the `dstIn` blend mode, which keeps the
-  camera pixels only where the mask is opaque.
-- A failing mask computation is caught on the camera thread and reported once in the system log
-  (`[Sendero] camera: person mask failed: ...`); the reveal then uses the portrait below.
-- The mask runs only from the start of the walk to the end of the message.
+- At the arrival the frame grows from the lower right corner to the stage: 60 percent of the screen, on the right,
+  its top at 20 percent of the height, with its garland, papel picado, candles and the live camera inside. The visitor
+  sees themselves in it, live.
+- The silhouette of the person who walked the path stands beside the frame on the left (the side the walk came from),
+  turned toward it, feet on the ground at 94 percent of the height, as tall as 74 percent of the screen for a person of
+  height 1 (and never taller than the top of the screen allows with a hat or a bun). `besideFrame` places each drawing by its
+  real width, so nothing of the silhouette touches the frame or leaves the screen; a very wide drawing is scaled down.
+- The pet, when one walked with them, sits at the silhouette's other side.
+- Warm lights drift around them; the silhouette breathes slowly and glows (`Ghost.tsx`).
+- The message then covers the screen; at the return the frame goes back to full screen and the silhouette fades.
 
-## Live or still
+## Why there is no cut-out any more
 
-The reveal can show the visitor live (they can move, the silhouette stays behind them) or as a still cut-out frozen at
-the start of the reveal. The staff panel sets the mode: Automatic (default), Live, or Still. In Automatic the app
-measures the masks it actually produced per second during the walk (an exponential average) and freezes the image and
-the mask at the start of the reveal when the rate is below 6 per second, so a slow tablet never shows a lagging cut-out.
-The live camera resumes at the return.
+The first farewell cut the visitor out of the camera with a person mask (the MediaPipe selfie segmenter) and drew them in
+front of a silhouette standing behind. The silhouette then overlapped the garland and the picture ("messy", the owner's
+review). Beside the frame, no mask is needed: the person is seen as the camera sees them, whatever the light, however
+many people stand there. The mask code stays in `src/camera/useCameraFeed.ts` and is not run.
 
-## Without a mask
-
-If the model cannot load, or no mask arrives, the reveal shows the visitor as a soft-edged portrait left of centre
-(`PORTRAIT` in `src/scene/revealGeometry.ts`: 40 percent of the width and 58 percent of the height, its right edge at
-54 percent of the width), with the camera image cropped to fill it, so the silhouette (centred at 56.5 percent) stands
-visibly behind and beside the visitor and the moment still reads as "behind". Only the variant on screen is drawn
-(`Gate`).
-
-## The scene of the reveal
-
-`src/scene/RevealLayer.tsx`: the night between the worlds with slow, warm bokeh lights; the front-view silhouette of
-the same person (0.82 of the screen's height, standing on the bottom edge so the head stays below the papel picado
-and the top garland, its centre slightly to the right, breathing slowly) with their pet sitting
-to the left; small lights rising around it; the visitor in front. The garland, the papel picado and the candles stay
-around it.
+A later mode may place the silhouette close to the visitor, at their scale (an arm around their shoulders), using the
+mask to find one clear head and shoulders, and falling back to this composition when the mask is not reliable (several
+people, someone half out of the picture, a dark room).
 
 ## Privacy
 
-Frames and masks exist only in memory. Nothing is written to storage or sent; the app has no internet permission. The
-model card notes the model is not for surveillance or identity recognition; Sendero only separates a person from the
-background for the length of one message.
+Frames exist only in memory. Nothing is written to storage or sent; the app has no internet permission.

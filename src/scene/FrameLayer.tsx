@@ -4,17 +4,13 @@ import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
 import type { CameraFeed } from '../camera/useCameraFeed';
 import type { Layout } from '../experience/layout';
-import { frameTransform } from '../experience/layout';
-import type { Visit } from '../experience/useExperience';
+import { frameAt } from '../experience/layout';
 import { TIMELINE, windowProgress } from '../experience/timeline';
 import { CELL, type FlowerAtlas, HEAD_VARIANTS, LEAF_VARIANTS } from '../flowers/atlas';
 import { garlandSprites } from '../flowers/garland';
-import { easeInOutCubic, easeOutCubic, smoothstep } from '../procedural';
+import { easeInOutCubic, easeOutCubic } from '../procedural';
 import { palette } from '../theme/palette';
 import { bannerRow, type Banner } from './papelPicado';
-import { Gate } from './Gate';
-import { LayerBoundary } from './LayerBoundary';
-import { RevealLayer } from './RevealLayer';
 import { coverRect } from './revealGeometry';
 
 /**
@@ -30,37 +26,28 @@ export function FrameLayer({
   atlas,
   clock,
   time,
-  visit,
 }: {
   layout: Layout;
   feed: CameraFeed;
   atlas: FlowerAtlas;
   clock: SharedValue<number>;
   time: SharedValue<number>;
-  visit: Visit;
 }) {
   const { width: W, height: H } = layout.screen;
 
-  const k = useDerivedValue(() => {
-    const t = clock.value;
-    if (t < 0) return 0;
-    if (t < TIMELINE.arrive.start) return easeInOutCubic(windowProgress(t, TIMELINE.shrink));
-    return 1 - easeOutCubic(windowProgress(t, TIMELINE.arrive));
-  });
+  // Full screen while waiting; to the lower right corner for the walk; to the stage on the right at
+  // the arrival, where it stays for the farewell and the message; back to full screen at the return.
   const transform = useDerivedValue(() => {
-    const f = frameTransform(layout, k.value);
+    const t = clock.value;
+    let f = { tx: 0, ty: 0, s: 1 };
+    if (t >= 0) {
+      const shrink = easeInOutCubic(windowProgress(t, TIMELINE.shrink));
+      const arrive = easeOutCubic(windowProgress(t, TIMELINE.arrive));
+      const back = easeInOutCubic(windowProgress(t, TIMELINE.return));
+      f = frameAt(layout, shrink, arrive, back);
+    }
     return [{ translateX: f.tx }, { translateY: f.ty }, { scale: f.s }];
   });
-  const revealMix = useDerivedValue(() => {
-    const t = clock.value;
-    if (t < TIMELINE.reveal.start) return 0;
-    if (t < TIMELINE.return.start) return smoothstep(TIMELINE.reveal.start, TIMELINE.reveal.start + 0.9, t);
-    return 1 - smoothstep(TIMELINE.return.start, TIMELINE.return.end, t);
-  });
-  const cameraOpacity = useDerivedValue(() => 1 - revealMix.value);
-  // Under the full reveal the camera is hidden, and while waiting the reveal is: neither is drawn.
-  const cameraOn = useDerivedValue(() => revealMix.value < 1);
-  const revealOn = useDerivedValue(() => revealMix.value > 0);
 
   const clip = useMemo(() => rrect(Skia.XYWHRect(0, 0, W, H), layout.radius, layout.radius), [W, H, layout.radius]);
   const cover = useDerivedValue(() => {
@@ -89,18 +76,7 @@ export function FrameLayer({
   return (
     <Group transform={transform}>
       <Group clip={clip}>
-        <Gate on={cameraOn} width={W} height={H}>
-          <Group opacity={cameraOpacity}>
-            <Image image={feed.image} x={cx} y={cy} width={cw} height={ch} fit="fill" />
-          </Group>
-        </Gate>
-        <Gate on={revealOn} width={W} height={H}>
-          <Group opacity={revealMix}>
-            <LayerBoundary name="reveal" resetKey={visit.id}>
-              <RevealLayer visit={visit} layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} />
-            </LayerBoundary>
-          </Group>
-        </Gate>
+        <Image image={feed.image} x={cx} y={cy} width={cw} height={ch} fit="fill" />
       </Group>
       <Atlas image={atlas.image} sprites={garland.rects} transforms={garland.transforms} />
       <Line p1={vec(0, string.y + 2)} p2={vec(W, string.y + 2)} color="rgba(255, 244, 224, 0.5)" strokeWidth={2} />

@@ -1,20 +1,44 @@
 {
   "files": {
-    "adios-muchachas-1915": {
-      "file": "jukebox-15477_adi-s-muchachas.mp3",
-      "sha256": "7c6987fcb339567d8c02a95a9eba896166d3b7e6e395442f6074181502268e30"
+    "angel-share": {
+      "file": "angel-share.mp3",
+      "sha256": "280cb6b9c2a802291dae277e506e98ec10aef206a2bca588a14a0d2886f803bc"
     },
-    "golondrinas-1920": {
-      "file": "jukebox-36709_las-golondrinas.mp3",
-      "sha256": "2f5f7db5229cc67215537474c25af89d3b0c83429e4563a5b6cabbdfbbadb361"
+    "autumn-day": {
+      "file": "autumn-day.mp3",
+      "sha256": "74b766d726f2292cb229b2961ea914c320285af382aaeb001579298384d7ae01"
     },
-    "llorona-1917": {
-      "file": "jukebox-23117_la-llorona.mp3",
-      "sha256": "15d25cfd6399abc29a722cb5862e19e49c309404961d35fb3ea0e0fd18cb17ec"
+    "bittersweet": {
+      "file": "bittersweet.mp3",
+      "sha256": "3e12763e7e1955e6017ae7195df2ab7bd5a4faca9a4147eeb81d28d7aa94e5d1"
     },
-    "sobre-las-olas-1904": {
-      "file": "jukebox-120146_sobre-las-olas.mp3",
-      "sha256": "d13537e85a10e1f760419dec42ed37201b3df4e7937834f74078d810e1feae83"
+    "dreamer": {
+      "file": "dreamer.mp3",
+      "sha256": "615e65c9ca131c11f8e12970644ed74ef822ec4f643b1d9d0085a223600bcdfb"
+    },
+    "gymnopedie-no-1": {
+      "file": "gymnopedie-no-1.mp3",
+      "sha256": "8cba6bb3da51066ad39520ec218a327bb6222d8fb32bc52f28a1e90b67756f70"
+    },
+    "gymnopedie-no-3": {
+      "file": "gymnopedie-no-3.mp3",
+      "sha256": "2d324f79c8599a2beab8ac0931be2348673a8be6fc45600556f8108f26394db3"
+    },
+    "heartwarming": {
+      "file": "heartwarming.mp3",
+      "sha256": "a621a943ab940567f4136060e0f1f0637038b8a03c10ff8926f956e1b2ef34e7"
+    },
+    "lost-time": {
+      "file": "lost-time.mp3",
+      "sha256": "c6c06198854392d729d965fc531cff8b3580c177944a1f7c8542b99edf3f7f65"
+    },
+    "private-reflection": {
+      "file": "private-reflection.mp3",
+      "sha256": "fc8aa81f59749ee96ea096fadb104ff74fdc18b35e2790f543bfa82f0e0cee02"
+    },
+    "touching-moments-two": {
+      "file": "touching-moments-two.mp3",
+      "sha256": "b9aa876a1c7919e90758e6144474ff834df14b905e698d2950b0a65b3c1ce51a"
     }
   },
   "version": 1

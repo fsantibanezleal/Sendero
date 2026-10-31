@@ -7,7 +7,8 @@ Everything visible is drawn in one Skia canvas (`src/scene/Scene.tsx`), back to 
 | Night between the worlds | `NightLayer.tsx` | Always, under everything |
 | Petal path | `PathLayer.tsx` | Path to arrival |
 | Silhouettes | `FiguresLayer.tsx` | Gather to arrival |
-| Framed camera and reveal | `FrameLayer.tsx`, `RevealLayer.tsx` | Always; shrinks and returns |
+| Framed camera | `FrameLayer.tsx` | Always; full screen, the corner, the stage, full screen |
+| Farewell | `FarewellLayer.tsx` | From the arrival to the return |
 | Bloom | `Scene.tsx` | Around the arrival |
 
 The message and the waiting hint are React Native text over the canvas (`Overlays.tsx`), so Spanish text wraps and
@@ -92,8 +93,10 @@ passes it.
   of the walk, then moves along it by arc length with an ease-in-out, height from the far size to 92 percent of the
   mini frame as z^1.3, the pet beside the person on the viewer's side, a little ahead.
 
-## The frame and the reveal
+## The frame and the farewell
 
-`FrameLayer.tsx` draws the camera, cropped to cover the screen, clipped to a rounded rectangle, under the garland, the
-papel picado and the candles; the whole group shrinks to the mini frame and returns. During the reveal the camera gives
-way to `RevealLayer.tsx`, inside the same garland (see `docs/reveal.md`).
+`FrameLayer.tsx` draws the live camera inside the garland, with the papel picado and the candles. The whole group moves
+through three placements (`frameAt` in `src/experience/layout.ts`): full screen while waiting, the mini frame in the lower
+right corner during the walk, and the stage on the right (60 percent of the screen) from the arrival to the return,
+when it goes back to full screen. `FarewellLayer.tsx` draws the silhouette beside the stage with a hand resting on the
+garland, and the pet (see `docs/reveal.md`).

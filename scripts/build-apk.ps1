@@ -31,6 +31,11 @@
   Parallel Gradle workers (default 4). Each native task runs its own parallel compiler jobs; more workers can
   exhaust memory (clang 'LLVM ERROR: out of memory') on a busy machine.
 
+.PARAMETER CxxJobs
+  Parallel compilers per native module (default 4, passed as SENDERO_CXX_JOBS to the CMake job pool in
+  plugins/with-short-native-build.js). Ninja otherwise starts one per core; on a many-core machine that runs
+  out of memory ("the paging file is too small").
+
 .PARAMETER SigningProperties
   A properties file kept OUTSIDE the repository with SENDERO_UPLOAD_STORE_FILE (absolute, or relative to
   the properties file), SENDERO_UPLOAD_STORE_PASSWORD, SENDERO_UPLOAD_KEY_ALIAS and
@@ -47,7 +52,8 @@ param(
   [string]$CxxRoot = $env:SENDERO_CXX_ROOT,
   [string]$LogFile,
   [string]$SigningProperties,
-  [int]$MaxWorkers = 4
+  [int]$MaxWorkers = 4,
+  [int]$CxxJobs = 4
 )
 # Native tools write progress to stderr; Windows PowerShell 5.1 would turn that into errors under 'Stop'.
 # Every native call below checks its exit code instead.
@@ -65,6 +71,7 @@ if (-not $CxxRoot) { throw 'Set -CxxRoot (or SENDERO_CXX_ROOT) to a short folder
 if ($CxxRoot.Length -gt 20) { Write-Warning "CxxRoot '$CxxRoot' is long; keep it under about 20 characters." }
 New-Item -ItemType Directory -Force $CxxRoot | Out-Null
 $env:SENDERO_CXX_ROOT = (Resolve-Path $CxxRoot).Path
+$env:SENDERO_CXX_JOBS = "$CxxJobs"
 
 $signed = $false
 if ($SigningProperties) {

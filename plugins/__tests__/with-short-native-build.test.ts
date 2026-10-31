@@ -13,6 +13,8 @@ describe('short native build staging plugin', () => {
     expect(out).toContain("System.getenv('SENDERO_CXX_ROOT')");
     expect(out).toContain('buildStagingDirectory');
     expect(out).toContain('-DCMAKE_OBJECT_PATH_MAX=250');
+    expect(out).toContain('-DCMAKE_JOB_POOL_COMPILE=compile');
+    expect(out).toContain('SENDERO_CXX_JOBS');
   });
 
   it('is idempotent across repeated prebuilds', () => {

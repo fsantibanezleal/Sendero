@@ -39,6 +39,8 @@ export interface Look {
   top: Top;
   bottom: Bottom;
   carry: Carry;
+  /** The silhouette drawing that shows this person (artData.ts), or null to draw the procedural figure. */
+  art: string | null;
 }
 
 export type Ears = 'up' | 'bat' | 'flop' | 'small';
@@ -62,7 +64,12 @@ export interface PetLook {
   fluffy: boolean;
   /** Sitting or standing while the family waits. */
   sits: boolean;
+  /** The silhouette drawing that shows this pet, or null to draw the procedural figure. */
+  art: string | null;
 }
+
+/** Height of a pet drawing per unit of size, in person-height units (a size-1 dog stands about 0.32 tall). */
+export const PET_ART_HEIGHT = 0.32;
 
 /** Base height of each archetype relative to the tallest (the man). */
 export const BASE_HEIGHT: Record<HumanKind, number> = { abuela: 0.92, abuelo: 0.96, mujer: 0.95, hombre: 1 };
@@ -164,6 +171,7 @@ export function randomLook(rand: Rand, human: HumanKind): Look {
     top: weighted(rand, table.top),
     bottom: weighted(rand, table.bottom),
     carry,
+    art: null,
   };
 }
 
@@ -183,6 +191,7 @@ export function randomPetLook(rand: Rand, kind: PetKind): PetLook {
       snout: between(rand, 0.7, 1.3),
       fluffy: rand() < 0.35,
       sits: rand() < 0.4,
+      art: null,
     };
   }
   return {
@@ -196,6 +205,7 @@ export function randomPetLook(rand: Rand, kind: PetKind): PetLook {
     snout: between(rand, 0.85, 1.15),
     fluffy: rand() < 0.35,
     sits: rand() < 0.6,
+    art: null,
   };
 }
 
@@ -221,5 +231,7 @@ export function silhouetteTop(look: Look): number {
   const hair = look.hair === 'curly' ? 0.03 : look.hair === 'bun' || look.hair === 'pompadour' ? 0.038 : 0;
   const cover = look.headwear === 'rebozo' || look.headwear === 'panuelo' ? 0.022 : look.headwear === 'flor' ? 0.012 : 0;
   const carried = look.carry === 'guitar' ? 0.07 : 0;
+  // A drawing is normalized to height 1, hat and hair included.
+  if (look.art != null) return BASE_HEIGHT[look.human] * look.build.height;
   return BASE_HEIGHT[look.human] * look.build.height * (1 + Math.max(hat, hair, cover, carried));
 }

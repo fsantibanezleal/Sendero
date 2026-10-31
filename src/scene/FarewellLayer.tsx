@@ -6,8 +6,9 @@ import type { Layout } from '../experience/layout';
 import type { Visit } from '../experience/plan';
 import { TIMELINE } from '../experience/timeline';
 import type { FlowerAtlas } from '../flowers/atlas';
+import { artPath, placeArt } from '../figures/art';
 import { humanFrontPath, petSitPath, type ScreenTransform } from '../figures/draw';
-import { silhouetteTop } from '../figures/looks';
+import { BASE_HEIGHT, PET_ART_HEIGHT, silhouetteTop } from '../figures/looks';
 import { mulberry32, smoothstep } from '../procedural';
 import { palette } from '../theme/palette';
 import { Ghost } from './Ghost';
@@ -62,17 +63,26 @@ export function FarewellLayer({
     return smoothstep(TIMELINE.reveal.start - 0.3, TIMELINE.reveal.start + 1.4, t) * (1 - smoothstep(TIMELINE.return.start, TIMELINE.return.end - 0.3, t));
   });
   const empty = useMemo(() => Skia.Path.Make(), []);
+  // The drawings of the person and the pet, when they have one, united once on the JS thread.
+  const personArt = useMemo(() => (look.art != null ? artPath(look.art) : null), [look.art]);
+  const personArtH = ghostH * BASE_HEIGHT[look.human] * look.build.height;
+  const petArt = useMemo(() => (pet?.art != null ? artPath(pet.art) : null), [pet?.art]);
+  const petArtH = pet != null ? ghostH * PET_ART_HEIGHT * pet.size : 0;
   const ghostMain = useDerivedValue(() => {
     // Built only while shown (it breathes, so it is rebuilt every frame then).
     if (appear.value <= 0) return empty;
     const tf: ScreenTransform = { ox: companion.x, oy: companion.ground, h: ghostH, facing: 1 };
     const breath = 0.5 + 0.5 * Math.sin(time.value * 1.25);
-    const person = humanFrontPath(look, tf, breath, rest);
+    // A drawing stands beside the frame facing it, leaning toward it a little and breathing.
+    const person =
+      personArt != null
+        ? placeArt(personArt, companion.x, companion.ground, personArtH * (1 + 0.004 * breath), 1, 0.035 + 0.006 * breath)
+        : humanFrontPath(look, tf, breath, rest);
     if (pet == null) return person;
     const pt: ScreenTransform = { ox: petSpot.x, oy: petSpot.ground, h: ghostH, facing: 1 };
     const both = Skia.PathBuilder.Make();
     both.addPath(person);
-    both.addPath(petSitPath(pet, pt));
+    both.addPath(petArt != null ? placeArt(petArt, petSpot.x, petSpot.ground, petArtH, 1, 0) : petSitPath(pet, pt));
     return both.build();
   });
   const ghostFar = useDerivedValue(() => empty);

@@ -6,7 +6,9 @@ import type { Layout } from '../experience/layout';
 import type { Visit } from '../experience/plan';
 import { TIMELINE, windowProgress } from '../experience/timeline';
 import { HUMAN_PROFILE } from '../figures/catalog';
+import { artPath, placeArt } from '../figures/art';
 import { humanFarPath, humanMainPath, petSitPath, petWalkPaths, type ScreenTransform } from '../figures/draw';
+import { BASE_HEIGHT, PET_ART_HEIGHT } from '../figures/looks';
 import { gaitCurves } from '../figures/gait';
 import { standPose, walkPose } from '../figures/rig';
 import { rigStyle } from '../figures/style';
@@ -101,6 +103,11 @@ export function FiguresLayer({
     for (let i = 0; i < waiting.length; i++) {
       const w = waiting[i];
       if (w.walker) continue;
+      if (w.look.art != null) {
+        const h = w.place.h * BASE_HEIGHT[w.look.human] * w.look.build.height;
+        main.addPath(placeArt(artPath(w.look.art), w.place.x, w.place.y, h, 1, 0));
+        continue;
+      }
       const tf: ScreenTransform = { ox: w.place.x, oy: w.place.y, h: w.place.h, facing: 1 };
       const pose = standPose(w.style, 1.2 * Math.sin(w.phase));
       back.addPath(humanFarPath(w.look, pose, tf));
@@ -109,6 +116,10 @@ export function FiguresLayer({
     for (let i = 0; i < waitingPets.length; i++) {
       const p = waitingPets[i];
       if (p.companion) continue;
+      if (p.look.art != null) {
+        main.addPath(placeArt(artPath(p.look.art), p.place.x, p.place.y, p.place.h * PET_ART_HEIGHT * p.look.size, 1, 0));
+        continue;
+      }
       const tf: ScreenTransform = { ox: p.place.x, oy: p.place.y, h: p.place.h, facing: 1 };
       if (p.look.sits) {
         main.addPath(petSitPath(p.look, tf));
@@ -135,6 +146,11 @@ export function FiguresLayer({
   // The walker: waiting at their place, then stepping onto the path and walking it.
   const walkerPlace = places[visit.walker];
   const petPlace = visit.companion == null ? null : places[4 + visit.companion];
+  // The drawings of the walker and the pet beside them, united once on the JS thread.
+  const walkerArt = useMemo(() => (walkerLook.art != null ? artPath(walkerLook.art) : null), [walkerLook.art]);
+  const walkerArtScale = BASE_HEIGHT[walkerLook.human] * walkerLook.build.height;
+  const companionArt = useMemo(() => (companion?.art != null ? artPath(companion.art) : null), [companion?.art]);
+  const companionArtScale = companion != null ? PET_ART_HEIGHT * companion.size : 0;
   const walker = useDerivedValue(() => {
     const t = clock.value;
     if (t < TIMELINE.family.start || t >= TIMELINE.reveal.start) {
@@ -153,11 +169,19 @@ export function FiguresLayer({
     const facing = m < 1 && p.x < walkerPlace.x ? -1 : p.tx < -0.25 ? -1 : 1;
     const tf: ScreenTransform = { ox: x, oy: y, h, facing };
     const walking = t >= TIMELINE.walk.start && t < TIMELINE.walk.end;
-    const pose = walking
-      ? walkPose(curves, (t - TIMELINE.walk.start) * cadence, walkStyle)
-      : standPose(rigStyle(walkerLook, true), 1.5 * Math.sin(time.value * 0.7));
-    back.addPath(humanFarPath(walkerLook, pose, tf));
-    main.addPath(humanMainPath(walkerLook, pose, tf));
+    // A drawing glides like a spirit: a soft rise and fall at each step and a gentle sway.
+    const stepPhase = (t - TIMELINE.walk.start) * cadence * 2 * Math.PI;
+    const bob = walking ? Math.abs(Math.sin(stepPhase)) * 0.012 * h : 0;
+    const sway = walking ? 0.025 * Math.sin(stepPhase * 0.5) : 0.012 * Math.sin(time.value * 0.7);
+    if (walkerArt != null) {
+      main.addPath(placeArt(walkerArt, x, y - bob, h * walkerArtScale, facing, sway));
+    } else {
+      const pose = walking
+        ? walkPose(curves, (t - TIMELINE.walk.start) * cadence, walkStyle)
+        : standPose(rigStyle(walkerLook, true), 1.5 * Math.sin(time.value * 0.7));
+      back.addPath(humanFarPath(walkerLook, pose, tf));
+      main.addPath(humanMainPath(walkerLook, pose, tf));
+    }
     if (companion != null && petPlace != null) {
       // The pet walks beside the person, on the viewer's side of the path, a little ahead.
       const nx = -p.ty;
@@ -169,7 +193,10 @@ export function FiguresLayer({
       const px = petPlace.x + (besideX - petPlace.x) * m;
       const py = petPlace.y + (besideY - petPlace.y) * m;
       const pt: ScreenTransform = { ox: px, oy: py, h: petPlace.h + (h - petPlace.h) * m, facing };
-      if (!walking && companion.sits) {
+      if (companionArt != null) {
+        const petBob = walking ? Math.abs(Math.sin(stepPhase * 1.6)) * 0.01 * pt.h : 0;
+        main.addPath(placeArt(companionArt, px, py - petBob, pt.h * companionArtScale, facing, 0));
+      } else if (!walking && companion.sits) {
         main.addPath(petSitPath(companion, pt));
       } else {
         const pet = petWalkPaths(companion, q > 0 ? (t - TIMELINE.walk.start) * 1.7 : 0.1, pt);

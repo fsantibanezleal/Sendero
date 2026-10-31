@@ -7,8 +7,14 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ## [0.01.003] - 2026-10-31
 
-### Fixed
-- Flowers seat on the outline of every head or hat, so men in hats keep theirs and none float in the air.
+### Changed
+- The figures are warm silhouettes of light again, after the owner's review: fine stroke faces, a few flowers, no masks,
+  no colored clothes (`docs/figures.md`).
+
+### Added
+- People hold a candle of the day whose light breathes.
+- Flowers rest on the visitor's hair, found on the device from the person mask during the visit.
+- `build-apk -OnlyTrack <file>`: a local build that loops one audio file, which never enters the repository.
 
 ## [0.01.002] - 2026-10-30
 

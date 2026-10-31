@@ -17,7 +17,7 @@
     },
     {
       "file": "mujer/m04.m4a",
-      "heard": "¡Sí que así!",
+      "heard": "Sí que así.",
       "wer": 1.0
     },
     {
@@ -27,8 +27,8 @@
     },
     {
       "file": "mujer/m06.m4a",
-      "heard": "Descanza, lo estás haciendo bien.",
-      "wer": 0.2
+      "heard": "Descansa. Lo estás haciendo bien.",
+      "wer": 0.0
     },
     {
       "file": "mujer/m07.m4a",
@@ -37,27 +37,27 @@
     },
     {
       "file": "mujer/m08.m4a",
-      "heard": "Hoy viene a verte.",
-      "wer": 0.25
+      "heard": "Hoy vine a verte.",
+      "wer": 0.0
     },
     {
       "file": "mujer/m09.m4a",
-      "heard": "¡Qué gusto me da verde!",
-      "wer": 0.2
+      "heard": "¡Qué gusto me da verte!",
+      "wer": 0.0
     },
     {
       "file": "mujer/m10.m4a",
-      "heard": "¿Cuánto tiempo sin verde?",
-      "wer": 0.25
+      "heard": "¿Cuánto tiempo sin verte?",
+      "wer": 0.0
     },
     {
       "file": "mujer/m11.m4a",
-      "heard": "te extrañaba mucho.",
+      "heard": "te extrañaba mucho",
       "wer": 0.0
     },
     {
       "file": "mujer/m12.m4a",
-      "heard": "Déjame verte, un ratito.",
+      "heard": "Déjame verte un ratito.",
       "wer": 0.0
     },
     {
@@ -162,8 +162,8 @@
     },
     {
       "file": "mujer/m33.m4a",
-      "heard": "Me acompaño aunque no me veas.",
-      "wer": 0.167
+      "heard": "Te acompaño aunque no me veas.",
+      "wer": 0.0
     },
     {
       "file": "mujer/m34.m4a",
@@ -197,12 +197,12 @@
     },
     {
       "file": "mujer/m40.m4a",
-      "heard": "De peor y sonrido.",
-      "wer": 0.75
+      "heard": "Te veo y sonrido.",
+      "wer": 0.25
     },
     {
       "file": "mujer/m41.m4a",
-      "heard": "¿Cuánto te quiero?",
+      "heard": "¡Cuánto te quiero!",
       "wer": 0.0
     },
     {
@@ -217,8 +217,8 @@
     },
     {
       "file": "mujer/m44.m4a",
-      "heard": "¡Con fin a ti!",
-      "wer": 1.0
+      "heard": "Confía en ti.",
+      "wer": 0.0
     },
     {
       "file": "mujer/m45.m4a",
@@ -242,8 +242,8 @@
     },
     {
       "file": "mujer/m49.m4a",
-      "heard": "Sí que adelante, yo te acompaño.",
-      "wer": 0.4
+      "heard": "Sigue adelante. Yo te acompaño.",
+      "wer": 0.0
     },
     {
       "file": "mujer/m50.m4a",
@@ -257,7 +257,7 @@
     },
     {
       "file": "mujer/m52.m4a",
-      "heard": "Riden mucho, me encanta tu risa.",
+      "heard": "Ride mucho, me encanta tu risa.",
       "wer": 0.167
     },
     {
@@ -272,7 +272,7 @@
     },
     {
       "file": "mujer/m55.m4a",
-      "heard": "Abridate y come bien.",
+      "heard": "Abrídate y come bien.",
       "wer": 0.25
     },
     {
@@ -292,8 +292,8 @@
     },
     {
       "file": "mujer/m59.m4a",
-      "heard": "Te mato un abrazo grande.",
-      "wer": 0.2
+      "heard": "Te mando un abrazo grande.",
+      "wer": 0.0
     },
     {
       "file": "mujer/m60.m4a",
@@ -302,12 +302,12 @@
     },
     {
       "file": "mujer/m61.m4a",
-      "heard": "Hoy es fiesta de Frutala.",
-      "wer": 0.5
+      "heard": "Hoy es fiesta, disfrútala.",
+      "wer": 0.0
     },
     {
       "file": "mujer/m62.m4a",
-      "heard": "Canta y baila por mí.",
+      "heard": "¡Canta y baila por mí!",
       "wer": 0.0
     },
     {
@@ -327,8 +327,8 @@
     },
     {
       "file": "hombre/m04.m4a",
-      "heard": "¡Vas a seguir, vamos a seguir!",
-      "wer": 3.0
+      "heard": "¡Los sigo ya! ¡Los sigo!",
+      "wer": 2.5
     },
     {
       "file": "hombre/m05.m4a",
@@ -337,7 +337,7 @@
     },
     {
       "file": "hombre/m06.m4a",
-      "heard": "Descansa, lo estás haciendo bien.",
+      "heard": "Descansa lo estás haciendo bien.",
       "wer": 0.0
     },
     {
@@ -347,7 +347,7 @@
     },
     {
       "file": "hombre/m08.m4a",
-      "heard": "¡Toy bien abiertos!",
+      "heard": "¡Toy bien abertes!",
       "wer": 1.0
     },
     {
@@ -392,13 +392,13 @@
     },
     {
       "file": "hombre/m17.m4a",
-      "heard": "Cada año vuelvo a perse.",
-      "wer": 0.2
+      "heard": "Cada año vuelvo a verte.",
+      "wer": 0.0
     },
     {
       "file": "hombre/m18.m4a",
-      "heard": "¡Bene atarte un abrazo!",
-      "wer": 0.6
+      "heard": "¡Vine a darte un abrazo!",
+      "wer": 0.0
     },
     {
       "file": "hombre/m19.m4a",
@@ -407,8 +407,8 @@
     },
     {
       "file": "hombre/m20.m4a",
-      "heard": "Aquí sigo cerquita de ti.",
-      "wer": 0.0
+      "heard": "Aquí sigo cerca de ti.",
+      "wer": 0.2
     },
     {
       "file": "hombre/m21.m4a",
@@ -427,7 +427,7 @@
     },
     {
       "file": "hombre/m24.m4a",
-      "heard": "Me acuerdo de time todos los días.",
+      "heard": "Me acuerdo de tight todos los días.",
       "wer": 0.143
     },
     {
@@ -442,7 +442,7 @@
     },
     {
       "file": "hombre/m27.m4a",
-      "heard": "¡Vivo en tus recuerdos!",
+      "heard": "Vivo en tus recuerdos.",
       "wer": 0.0
     },
     {
@@ -492,8 +492,8 @@
     },
     {
       "file": "hombre/m37.m4a",
-      "heard": "Nunca me fui de todo.",
-      "wer": 0.2
+      "heard": "Nunca me fui del todo.",
+      "wer": 0.0
     },
     {
       "file": "hombre/m38.m4a",
@@ -512,7 +512,7 @@
     },
     {
       "file": "hombre/m41.m4a",
-      "heard": "¡Cuánto te quiero!",
+      "heard": "¿Cuánto te quiero?",
       "wer": 0.0
     },
     {
@@ -557,13 +557,13 @@
     },
     {
       "file": "hombre/m50.m4a",
-      "heard": "¡Vayre bonito!",
-      "wer": 0.5
+      "heard": "¡Bei bebo nito!",
+      "wer": 1.5
     },
     {
       "file": "hombre/m51.m4a",
-      "heard": "Sé feliz, te lo mereces.",
-      "wer": 0.0
+      "heard": "Sé feliz de lo mereces.",
+      "wer": 0.2
     },
     {
       "file": "hombre/m52.m4a",
@@ -582,8 +582,8 @@
     },
     {
       "file": "hombre/m55.m4a",
-      "heard": "Aplicarte y come bien.",
-      "wer": 0.25
+      "heard": "Abrígate y come bien.",
+      "wer": 0.0
     },
     {
       "file": "hombre/m56.m4a",
@@ -607,20 +607,20 @@
     },
     {
       "file": "hombre/m60.m4a",
-      "heard": "Gracias por tanto, cariño.",
+      "heard": "Gracias por tanto cariño.",
       "wer": 0.0
     },
     {
       "file": "hombre/m61.m4a",
-      "heard": "Hoy es fiesta disfrútala.",
+      "heard": "Hoy es fiesta, disfrútala.",
       "wer": 0.0
     },
     {
       "file": "hombre/m62.m4a",
-      "heard": "¡Canta divaela por mí!",
-      "wer": 0.4
+      "heard": "Canta y vaila por mí.",
+      "wer": 0.2
     }
   ],
-  "meanWer": 0.1,
+  "meanWer": 0.066,
   "model": "openai/whisper-small"
 }

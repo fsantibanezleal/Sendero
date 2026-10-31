@@ -1,4 +1,4 @@
-import { ART } from '../artData';
+import { ART, artById, FRONT_ART } from '../artData';
 import { HUMANS, PETS } from '../catalog';
 
 describe('the silhouette drawings', () => {
@@ -10,6 +10,14 @@ describe('the silhouette drawings', () => {
       expect(a.source).toMatch(/^https:/);
       expect(a.licence).not.toBe('');
       expect(a.parts.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('names existing drawings of the right person as frontal, and leaves side drawings for the path', () => {
+    for (const kind of HUMANS) {
+      expect(FRONT_ART[kind].length).toBeGreaterThanOrEqual(3);
+      for (const id of FRONT_ART[kind]) expect(artById(id)?.archetype).toBe(kind);
+      expect(ART.some((a) => a.archetype === kind && !FRONT_ART[kind].includes(a.id))).toBe(true);
     }
   });
 

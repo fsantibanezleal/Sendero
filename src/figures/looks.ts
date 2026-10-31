@@ -41,6 +41,8 @@ export interface Look {
   carry: Carry;
   /** The silhouette drawing that shows this person (artData.ts), or null to draw the procedural figure. */
   art: string | null;
+  /** The drawing of this person seen from the front, for the farewell. */
+  front: string | null;
 }
 
 export type Ears = 'up' | 'bat' | 'flop' | 'small';
@@ -174,6 +176,7 @@ export function randomLook(rand: Rand, human: HumanKind): Look {
     bottom: weighted(rand, table.bottom),
     carry,
     art: null,
+    front: null,
   };
 }
 

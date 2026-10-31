@@ -53,7 +53,9 @@ param(
   [string]$LogFile,
   [string]$SigningProperties,
   [int]$MaxWorkers = 4,
-  [int]$CxxJobs = 4
+  [int]$CxxJobs = 4,
+  # A local test build that plays only this audio file in a loop; the file never enters the repository.
+  [string]$OnlyTrack
 )
 # Native tools write progress to stderr; Windows PowerShell 5.1 would turn that into errors under 'Stop'.
 # Every native call below checks its exit code instead.
@@ -95,6 +97,12 @@ if ($SigningProperties) {
 
 Push-Location $root
 try {
+  if ($OnlyTrack) {
+    if (-not (Test-Path $OnlyTrack)) { throw "Track not found: $OnlyTrack" }
+    Copy-Item $OnlyTrack 'assets\music\_local.mp3' -Force
+    node scripts/gen-asset-index.mjs --only ([IO.Path]::GetFileNameWithoutExtension($OnlyTrack))
+    if ($LASTEXITCODE -ne 0) { throw 'The asset index failed.' }
+  }
   $prebuild = @('expo', 'prebuild', '--platform', 'android', '--no-install')
   if ($Clean -or -not (Test-Path 'android')) { $prebuild += '--clean' }
   npx @prebuild
@@ -120,6 +128,17 @@ try {
   $apk = "android\app\build\outputs\apk\$Variant\app-$Variant.apk"
   $out = "dist\sendero-$version-$Variant-$($Abi -replace ',', '+').apk"
   Copy-Item $apk $out -Force
+  if ($OnlyTrack) {
+    $local = "dist\sendero-$version-local-track-$($Abi -replace ',', '+').apk"
+    Move-Item $out $local -Force
+    $out = $local
+  }
   $how = if ($signed) { 'release key' } else { 'debug key' }
   Write-Host "APK: $out ($([math]::Round((Get-Item $out).Length / 1MB, 1)) MB, signed with the $how)" -ForegroundColor Green
-} finally { Pop-Location }
+} finally {
+  if ($OnlyTrack) {
+    Remove-Item 'assets\music\_local.mp3' -Force -ErrorAction SilentlyContinue
+    node scripts/gen-asset-index.mjs | Out-Null
+  }
+  Pop-Location
+}

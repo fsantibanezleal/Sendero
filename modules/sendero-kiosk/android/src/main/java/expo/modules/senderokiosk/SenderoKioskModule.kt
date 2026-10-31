@@ -59,6 +59,15 @@ class SenderoKioskModule : Module() {
 
     Function("isDeviceOwner") { deviceOwner() }
 
+    // A file bundled in a release build is a raw resource; libraries that need a path (the person model) get a copy.
+    Function("rawResourceToFile") { name: String, fileName: String ->
+      val id = context.resources.getIdentifier(name, "raw", context.packageName)
+      if (id == 0) throw CodedException("ERR_NO_RESOURCE", "No raw resource named $name", null)
+      val out = java.io.File(context.cacheDir, fileName)
+      context.resources.openRawResource(id).use { input -> out.outputStream().use { input.copyTo(it) } }
+      out.absolutePath
+    }
+
     Function("kioskState") {
       when (lockTaskState()) {
         ActivityManager.LOCK_TASK_MODE_LOCKED -> "locked"

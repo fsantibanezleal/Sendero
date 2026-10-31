@@ -76,7 +76,7 @@ export function Scene({
           </LayerBoundary>
         </Gate>
       </Group>
-      <FrameLayer layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} />
+      <FrameLayer layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} seed={shown.id} />
       <Gate on={figuresOn} width={W} height={H}>
         <LayerBoundary name="figures" resetKey={visit.id}>
           <FiguresLayer visit={visit} layout={layout} path={path} atlas={atlas} clock={clock} time={time} />

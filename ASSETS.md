@@ -51,7 +51,8 @@ target, see `docs/voice.md`).
 
 | File | Source | Licence | Notes |
 |---|---|---|---|
-| `assets/models/selfie_segmenter_landscape.tflite` | MediaPipe Selfie Segmenter, landscape (144 x 256), float16, https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite | Apache License 2.0 (model card: https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Selfie%20Segmentation.pdf) | Person mask for the reveal, computed on the tablet; SHA-256 490e9ea734313e0de10fa0cd9e3c6133e36ea4db2b7a49bde9ef019f72796b8e; authors Tingbo Hou, Siargey Pisarchyk, Karthik Raveendran (Google), 2021 |
+| `assets/models/selfie_segmenter_landscape.tflite` | MediaPipe Selfie Segmenter, landscape (144 x 256), float16; kept, not loaded since 2026-10-31 (it needs a GPU feature the TCL tablet lacks) | Apache-2.0 | https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite |
+| `assets/models/blaze_face_short_range.tflite` | Google BlazeFace short range face detector (128 x 128), float16, finds the visitor's head for the flowers in their hair | Apache-2.0 | https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite |
 
 ## Fonts
 

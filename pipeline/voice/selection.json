@@ -27,7 +27,9 @@
   },
   "chosen": {
     "hombre": "kokoro-em_alex",
-    "mujer": "es_MX-claude-high"
+    "hombre-2": "kokoro-em_santa",
+    "mujer": "es_MX-claude-high",
+    "mujer-2": "kokoro-ef_dora"
   },
   "rule": {
     "femaleMinHz": 165.0,

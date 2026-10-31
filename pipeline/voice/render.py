@@ -23,7 +23,10 @@ ROOT = HERE.parents[1]
 OUT = ROOT / "assets" / "voice"
 MESSAGES = json.loads((HERE / "messages.json").read_text(encoding="utf-8"))
 SPOKEN = json.loads((HERE / "spoken.json").read_text(encoding="utf-8"))
-VOICE_GENDER = {"mujer": "female", "hombre": "male"}
+VOICE_GENDER = {"mujer": "female", "hombre": "male", "mujer-2": "female", "hombre-2": "male"}
+# Second voices, for variety between visits (the owner, 2026-10-31). Chosen by hand among the candidates whose measured
+# F0 meets the same rule; the first voices are still chosen by the rule.
+EXTRA_VOICES = {"mujer-2": "kokoro-ef_dora", "hombre-2": "kokoro-em_santa"}
 TARGET_LUFS = -20.0
 TRUE_PEAK_CEILING = -3.0
 LUFS_TOLERANCE = 0.3
@@ -156,7 +159,7 @@ def validate_catalog(c: dict) -> None:
     messages = json.loads((HERE / "messages.json").read_text(encoding="utf-8"))
     need(c.get("messages") == messages, "message texts differ from messages.json")
     voices = {v.get("id"): v for v in c.get("voices", [])}
-    need(set(voices) == set(VOICE_GENDER), "voices must be mujer and hombre")
+    need(set(voices) == set(VOICE_GENDER), f"voices must be {sorted(VOICE_GENDER)}")
     for vid, v in voices.items():
         for k in ("gender", "engine", "model", "license", "medianF0Hz"):
             need(k in v, f"voice {vid} lacks {k}")
@@ -192,12 +195,18 @@ def main(argv: list[str]) -> int:
             print(f"neutral speech cached for {cid}")
         return 0
     table = measure_candidates(scratch)
-    chosen = choose_voices(table)
+    chosen = {**choose_voices(table), **EXTRA_VOICES}
+    # --add: render only the voices the committed catalog does not have yet, and keep its clips.
+    previous = json.loads((OUT / "catalog.json").read_text(encoding="utf-8")) if argv[:1] == ["--add"] else None
+    have = {v["id"] for v in previous["voices"]} if previous else set()
     SELECTION_PATH.write_text(
         dumps_catalog({"rule": {"femaleMinHz": select.FEMALE_MIN_HZ, "maleMaxHz": select.MALE_MAX_HZ},
                        "candidates": table, "chosen": chosen}), encoding="utf-8", newline="\n")
-    voices, clips = [], []
+    voices = [v for v in previous["voices"] if v["id"] in chosen] if previous else []
+    clips = [x for x in previous["clips"] if x["voice"] in have] if previous else []
     for vid, cid in chosen.items():
+        if vid in have:
+            continue
         cand = synth.BY_ID[cid]
         voices.append({"id": vid, "gender": VOICE_GENDER[vid], "engine": cand.engine, "model": cid, "license": cand.license,
                        "medianF0Hz": table[cid]["medianF0Hz"]})

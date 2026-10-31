@@ -5,6 +5,17 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ## [Unreleased]
 
+### Added
+- Two more voices (a woman, Kokoro dora; a man, Kokoro santa): each visit picks one of the two of the walker's gender.
+- Flowers in the visitor's hair, two or three chosen at random per visit, placed by Google BlazeFace on the device and
+  tilted with the head; the rising lights of the silhouettes over the real person too.
+- Veladoras on the ground around the silhouette at the farewell; pets painted as alebrijes.
+
+### Fixed
+- The person model never loaded in a release build (a bundled file is a raw resource, not a URL): it is copied to a
+  file by the app's native module. The selfie segmenter needed a GPU feature the TCL tablet lacks; BlazeFace runs on the
+  CPU.
+
 ## [0.01.004] - 2026-10-31
 
 ### Fixed

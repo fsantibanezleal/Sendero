@@ -116,8 +116,10 @@ distance chain on the same 14 clips (mean word error rate, and the loss of energ
 | 4,500 | 1.4 | 0.25 | 0.19 | 14.9 |
 | 6,000 | 1.0 | 0.30 | 0.34 | 9.1 |
 
-The chain keeps the long room (RT60 1.4 s) and the 4,500 Hz air absorption and lowers the wet share to 0.25: as
-intelligible as the whisper before the chain, still far and reverberant. Measured on the committed clips:
+That sweep was on the whisper. The soft voice now in the clips measures a mean word error rate of 0.07 on the 124 clips
+(0.10 for the whisper). Four short phrases are heard badly by the recognizer, whose weakest case they are: `hombre/m04`,
+`mujer/m04` (sigue así), `hombre/m08` (hoy vine a verte) and `hombre/m50` (vive bonito); they need a human ear.
+Measured on the committed clips:
 
 <!-- voice:intelligibility:start -->
 | File | Heard by the recognizer | Word error rate |
@@ -125,15 +127,15 @@ intelligible as the whisper before the chain, still far and reverberant. Measure
 | `mujer/m01.m4a` | Siempre te recordaré. | 0.00 |
 | `mujer/m02.m4a` | Siempre en mis pensamientos. | 0.00 |
 | `mujer/m03.m4a` | Gracias. | 0.00 |
-| `mujer/m04.m4a` | ¡Sí que así! | 1.00 |
+| `mujer/m04.m4a` | Sí que así. | 1.00 |
 | `mujer/m05.m4a` | Lo estás haciendo bien. | 0.00 |
-| `mujer/m06.m4a` | Descanza, lo estás haciendo bien. | 0.20 |
+| `mujer/m06.m4a` | Descansa. Lo estás haciendo bien. | 0.00 |
 | `mujer/m07.m4a` | También te extraño. | 0.00 |
-| `mujer/m08.m4a` | Hoy viene a verte. | 0.25 |
-| `mujer/m09.m4a` | ¡Qué gusto me da verde! | 0.20 |
-| `mujer/m10.m4a` | ¿Cuánto tiempo sin verde? | 0.25 |
-| `mujer/m11.m4a` | te extrañaba mucho. | 0.00 |
-| `mujer/m12.m4a` | Déjame verte, un ratito. | 0.00 |
+| `mujer/m08.m4a` | Hoy vine a verte. | 0.00 |
+| `mujer/m09.m4a` | ¡Qué gusto me da verte! | 0.00 |
+| `mujer/m10.m4a` | ¿Cuánto tiempo sin verte? | 0.00 |
+| `mujer/m11.m4a` | te extrañaba mucho | 0.00 |
+| `mujer/m12.m4a` | Déjame verte un ratito. | 0.00 |
 | `mujer/m13.m4a` | Tu luz me trajo hasta aquí. | 0.00 |
 | `mujer/m14.m4a` | Seguí las flores hasta ti. | 0.00 |
 | `mujer/m15.m4a` | Gracias por las flores. | 0.00 |
@@ -154,44 +156,44 @@ intelligible as the whisper before the chain, still far and reverberant. Measure
 | `mujer/m30.m4a` | Cuardo cada momento contigo. | 0.25 |
 | `mujer/m31.m4a` | Aquí estoy contigo. | 0.00 |
 | `mujer/m32.m4a` | Camino a tu lado. | 0.00 |
-| `mujer/m33.m4a` | Me acompaño aunque no me veas. | 0.17 |
+| `mujer/m33.m4a` | Te acompaño aunque no me veas. | 0.00 |
 | `mujer/m34.m4a` | Estoy más cerca de lo que crees. | 0.00 |
 | `mujer/m35.m4a` | Siempre te cuido. | 0.00 |
 | `mujer/m36.m4a` | Seguimos juntos. | 0.00 |
 | `mujer/m37.m4a` | Nunca me fui del todo. | 0.00 |
 | `mujer/m38.m4a` | Estoy en cada vela que enciendes. | 0.00 |
 | `mujer/m39.m4a` | Me quedo un ratito contigo. | 0.00 |
-| `mujer/m40.m4a` | De peor y sonrido. | 0.75 |
-| `mujer/m41.m4a` | ¿Cuánto te quiero? | 0.00 |
+| `mujer/m40.m4a` | Te veo y sonrido. | 0.25 |
+| `mujer/m41.m4a` | ¡Cuánto te quiero! | 0.00 |
 | `mujer/m42.m4a` | Me llenas de orgullo. | 0.00 |
 | `mujer/m43.m4a` | ¡Tú puedes! | 0.00 |
-| `mujer/m44.m4a` | ¡Con fin a ti! | 1.00 |
+| `mujer/m44.m4a` | Confía en ti. | 0.00 |
 | `mujer/m45.m4a` | Todo va a estar bien. | 0.00 |
 | `mujer/m46.m4a` | No tengas miedo. | 0.00 |
 | `mujer/m47.m4a` | Eres más fuerte de lo que crees. | 0.00 |
 | `mujer/m48.m4a` | Ve con calma, no hay prisa. | 0.00 |
-| `mujer/m49.m4a` | Sí que adelante, yo te acompaño. | 0.40 |
+| `mujer/m49.m4a` | Sigue adelante. Yo te acompaño. | 0.00 |
 | `mujer/m50.m4a` | Vive bonito. | 0.00 |
 | `mujer/m51.m4a` | Sé feliz, te lo mereces. | 0.00 |
-| `mujer/m52.m4a` | Riden mucho, me encanta tu risa. | 0.17 |
+| `mujer/m52.m4a` | Ride mucho, me encanta tu risa. | 0.17 |
 | `mujer/m53.m4a` | Cuida a los tuyos. | 0.00 |
 | `mujer/m54.m4a` | Ablaza fuerte a quien quieres. | 0.20 |
-| `mujer/m55.m4a` | Abridate y come bien. | 0.25 |
+| `mujer/m55.m4a` | Abrídate y come bien. | 0.25 |
 | `mujer/m56.m4a` | Date un descanso, te lo has ganado. | 0.00 |
 | `mujer/m57.m4a` | Tu esfuerzo vale mucho. | 0.00 |
 | `mujer/m58.m4a` | Eres luz para los tuyos. | 0.00 |
-| `mujer/m59.m4a` | Te mato un abrazo grande. | 0.20 |
+| `mujer/m59.m4a` | Te mando un abrazo grande. | 0.00 |
 | `mujer/m60.m4a` | Gracias por tanto cariño. | 0.00 |
-| `mujer/m61.m4a` | Hoy es fiesta de Frutala. | 0.50 |
-| `mujer/m62.m4a` | Canta y baila por mí. | 0.00 |
+| `mujer/m61.m4a` | Hoy es fiesta, disfrútala. | 0.00 |
+| `mujer/m62.m4a` | ¡Canta y baila por mí! | 0.00 |
 | `hombre/m01.m4a` | Siempre te recordaré. | 0.00 |
 | `hombre/m02.m4a` | Siempre en mis pensamientos. | 0.00 |
 | `hombre/m03.m4a` | ¡Gracias! | 0.00 |
-| `hombre/m04.m4a` | ¡Vas a seguir, vamos a seguir! | 3.00 |
+| `hombre/m04.m4a` | ¡Los sigo ya! ¡Los sigo! | 2.50 |
 | `hombre/m05.m4a` | Lo estás haciendo bien. | 0.00 |
-| `hombre/m06.m4a` | Descansa, lo estás haciendo bien. | 0.00 |
+| `hombre/m06.m4a` | Descansa lo estás haciendo bien. | 0.00 |
 | `hombre/m07.m4a` | También te extraño. | 0.00 |
-| `hombre/m08.m4a` | ¡Toy bien abiertos! | 1.00 |
+| `hombre/m08.m4a` | ¡Toy bien abertes! | 1.00 |
 | `hombre/m09.m4a` | ¡Qué gusto me da verte! | 0.00 |
 | `hombre/m10.m4a` | ¿Cuánto tiempo sin verte? | 0.00 |
 | `hombre/m11.m4a` | Te extrañaba mucho. | 0.00 |
@@ -200,17 +202,17 @@ intelligible as the whisper before the chain, still far and reverberant. Measure
 | `hombre/m14.m4a` | Seguí las flores hasta ti. | 0.00 |
 | `hombre/m15.m4a` | Gracias por las flores. | 0.00 |
 | `hombre/m16.m4a` | Gracias por acordarte de mí. | 0.00 |
-| `hombre/m17.m4a` | Cada año vuelvo a perse. | 0.20 |
-| `hombre/m18.m4a` | ¡Bene atarte un abrazo! | 0.60 |
+| `hombre/m17.m4a` | Cada año vuelvo a verte. | 0.00 |
+| `hombre/m18.m4a` | ¡Vine a darte un abrazo! | 0.00 |
 | `hombre/m19.m4a` | ¡Qué bonito es volver a verte! | 0.00 |
-| `hombre/m20.m4a` | Aquí sigo cerquita de ti. | 0.00 |
+| `hombre/m20.m4a` | Aquí sigo cerca de ti. | 0.20 |
 | `hombre/m21.m4a` | Sigo en tu corazón. | 0.00 |
 | `hombre/m22.m4a` | Te llevo en el corazón. | 0.00 |
 | `hombre/m23.m4a` | Nunca me olvido de ti. | 0.00 |
-| `hombre/m24.m4a` | Me acuerdo de time todos los días. | 0.14 |
+| `hombre/m24.m4a` | Me acuerdo de tight todos los días. | 0.14 |
 | `hombre/m25.m4a` | Me acuerdo de tu risa. | 0.00 |
 | `hombre/m26.m4a` | Mientras me recuerdes, aquí estoy. | 0.00 |
-| `hombre/m27.m4a` | ¡Vivo en tus recuerdos! | 0.00 |
+| `hombre/m27.m4a` | Vivo en tus recuerdos. | 0.00 |
 | `hombre/m28.m4a` | Me llevo tu cariño. | 0.00 |
 | `hombre/m29.m4a` | Nuestro cariño no se acaba. | 0.00 |
 | `hombre/m30.m4a` | Guardo cada momento contigo. | 0.00 |
@@ -220,11 +222,11 @@ intelligible as the whisper before the chain, still far and reverberant. Measure
 | `hombre/m34.m4a` | Estoy más cerca de lo que crees. | 0.00 |
 | `hombre/m35.m4a` | Siempre te cuido. | 0.00 |
 | `hombre/m36.m4a` | Seguimos juntos. | 0.00 |
-| `hombre/m37.m4a` | Nunca me fui de todo. | 0.20 |
+| `hombre/m37.m4a` | Nunca me fui del todo. | 0.00 |
 | `hombre/m38.m4a` | Estoy en cada vela que enciendes. | 0.00 |
 | `hombre/m39.m4a` | Me quedo un ratito contigo. | 0.00 |
 | `hombre/m40.m4a` | Te veo y sonrío. | 0.00 |
-| `hombre/m41.m4a` | ¡Cuánto te quiero! | 0.00 |
+| `hombre/m41.m4a` | ¿Cuánto te quiero? | 0.00 |
 | `hombre/m42.m4a` | Me llenas de orgullo. | 0.00 |
 | `hombre/m43.m4a` | ¡Tú puedes! | 0.00 |
 | `hombre/m44.m4a` | Confía en ti. | 0.00 |
@@ -233,20 +235,20 @@ intelligible as the whisper before the chain, still far and reverberant. Measure
 | `hombre/m47.m4a` | Eres más fuerte de lo que crees. | 0.00 |
 | `hombre/m48.m4a` | Ve con calma, no hay prisa. | 0.00 |
 | `hombre/m49.m4a` | Sigue adelante, yo te acompaño. | 0.00 |
-| `hombre/m50.m4a` | ¡Vayre bonito! | 0.50 |
-| `hombre/m51.m4a` | Sé feliz, te lo mereces. | 0.00 |
+| `hombre/m50.m4a` | ¡Bei bebo nito! | 1.50 |
+| `hombre/m51.m4a` | Sé feliz de lo mereces. | 0.20 |
 | `hombre/m52.m4a` | Prie mucho, me encanta tu risa. | 0.17 |
 | `hombre/m53.m4a` | Cuida a los tuyos. | 0.00 |
 | `hombre/m54.m4a` | Abraza fuerte a quien quieres. | 0.00 |
-| `hombre/m55.m4a` | Aplicarte y come bien. | 0.25 |
+| `hombre/m55.m4a` | Abrígate y come bien. | 0.00 |
 | `hombre/m56.m4a` | Date un descanso, te lo has ganado. | 0.00 |
 | `hombre/m57.m4a` | Tu esfuerzo vale mucho. | 0.00 |
 | `hombre/m58.m4a` | Eres luz para los tuyos. | 0.00 |
 | `hombre/m59.m4a` | Te mando un abrazo grande. | 0.00 |
-| `hombre/m60.m4a` | Gracias por tanto, cariño. | 0.00 |
-| `hombre/m61.m4a` | Hoy es fiesta disfrútala. | 0.00 |
-| `hombre/m62.m4a` | ¡Canta divaela por mí! | 0.40 |
-| mean | | 0.10 |
+| `hombre/m60.m4a` | Gracias por tanto cariño. | 0.00 |
+| `hombre/m61.m4a` | Hoy es fiesta, disfrútala. | 0.00 |
+| `hombre/m62.m4a` | Canta y vaila por mí. | 0.20 |
+| mean | | 0.07 |
 <!-- voice:intelligibility:end -->
 
 ## Loudness and encoding
@@ -264,130 +266,130 @@ Periodicity is the median over 40 ms frames above -40 dBFS of the maximum normal
 <!-- voice:clips:start -->
 | File | Message | Duration (s) | Loudness (LUFS) | True peak (dBTP) | Periodicity |
 |---|---|---|---|---|---|
-| `mujer/m01.m4a` | siempre te recordaré | 3.181 | -20.064 | -3.419 | 0.233 |
-| `mujer/m02.m4a` | siempre en mis pensamientos | 3.576 | -20.051 | -4.361 | 0.245 |
-| `mujer/m03.m4a` | gracias | 2.229 | -20.064 | -3.353 | 0.199 |
-| `mujer/m04.m4a` | sigue así | 2.392 | -20.075 | -4.743 | 0.248 |
-| `mujer/m05.m4a` | lo estás haciendo bien | 3.111 | -20.057 | -5.471 | 0.231 |
-| `mujer/m06.m4a` | descansa, lo estás haciendo bien | 4.319 | -20.069 | -4.959 | 0.202 |
-| `mujer/m07.m4a` | también te extraño | 2.856 | -20.048 | -3.416 | 0.191 |
-| `mujer/m08.m4a` | hoy vine a verte | 2.879 | -20.037 | -3.294 | 0.266 |
-| `mujer/m09.m4a` | qué gusto me da verte | 3.042 | -20.044 | -3.296 | 0.246 |
-| `mujer/m10.m4a` | cuánto tiempo sin verte | 3.228 | -20.055 | -3.264 | 0.253 |
-| `mujer/m11.m4a` | te extrañaba mucho | 3.019 | -20.053 | -3.426 | 0.234 |
-| `mujer/m12.m4a` | déjame verte un ratito | 3.855 | -20.040 | -3.536 | 0.245 |
-| `mujer/m13.m4a` | tu luz me trajo hasta aquí | 3.437 | -20.059 | -3.309 | 0.210 |
-| `mujer/m14.m4a` | seguí las flores hasta ti | 3.413 | -20.064 | -3.293 | 0.252 |
-| `mujer/m15.m4a` | gracias por las flores | 3.181 | -20.070 | -3.566 | 0.218 |
-| `mujer/m16.m4a` | gracias por acordarte de mí | 3.413 | -20.056 | -3.353 | 0.225 |
-| `mujer/m17.m4a` | cada año vuelvo a verte | 3.808 | -20.051 | -3.499 | 0.213 |
-| `mujer/m18.m4a` | vine a darte un abrazo | 3.413 | -20.041 | -3.243 | 0.229 |
-| `mujer/m19.m4a` | qué bonito es volver a verte | 3.576 | -20.048 | -3.287 | 0.249 |
-| `mujer/m20.m4a` | aquí sigo, cerquita de ti | 3.994 | -20.044 | -3.290 | 0.255 |
-| `mujer/m21.m4a` | sigo en tu corazón | 2.949 | -20.059 | -5.324 | 0.208 |
-| `mujer/m22.m4a` | te llevo en el corazón | 2.902 | -20.061 | -4.105 | 0.227 |
-| `mujer/m23.m4a` | nunca me olvido de ti | 3.019 | -20.027 | -3.279 | 0.281 |
-| `mujer/m24.m4a` | me acuerdo de ti todos los días | 3.506 | -20.047 | -3.248 | 0.219 |
-| `mujer/m25.m4a` | me acuerdo de tu risa | 2.902 | -20.044 | -3.250 | 0.250 |
-| `mujer/m26.m4a` | mientras me recuerdes, aquí estoy | 4.272 | -20.049 | -3.313 | 0.247 |
-| `mujer/m27.m4a` | vivo en tus recuerdos | 2.995 | -20.058 | -3.328 | 0.231 |
-| `mujer/m28.m4a` | me llevo tu cariño | 2.926 | -20.038 | -3.953 | 0.247 |
-| `mujer/m29.m4a` | nuestro cariño no se acaba | 3.529 | -20.058 | -4.210 | 0.214 |
-| `mujer/m30.m4a` | guardo cada momento contigo | 3.692 | -20.031 | -3.341 | 0.233 |
-| `mujer/m31.m4a` | aquí estoy contigo | 3.297 | -20.042 | -3.386 | 0.237 |
-| `mujer/m32.m4a` | camino a tu lado | 2.856 | -20.037 | -3.510 | 0.217 |
-| `mujer/m33.m4a` | te acompaño aunque no me veas | 3.785 | -20.050 | -3.253 | 0.208 |
-| `mujer/m34.m4a` | estoy más cerca de lo que crees | 3.553 | -20.061 | -3.983 | 0.232 |
-| `mujer/m35.m4a` | siempre te cuido | 2.949 | -20.049 | -3.376 | 0.227 |
-| `mujer/m36.m4a` | seguimos juntos | 2.972 | -20.060 | -4.553 | 0.237 |
-| `mujer/m37.m4a` | nunca me fui del todo | 3.228 | -20.032 | -3.735 | 0.273 |
-| `mujer/m38.m4a` | estoy en cada vela que enciendes | 3.762 | -20.059 | -4.962 | 0.240 |
-| `mujer/m39.m4a` | me quedo un ratito contigo | 3.947 | -20.037 | -3.257 | 0.268 |
-| `mujer/m40.m4a` | te veo y sonrío | 3.460 | -20.040 | -3.318 | 0.258 |
-| `mujer/m41.m4a` | cuánto te quiero | 2.740 | -20.037 | -3.264 | 0.242 |
-| `mujer/m42.m4a` | me llenas de orgullo | 3.088 | -20.037 | -3.880 | 0.259 |
-| `mujer/m43.m4a` | tú puedes | 2.252 | -20.045 | -3.287 | 0.230 |
-| `mujer/m44.m4a` | confía en ti | 2.670 | -20.028 | -3.312 | 0.259 |
-| `mujer/m45.m4a` | todo va a estar bien | 3.088 | -20.038 | -3.786 | 0.222 |
-| `mujer/m46.m4a` | no tengas miedo | 2.879 | -20.035 | -4.082 | 0.240 |
-| `mujer/m47.m4a` | eres más fuerte de lo que crees | 3.553 | -20.061 | -3.569 | 0.230 |
-| `mujer/m48.m4a` | ve con calma, no hay prisa | 4.133 | -20.057 | -3.360 | 0.214 |
-| `mujer/m49.m4a` | sigue adelante, yo te acompaño | 4.389 | -20.052 | -3.293 | 0.223 |
-| `mujer/m50.m4a` | vive bonito | 2.624 | -20.038 | -3.313 | 0.254 |
-| `mujer/m51.m4a` | sé feliz, te lo mereces | 3.553 | -20.064 | -3.255 | 0.227 |
-| `mujer/m52.m4a` | ríe mucho, me encanta tu risa | 4.458 | -20.058 | -3.374 | 0.233 |
-| `mujer/m53.m4a` | cuida a los tuyos | 2.902 | -20.052 | -5.029 | 0.223 |
-| `mujer/m54.m4a` | abraza fuerte a quien quieres | 3.367 | -20.062 | -3.454 | 0.233 |
-| `mujer/m55.m4a` | abrígate y come bien | 3.506 | -20.052 | -3.347 | 0.253 |
-| `mujer/m56.m4a` | date un descanso, te lo has ganado | 4.365 | -20.054 | -3.281 | 0.228 |
-| `mujer/m57.m4a` | tu esfuerzo vale mucho | 3.274 | -20.061 | -3.233 | 0.229 |
-| `mujer/m58.m4a` | eres luz para los tuyos | 3.413 | -20.055 | -3.264 | 0.231 |
-| `mujer/m59.m4a` | te mando un abrazo grande | 3.437 | -20.062 | -4.392 | 0.225 |
-| `mujer/m60.m4a` | gracias por tanto cariño | 3.460 | -20.043 | -3.353 | 0.219 |
-| `mujer/m61.m4a` | hoy es fiesta, disfrútala | 3.576 | -20.069 | -3.366 | 0.215 |
-| `mujer/m62.m4a` | canta y baila por mí | 3.599 | -20.038 | -3.358 | 0.244 |
-| `hombre/m01.m4a` | siempre te recordaré | 3.367 | -20.074 | -4.774 | 0.239 |
-| `hombre/m02.m4a` | siempre en mis pensamientos | 3.506 | -20.068 | -4.082 | 0.232 |
-| `hombre/m03.m4a` | gracias | 2.415 | -20.048 | -3.331 | 0.211 |
-| `hombre/m04.m4a` | sigue así | 2.508 | -20.067 | -4.083 | 0.228 |
-| `hombre/m05.m4a` | lo estás haciendo bien | 3.529 | -20.075 | -3.405 | 0.245 |
-| `hombre/m06.m4a` | descansa, lo estás haciendo bien | 4.180 | -20.071 | -3.136 | 0.236 |
-| `hombre/m07.m4a` | también te extraño | 3.204 | -20.079 | -3.304 | 0.236 |
-| `hombre/m08.m4a` | hoy vine a verte | 3.019 | -20.038 | -3.294 | 0.232 |
-| `hombre/m09.m4a` | qué gusto me da verte | 3.320 | -20.066 | -3.382 | 0.245 |
-| `hombre/m10.m4a` | cuánto tiempo sin verte | 3.483 | -20.060 | -3.303 | 0.237 |
-| `hombre/m11.m4a` | te extrañaba mucho | 3.251 | -19.998 | -3.112 | 0.227 |
-| `hombre/m12.m4a` | déjame verte un ratito | 3.437 | -20.066 | -3.446 | 0.240 |
-| `hombre/m13.m4a` | tu luz me trajo hasta aquí | 3.738 | -20.066 | -3.321 | 0.245 |
-| `hombre/m14.m4a` | seguí las flores hasta ti | 3.529 | -20.057 | -3.302 | 0.227 |
-| `hombre/m15.m4a` | gracias por las flores | 3.228 | -20.056 | -3.287 | 0.240 |
-| `hombre/m16.m4a` | gracias por acordarte de mí | 3.692 | -20.069 | -3.291 | 0.229 |
-| `hombre/m17.m4a` | cada año vuelvo a verte | 3.576 | -20.055 | -3.285 | 0.242 |
-| `hombre/m18.m4a` | vine a darte un abrazo | 3.413 | -20.068 | -3.355 | 0.219 |
-| `hombre/m19.m4a` | qué bonito es volver a verte | 3.878 | -20.076 | -3.244 | 0.231 |
-| `hombre/m20.m4a` | aquí sigo, cerquita de ti | 3.622 | -20.060 | -3.296 | 0.249 |
-| `hombre/m21.m4a` | sigo en tu corazón | 3.135 | -20.068 | -4.304 | 0.228 |
-| `hombre/m22.m4a` | te llevo en el corazón | 3.367 | -20.076 | -3.333 | 0.211 |
-| `hombre/m23.m4a` | nunca me olvido de ti | 3.344 | -20.044 | -3.254 | 0.239 |
-| `hombre/m24.m4a` | me acuerdo de ti todos los días | 4.063 | -20.059 | -3.262 | 0.237 |
-| `hombre/m25.m4a` | me acuerdo de tu risa | 3.390 | -20.064 | -3.235 | 0.217 |
-| `hombre/m26.m4a` | mientras me recuerdes, aquí estoy | 4.133 | -20.071 | -3.288 | 0.236 |
-| `hombre/m27.m4a` | vivo en tus recuerdos | 3.506 | -20.060 | -3.827 | 0.217 |
-| `hombre/m28.m4a` | me llevo tu cariño | 3.274 | -20.058 | -3.295 | 0.235 |
-| `hombre/m29.m4a` | nuestro cariño no se acaba | 3.762 | -20.011 | -3.234 | 0.226 |
-| `hombre/m30.m4a` | guardo cada momento contigo | 3.831 | -20.057 | -3.302 | 0.227 |
-| `hombre/m31.m4a` | aquí estoy contigo | 3.274 | -20.058 | -3.297 | 0.250 |
-| `hombre/m32.m4a` | camino a tu lado | 3.019 | -20.070 | -3.321 | 0.229 |
-| `hombre/m33.m4a` | te acompaño aunque no me veas | 4.087 | -20.058 | -3.258 | 0.217 |
-| `hombre/m34.m4a` | estoy más cerca de lo que crees | 4.017 | -20.060 | -3.348 | 0.234 |
-| `hombre/m35.m4a` | siempre te cuido | 2.926 | -20.075 | -3.360 | 0.236 |
-| `hombre/m36.m4a` | seguimos juntos | 2.926 | -20.062 | -3.228 | 0.236 |
-| `hombre/m37.m4a` | nunca me fui del todo | 3.320 | -20.064 | -3.414 | 0.243 |
-| `hombre/m38.m4a` | estoy en cada vela que enciendes | 4.040 | -20.056 | -3.645 | 0.228 |
-| `hombre/m39.m4a` | me quedo un ratito contigo | 3.715 | -20.062 | -3.276 | 0.224 |
-| `hombre/m40.m4a` | te veo y sonrío | 3.065 | -20.078 | -4.677 | 0.223 |
-| `hombre/m41.m4a` | cuánto te quiero | 2.810 | -20.057 | -3.265 | 0.228 |
-| `hombre/m42.m4a` | me llenas de orgullo | 3.181 | -20.084 | -3.847 | 0.234 |
-| `hombre/m43.m4a` | tú puedes | 2.531 | -20.060 | -3.321 | 0.226 |
-| `hombre/m44.m4a` | confía en ti | 2.763 | -20.050 | -3.294 | 0.226 |
-| `hombre/m45.m4a` | todo va a estar bien | 3.413 | -20.006 | -4.884 | 0.233 |
-| `hombre/m46.m4a` | no tengas miedo | 3.019 | -20.073 | -3.235 | 0.232 |
-| `hombre/m47.m4a` | eres más fuerte de lo que crees | 3.878 | -20.059 | -3.135 | 0.242 |
-| `hombre/m48.m4a` | ve con calma, no hay prisa | 3.738 | -20.065 | -3.275 | 0.200 |
-| `hombre/m49.m4a` | sigue adelante, yo te acompaño | 3.855 | -20.070 | -3.270 | 0.236 |
-| `hombre/m50.m4a` | vive bonito | 2.740 | -20.053 | -4.046 | 0.234 |
-| `hombre/m51.m4a` | sé feliz, te lo mereces | 3.320 | -20.078 | -3.442 | 0.219 |
-| `hombre/m52.m4a` | ríe mucho, me encanta tu risa | 4.017 | -20.073 | -3.319 | 0.220 |
-| `hombre/m53.m4a` | cuida a los tuyos | 2.902 | -20.059 | -3.261 | 0.224 |
-| `hombre/m54.m4a` | abraza fuerte a quien quieres | 3.715 | -20.050 | -3.311 | 0.251 |
-| `hombre/m55.m4a` | abrígate y come bien | 3.320 | -20.054 | -3.292 | 0.240 |
-| `hombre/m56.m4a` | date un descanso, te lo has ganado | 4.110 | -20.078 | -3.303 | 0.210 |
-| `hombre/m57.m4a` | tu esfuerzo vale mucho | 3.576 | -20.087 | -3.330 | 0.242 |
-| `hombre/m58.m4a` | eres luz para los tuyos | 3.297 | -20.067 | -3.358 | 0.249 |
-| `hombre/m59.m4a` | te mando un abrazo grande | 3.692 | -20.090 | -3.552 | 0.223 |
-| `hombre/m60.m4a` | gracias por tanto cariño | 3.669 | -20.093 | -3.310 | 0.220 |
-| `hombre/m61.m4a` | hoy es fiesta, disfrútala | 3.599 | -20.069 | -3.304 | 0.229 |
-| `hombre/m62.m4a` | canta y baila por mí | 3.320 | -20.053 | -3.276 | 0.221 |
+| `mujer/m01.m4a` | siempre te recordaré | 2.926 | -20.054 | -5.902 | 0.756 |
+| `mujer/m02.m4a` | siempre en mis pensamientos | 3.460 | -20.021 | -6.844 | 0.753 |
+| `mujer/m03.m4a` | gracias | 2.043 | -20.040 | -6.085 | 0.656 |
+| `mujer/m04.m4a` | sigue así | 2.276 | -20.041 | -6.589 | 0.678 |
+| `mujer/m05.m4a` | lo estás haciendo bien | 2.879 | -20.002 | -4.707 | 0.746 |
+| `mujer/m06.m4a` | descansa, lo estás haciendo bien | 4.087 | -20.045 | -5.484 | 0.709 |
+| `mujer/m07.m4a` | también te extraño | 2.647 | -20.053 | -3.145 | 0.765 |
+| `mujer/m08.m4a` | hoy vine a verte | 2.763 | -20.027 | -6.079 | 0.775 |
+| `mujer/m09.m4a` | qué gusto me da verte | 2.926 | -20.029 | -5.612 | 0.697 |
+| `mujer/m10.m4a` | cuánto tiempo sin verte | 3.042 | -20.034 | -4.430 | 0.775 |
+| `mujer/m11.m4a` | te extrañaba mucho | 2.833 | -20.030 | -4.443 | 0.760 |
+| `mujer/m12.m4a` | déjame verte un ratito | 3.646 | -20.027 | -4.112 | 0.753 |
+| `mujer/m13.m4a` | tu luz me trajo hasta aquí | 3.320 | -20.042 | -3.583 | 0.766 |
+| `mujer/m14.m4a` | seguí las flores hasta ti | 3.274 | -20.024 | -4.765 | 0.681 |
+| `mujer/m15.m4a` | gracias por las flores | 3.042 | -20.026 | -4.603 | 0.634 |
+| `mujer/m16.m4a` | gracias por acordarte de mí | 3.251 | -20.035 | -5.611 | 0.759 |
+| `mujer/m17.m4a` | cada año vuelvo a verte | 3.692 | -20.037 | -4.929 | 0.744 |
+| `mujer/m18.m4a` | vine a darte un abrazo | 3.251 | -20.068 | -5.252 | 0.778 |
+| `mujer/m19.m4a` | qué bonito es volver a verte | 3.506 | -20.034 | -6.461 | 0.755 |
+| `mujer/m20.m4a` | aquí sigo, cerquita de ti | 3.878 | -20.030 | -4.882 | 0.729 |
+| `mujer/m21.m4a` | sigo en tu corazón | 2.670 | -19.990 | -5.545 | 0.719 |
+| `mujer/m22.m4a` | te llevo en el corazón | 2.694 | -20.029 | -3.275 | 0.722 |
+| `mujer/m23.m4a` | nunca me olvido de ti | 2.833 | -20.030 | -7.308 | 0.779 |
+| `mujer/m24.m4a` | me acuerdo de ti todos los días | 3.529 | -20.019 | -4.336 | 0.731 |
+| `mujer/m25.m4a` | me acuerdo de tu risa | 2.879 | -20.015 | -3.723 | 0.658 |
+| `mujer/m26.m4a` | mientras me recuerdes, aquí estoy | 4.063 | -20.037 | -3.693 | 0.745 |
+| `mujer/m27.m4a` | vivo en tus recuerdos | 2.856 | -20.051 | -5.216 | 0.698 |
+| `mujer/m28.m4a` | me llevo tu cariño | 2.786 | -20.029 | -3.783 | 0.735 |
+| `mujer/m29.m4a` | nuestro cariño no se acaba | 3.251 | -20.032 | -3.985 | 0.673 |
+| `mujer/m30.m4a` | guardo cada momento contigo | 3.483 | -20.025 | -4.534 | 0.768 |
+| `mujer/m31.m4a` | aquí estoy contigo | 2.949 | -20.028 | -7.123 | 0.764 |
+| `mujer/m32.m4a` | camino a tu lado | 2.717 | -20.020 | -5.640 | 0.767 |
+| `mujer/m33.m4a` | te acompaño aunque no me veas | 3.762 | -20.039 | -3.465 | 0.778 |
+| `mujer/m34.m4a` | estoy más cerca de lo que crees | 3.437 | -20.039 | -6.645 | 0.648 |
+| `mujer/m35.m4a` | siempre te cuido | 2.670 | -20.026 | -5.422 | 0.670 |
+| `mujer/m36.m4a` | seguimos juntos | 2.786 | -20.017 | -4.978 | 0.679 |
+| `mujer/m37.m4a` | nunca me fui del todo | 2.926 | -20.036 | -6.548 | 0.719 |
+| `mujer/m38.m4a` | estoy en cada vela que enciendes | 3.692 | -20.033 | -5.219 | 0.747 |
+| `mujer/m39.m4a` | me quedo un ratito contigo | 3.692 | -20.030 | -5.628 | 0.735 |
+| `mujer/m40.m4a` | te veo y sonrío | 3.204 | -20.034 | -5.481 | 0.749 |
+| `mujer/m41.m4a` | cuánto te quiero | 2.531 | -20.030 | -5.037 | 0.745 |
+| `mujer/m42.m4a` | me llenas de orgullo | 2.833 | -20.012 | -5.194 | 0.748 |
+| `mujer/m43.m4a` | tú puedes | 2.136 | -20.031 | -4.032 | 0.666 |
+| `mujer/m44.m4a` | confía en ti | 2.415 | -20.023 | -7.809 | 0.780 |
+| `mujer/m45.m4a` | todo va a estar bien | 2.926 | -20.045 | -5.648 | 0.777 |
+| `mujer/m46.m4a` | no tengas miedo | 2.647 | -20.023 | -5.947 | 0.780 |
+| `mujer/m47.m4a` | eres más fuerte de lo que crees | 3.437 | -20.034 | -4.485 | 0.694 |
+| `mujer/m48.m4a` | ve con calma, no hay prisa | 3.994 | -20.042 | -4.327 | 0.771 |
+| `mujer/m49.m4a` | sigue adelante, yo te acompaño | 4.249 | -20.060 | -3.317 | 0.725 |
+| `mujer/m50.m4a` | vive bonito | 2.368 | -20.017 | -5.944 | 0.737 |
+| `mujer/m51.m4a` | sé feliz, te lo mereces | 3.483 | -20.038 | -4.111 | 0.697 |
+| `mujer/m52.m4a` | ríe mucho, me encanta tu risa | 4.296 | -20.033 | -5.535 | 0.749 |
+| `mujer/m53.m4a` | cuida a los tuyos | 2.740 | -20.021 | -8.324 | 0.759 |
+| `mujer/m54.m4a` | abraza fuerte a quien quieres | 3.297 | -20.040 | -5.443 | 0.701 |
+| `mujer/m55.m4a` | abrígate y come bien | 3.320 | -20.036 | -5.223 | 0.750 |
+| `mujer/m56.m4a` | date un descanso, te lo has ganado | 4.180 | -20.042 | -4.561 | 0.749 |
+| `mujer/m57.m4a` | tu esfuerzo vale mucho | 3.042 | -20.044 | -4.709 | 0.721 |
+| `mujer/m58.m4a` | eres luz para los tuyos | 3.297 | -20.024 | -3.295 | 0.691 |
+| `mujer/m59.m4a` | te mando un abrazo grande | 3.297 | -20.031 | -5.607 | 0.795 |
+| `mujer/m60.m4a` | gracias por tanto cariño | 3.251 | -20.026 | -5.178 | 0.801 |
+| `mujer/m61.m4a` | hoy es fiesta, disfrútala | 3.367 | -20.041 | -3.739 | 0.653 |
+| `mujer/m62.m4a` | canta y baila por mí | 3.460 | -20.024 | -4.896 | 0.786 |
+| `hombre/m01.m4a` | siempre te recordaré | 3.251 | -20.060 | -3.284 | 0.564 |
+| `hombre/m02.m4a` | siempre en mis pensamientos | 3.553 | -20.030 | -3.351 | 0.593 |
+| `hombre/m03.m4a` | gracias | 2.368 | -20.044 | -3.290 | 0.560 |
+| `hombre/m04.m4a` | sigue así | 2.461 | -20.041 | -3.776 | 0.507 |
+| `hombre/m05.m4a` | lo estás haciendo bien | 3.483 | -20.052 | -3.285 | 0.522 |
+| `hombre/m06.m4a` | descansa, lo estás haciendo bien | 4.272 | -20.039 | -3.299 | 0.543 |
+| `hombre/m07.m4a` | también te extraño | 3.228 | -20.027 | -3.302 | 0.580 |
+| `hombre/m08.m4a` | hoy vine a verte | 3.019 | -20.018 | -4.691 | 0.565 |
+| `hombre/m09.m4a` | qué gusto me da verte | 3.367 | -20.031 | -3.310 | 0.596 |
+| `hombre/m10.m4a` | cuánto tiempo sin verte | 3.553 | -20.037 | -3.299 | 0.595 |
+| `hombre/m11.m4a` | te extrañaba mucho | 3.251 | -20.049 | -3.351 | 0.559 |
+| `hombre/m12.m4a` | déjame verte un ratito | 3.506 | -20.051 | -3.326 | 0.544 |
+| `hombre/m13.m4a` | tu luz me trajo hasta aquí | 3.878 | -20.048 | -3.234 | 0.524 |
+| `hombre/m14.m4a` | seguí las flores hasta ti | 3.622 | -20.028 | -3.277 | 0.491 |
+| `hombre/m15.m4a` | gracias por las flores | 3.344 | -20.036 | -3.268 | 0.526 |
+| `hombre/m16.m4a` | gracias por acordarte de mí | 3.738 | -20.036 | -3.277 | 0.538 |
+| `hombre/m17.m4a` | cada año vuelvo a verte | 3.646 | -20.037 | -3.316 | 0.565 |
+| `hombre/m18.m4a` | vine a darte un abrazo | 3.483 | -20.042 | -3.356 | 0.571 |
+| `hombre/m19.m4a` | qué bonito es volver a verte | 3.971 | -20.044 | -3.340 | 0.614 |
+| `hombre/m20.m4a` | aquí sigo, cerquita de ti | 3.692 | -20.034 | -3.277 | 0.528 |
+| `hombre/m21.m4a` | sigo en tu corazón | 3.111 | -20.031 | -3.649 | 0.509 |
+| `hombre/m22.m4a` | te llevo en el corazón | 3.344 | -20.039 | -3.731 | 0.567 |
+| `hombre/m23.m4a` | nunca me olvido de ti | 3.483 | -20.025 | -3.289 | 0.627 |
+| `hombre/m24.m4a` | me acuerdo de ti todos los días | 4.110 | -20.041 | -3.202 | 0.609 |
+| `hombre/m25.m4a` | me acuerdo de tu risa | 3.437 | -20.040 | -3.308 | 0.581 |
+| `hombre/m26.m4a` | mientras me recuerdes, aquí estoy | 4.133 | -20.041 | -3.295 | 0.560 |
+| `hombre/m27.m4a` | vivo en tus recuerdos | 3.437 | -20.061 | -3.376 | 0.542 |
+| `hombre/m28.m4a` | me llevo tu cariño | 3.344 | -20.050 | -3.446 | 0.601 |
+| `hombre/m29.m4a` | nuestro cariño no se acaba | 3.785 | -20.050 | -3.277 | 0.529 |
+| `hombre/m30.m4a` | guardo cada momento contigo | 4.040 | -20.038 | -3.300 | 0.595 |
+| `hombre/m31.m4a` | aquí estoy contigo | 3.320 | -20.035 | -3.298 | 0.569 |
+| `hombre/m32.m4a` | camino a tu lado | 3.088 | -20.041 | -3.239 | 0.559 |
+| `hombre/m33.m4a` | te acompaño aunque no me veas | 4.063 | -20.048 | -3.328 | 0.596 |
+| `hombre/m34.m4a` | estoy más cerca de lo que crees | 4.087 | -20.031 | -3.520 | 0.550 |
+| `hombre/m35.m4a` | siempre te cuido | 2.879 | -20.050 | -3.415 | 0.473 |
+| `hombre/m36.m4a` | seguimos juntos | 2.926 | -20.027 | -3.302 | 0.513 |
+| `hombre/m37.m4a` | nunca me fui del todo | 3.344 | -20.003 | -3.239 | 0.579 |
+| `hombre/m38.m4a` | estoy en cada vela que enciendes | 4.110 | -20.035 | -3.312 | 0.576 |
+| `hombre/m39.m4a` | me quedo un ratito contigo | 3.785 | -20.030 | -3.286 | 0.525 |
+| `hombre/m40.m4a` | te veo y sonrío | 3.135 | -20.046 | -4.262 | 0.605 |
+| `hombre/m41.m4a` | cuánto te quiero | 2.810 | -20.033 | -3.245 | 0.514 |
+| `hombre/m42.m4a` | me llenas de orgullo | 3.251 | -20.035 | -3.624 | 0.545 |
+| `hombre/m43.m4a` | tú puedes | 2.415 | -20.049 | -3.312 | 0.609 |
+| `hombre/m44.m4a` | confía en ti | 2.810 | -20.037 | -3.294 | 0.592 |
+| `hombre/m45.m4a` | todo va a estar bien | 3.390 | -20.035 | -3.297 | 0.599 |
+| `hombre/m46.m4a` | no tengas miedo | 3.042 | -20.037 | -3.705 | 0.559 |
+| `hombre/m47.m4a` | eres más fuerte de lo que crees | 3.994 | -20.038 | -3.274 | 0.575 |
+| `hombre/m48.m4a` | ve con calma, no hay prisa | 3.785 | -20.040 | -3.255 | 0.591 |
+| `hombre/m49.m4a` | sigue adelante, yo te acompaño | 3.947 | -20.061 | -3.251 | 0.542 |
+| `hombre/m50.m4a` | vive bonito | 2.740 | -20.030 | -3.312 | 0.650 |
+| `hombre/m51.m4a` | sé feliz, te lo mereces | 3.367 | -20.049 | -3.315 | 0.583 |
+| `hombre/m52.m4a` | ríe mucho, me encanta tu risa | 4.087 | -20.056 | -3.236 | 0.546 |
+| `hombre/m53.m4a` | cuida a los tuyos | 2.902 | -20.031 | -3.381 | 0.591 |
+| `hombre/m54.m4a` | abraza fuerte a quien quieres | 3.738 | -20.032 | -3.286 | 0.521 |
+| `hombre/m55.m4a` | abrígate y come bien | 3.390 | -20.025 | -3.277 | 0.574 |
+| `hombre/m56.m4a` | date un descanso, te lo has ganado | 4.180 | -20.054 | -3.267 | 0.543 |
+| `hombre/m57.m4a` | tu esfuerzo vale mucho | 3.622 | -20.050 | -3.429 | 0.584 |
+| `hombre/m58.m4a` | eres luz para los tuyos | 3.367 | -20.034 | -3.292 | 0.558 |
+| `hombre/m59.m4a` | te mando un abrazo grande | 3.785 | -20.048 | -3.282 | 0.574 |
+| `hombre/m60.m4a` | gracias por tanto cariño | 3.785 | -20.062 | -3.306 | 0.548 |
+| `hombre/m61.m4a` | hoy es fiesta, disfrútala | 3.553 | -20.026 | -3.202 | 0.508 |
+| `hombre/m62.m4a` | canta y baila por mí | 3.367 | -20.030 | -3.252 | 0.624 |
 <!-- voice:clips:end -->
 
 The tables on this page are written from the pipeline's outputs by `python -m pipeline.voice.doc_tables` (`--check`

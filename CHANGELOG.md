@@ -5,6 +5,11 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ## [Unreleased]
 
+## [0.01.003] - 2026-10-31
+
+### Fixed
+- Flowers seat on the outline of every head or hat, so men in hats keep theirs and none float in the air.
+
 ## [0.01.002] - 2026-10-30
 
 ### Changed

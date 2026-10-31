@@ -149,24 +149,30 @@ function crown(c: SkCanvas, a: PersonAnchors, art: SkPath, kind: string, accents
   const full = kind === 'mujer' || kind === 'abuela';
   const count = full ? 9 : 3;
   const span = full ? 2.5 : 1;
-  // A flower sits only where the head or the hat is, a little inside the rim; never in the air.
-  const onHead = (px: number, py: number) => art.contains(x + (px - x) * 0.72, y + (py - y) * 0.72);
+  // Each flower seats on the rim of the head, or lower when a hat or the hair makes the outline differ from the
+  // measured circle; it is never in the air. Under a hat this makes a band of flowers around the crown of the hat.
+  const seat = (ang: number): [number, number] | null => {
+    for (let k = 1.08; k >= 0.4; k -= 0.08) {
+      const px = x + Math.cos(ang) * r * k;
+      const py = y + Math.sin(ang) * r * k;
+      if (art.contains(x + (px - x) * 0.72, y + (py - y) * 0.72)) return [px, py];
+    }
+    return null;
+  };
+  const places = [];
   for (let i = 0; i < count; i++) {
     const t = i / (count - 1) - 0.5;
-    const ang = -Math.PI / 2 + t * span;
-    const fx = x + Math.cos(ang) * r * 1.08;
-    const fy = y + Math.sin(ang) * r * 1.08;
-    if (!onHead(fx, fy)) continue;
-    if (i % 2 === 0) leaf(c, fx, fy, r * 0.5, ang + (t < 0 ? -0.9 : 0.9));
+    places.push({ i, t, ang: -Math.PI / 2 + t * span, at: seat(-Math.PI / 2 + t * span) });
   }
-  for (let i = 0; i < count; i++) {
-    const t = i / (count - 1) - 0.5;
-    const ang = -Math.PI / 2 + t * span;
-    if (!onHead(x + Math.cos(ang) * r * 1.08, y + Math.sin(ang) * r * 1.08)) continue;
+  for (const { i, t, ang, at } of places) {
+    if (at != null && i % 2 === 0) leaf(c, at[0], at[1], r * 0.5, ang + (t < 0 ? -0.9 : 0.9));
+  }
+  for (const { i, at } of places) {
+    if (at == null) continue;
     const size = r * (i % 3 === 1 ? 0.36 : 0.28);
     // Marigolds, with roses and the figure's color among them; the grandmother's are roses.
     const petal = kind === 'abuela' && i % 2 === 0 ? COLORS.red : i % 3 === 0 ? accents[0] : i % 3 === 1 ? COLORS.marigold : COLORS.marigoldLight;
-    flower(c, x + Math.cos(ang) * r * 1.08, y + Math.sin(ang) * r * 1.08, size, petal, COLORS.marigoldLight === petal ? COLORS.marigold : COLORS.marigoldLight, rand);
+    flower(c, at[0], at[1], size, petal, COLORS.marigoldLight === petal ? COLORS.marigold : COLORS.marigoldLight, rand);
   }
 }
 

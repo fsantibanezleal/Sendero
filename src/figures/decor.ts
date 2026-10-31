@@ -275,7 +275,10 @@ function paintPet(c: SkCanvas, entry: ArtEntry, art: SkPath, rand: Rand, accents
     const y = -0.92 + (i / (waves - 1)) * 0.86;
     const b = Skia.PathBuilder.Make();
     b.moveTo(-w, y);
-    for (let x = -w; x < w; x += 0.24) b.quadTo(x + 0.06, y + (Math.round((x + w) / 0.24) % 2 === 0 ? -0.14 : 0.14), x + 0.12, y), b.quadTo(x + 0.18, y, x + 0.24, y);
+    for (let x = -w; x < w; x += 0.24) {
+      b.quadTo(x + 0.06, y + (Math.round((x + w) / 0.24) % 2 === 0 ? -0.14 : 0.14), x + 0.12, y);
+      b.quadTo(x + 0.18, y, x + 0.24, y);
+    }
     c.drawPath(b.build(), line(accents[i % 2], 0.045));
     c.drawPath(b.build(), line(COLORS.bone, 0.01));
   }

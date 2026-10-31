@@ -81,9 +81,10 @@ export function FarewellLayer({
   const petArtH = petPlace?.height ?? 0;
   const petX = petPlace?.x ?? petSpot.x;
   const personDressed = useMemo(() => (look.art != null ? dressedFigure(look.art, visit.id * 10 + visit.walker) : null), [look.art, visit.id, visit.walker]);
+  const petArtId = pet?.art ?? null;
   const petDressed = useMemo(
-    () => (pet?.art != null && visit.companion != null ? dressedFigure(pet.art, visit.id * 10 + 4 + visit.companion) : null),
-    [pet?.art, visit.id, visit.companion],
+    () => (petArtId != null && visit.companion != null ? dressedFigure(petArtId, visit.id * 10 + 4 + visit.companion) : null),
+    [petArtId, visit.id, visit.companion],
   );
   const personImage = useDerivedValue((): Transforms3d => {
     const breath = 0.5 + 0.5 * Math.sin(time.value * 1.25);

@@ -33,15 +33,24 @@ class Candidate:
     gender_hint: str  # only a note; the assignment is made by the measured F0
     files: tuple  # ((relative path, url, published sha256 or None), ...), the first one is the model
     voice: str = ""  # kokoro voice name
+    speaker_id: int | None = None  # piper speaker of a multi-speaker model
+    model_folder: str = ""  # piper folder when several candidates share one model
 
     @property
     def folder(self) -> str:
-        return "kokoro-82m" if self.engine == "kokoro" else self.id
+        return "kokoro-82m" if self.engine == "kokoro" else (self.model_folder or self.id)
 
 
 def _piper(name: str, speaker: str, quality: str, lic: str, sha: str) -> Candidate:
     base = f"{PIPER_BASE}/{speaker}/{quality}/{name}"
     return Candidate(name, "piper", lic, "unknown", ((f"{name}.onnx", f"{base}.onnx", sha), (f"{name}.onnx.json", f"{base}.onnx.json", None)))
+
+
+def _piper_es(name: str, speaker: str, quality: str, lic: str, speaker_id: int | None = None, suffix: str = "") -> Candidate:
+    """A Piper voice of Spain; its SHA-256 is recorded in models.lock.json at the first download."""
+    base = f"{PIPER_BASE.replace('/es_MX', '/es_ES')}/{speaker}/{quality}/{name}"
+    files = ((f"{name}.onnx", f"{base}.onnx", None), (f"{name}.onnx.json", f"{base}.onnx.json", None))
+    return Candidate(f"{name}{suffix}", "piper", lic, "unknown", files, "", speaker_id, name)
 
 
 def _kokoro(voice: str, sha: str) -> Candidate:
@@ -64,6 +73,11 @@ CANDIDATES = (
     _kokoro("ef_dora", "d9d69b0f8a2b87a345f269d89639f89dfbd1a6c9da0c498ae36dd34afcf35530"),
     _kokoro("em_alex", "5eac53f767c3f31a081918ba531969aea850bed18fe56419b804d642c6973431"),
     _kokoro("em_santa", "aa8620cb96cec705823efca0d956a63e158e09ad41aca934d354b7f0778f63cb"),
+    # More voices for variety between visits (the owner, 2026-10-31); Spain, so their accent differs from the first ones.
+    _piper_es("es_ES-davefx-medium", "davefx", "medium", "MIT (rhasspy/piper-voices); dataset CC0"),
+    _piper_es("es_ES-sharvard-medium", "sharvard", "medium", "MIT (rhasspy/piper-voices); dataset CC BY 3.0", 0, "-0"),
+    _piper_es("es_ES-sharvard-medium", "sharvard", "medium", "MIT (rhasspy/piper-voices); dataset CC BY 3.0", 1, "-1"),
+    _piper_es("es_ES-carlfm-x_low", "carlfm", "x_low", "MIT (rhasspy/piper-voices); dataset public domain"),
 )
 BY_ID = {c.id: c for c in CANDIDATES}
 
@@ -138,7 +152,7 @@ def _piper_audio(folder: Path, c: Candidate, text: str) -> tuple[np.ndarray, int
     from piper import SynthesisConfig
 
     voice = _piper_voice(str(folder / c.files[0][0]))
-    cfg = SynthesisConfig(length_scale=PIPER_LENGTH_SCALE, noise_scale=0.0, noise_w_scale=0.0)
+    cfg = SynthesisConfig(length_scale=PIPER_LENGTH_SCALE, noise_scale=0.0, noise_w_scale=0.0, speaker_id=c.speaker_id)
     chunks = [np.frombuffer(a.audio_int16_bytes, dtype=np.int16) for a in voice.synthesize(text, syn_config=cfg)]
     return np.concatenate(chunks).astype(np.float64) / 32768.0, voice.config.sample_rate
 

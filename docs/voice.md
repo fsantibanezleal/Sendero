@@ -7,6 +7,13 @@ own whisper under it (`distance.close_chain`, `whisper.add_breath`) measured 3.3
 clips, so all the clips now use it. The sections below on the whisper conversion and the distance chain describe the parts
 it builds on; the far chain is kept in the code but no clip uses it.
 
+Since 2026-10-31 there are eight voices (three women, five men; the owner: "making more variable the sounds"). Each has
+its own speaker and, for the added ones, its own tone (`VOICE_TONE` in `render.py`: breath, low-pass, room). A visit picks a
+voice of the walker's gender, never the one of the visit before, and plays it at a random rate with pitch following: 0.88
+to 0.99 for the grandparents, lower and calmer, and 0.97 to 1.12 for the younger, so no two visits sound the same. Four of
+the added voices are from Spain, so their accent differs. The two `mls` Piper voices were rejected: their clips came out
+far too long or with a broken pitch.
+
 At the end of each visit a message covers the screen and a soft voice says it, near, over the music, while
 the music softens a little. The voice matches the silhouette that walked to the visitor: a grandmother or a woman gets
 `mujer`, a grandfather or a man gets `hombre`. This page records how the 14 clips (7 messages by 2 voices) are made,

@@ -8,11 +8,11 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 ## [0.01.003] - 2026-10-31
 
 ### Changed
-- The figures are warm silhouettes of light again, after the owner's review: fine stroke faces, a few flowers, no masks,
-  no colored clothes (`docs/figures.md`).
+- The figures are warm silhouettes of light again, after the owner's review: no face details, a few flowers, no masks,
+  no colored clothes; the farewell shows a frontal drawing (`docs/figures.md`).
 
 ### Added
-- People hold a candle of the day whose light breathes.
+- At the farewell the person holds a candle of the day whose light breathes.
 - Flowers rest on the visitor's hair, found on the device from the person mask during the visit.
 - `build-apk -OnlyTrack <file>`: a local build that loops one audio file, which never enters the repository.
 

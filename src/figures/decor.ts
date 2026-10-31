@@ -1,7 +1,7 @@
 /**
  * The silhouettes on the day of the dead. The owner's direction of 2026-10-31: the figure stays a warm, spiritual
- * silhouette of light; the face is fine strokes only, never a mask; a few flowers rest in the hair and on the body;
- * the person holds a candle (docs/figures.md). Painted once per figure, on the JS thread, in figure units (feet at
+ * silhouette of light with no face details; a few flowers rest in the hair and on the body; in the frontal view the
+ * person holds a candle (docs/figures.md). Painted once per figure, on the JS thread, in figure units (feet at
  * y = 0, height 1, facing right) and rendered into an image; the scene only places the image.
  */
 import { ClipOp, PaintStyle, type SkCanvas, Skia, type SkImage, type SkPaint, type SkPath, type SkPicture, StrokeCap, TileMode, vec } from '@shopify/react-native-skia';
@@ -68,58 +68,6 @@ function leaf(c: SkCanvas, x: number, y: number, r: number, a: number) {
   b.quadTo(x + Math.cos(a - 0.6) * r * 0.6, y + Math.sin(a - 0.6) * r * 0.6, x, y);
   b.close();
   c.drawPath(b.build(), fill(COLORS.leaf, 0.9));
-}
-
-/** The face in fine strokes on the light of the silhouette: flower eyes, a small nose, a quiet stitched smile. */
-function face(c: SkCanvas, a: PersonAnchors, art: SkPath) {
-  const { x, y, r } = a.head;
-  const profile = Math.abs(a.bias) > 0.12;
-  const fx = profile ? x + r * 0.3 : x;
-  const w = r * 0.045;
-  const ink = line(COLORS.stroke, w, 0.8);
-  const fine = line(COLORS.stroke, w * 0.7, 0.65);
-  c.save();
-  c.clipPath(art, ClipOp.Intersect, true);
-  const ey = y - r * 0.05;
-  for (const ex of profile ? [fx + r * 0.3] : [fx - r * 0.4, fx + r * 0.4]) {
-    const er = r * 0.2;
-    c.drawCircle(ex, ey, er, ink);
-    for (let i = 0; i < 8; i++) {
-      const t = (i / 8) * 2 * Math.PI;
-      c.drawCircle(ex + Math.cos(t) * er * 1.42, ey + Math.sin(t) * er * 1.42, er * 0.3, fine);
-    }
-    c.drawCircle(ex, ey, er * 0.28, fill(COLORS.stroke, 0.7));
-  }
-  // The nose, a small open heart.
-  const nx = profile ? fx + r * 0.58 : fx;
-  const ny = y + r * 0.26;
-  const ns = r * 0.09;
-  const nose = Skia.PathBuilder.Make();
-  nose.moveTo(nx - ns, ny + ns);
-  nose.quadTo(nx - ns * 0.3, ny - ns, nx, ny - ns * 0.2);
-  nose.quadTo(nx + ns * 0.3, ny - ns, nx + ns, ny + ns);
-  c.drawPath(nose.build(), ink);
-  // The smile: a soft curve with a few short stitches, narrow, never across the whole face.
-  const half = r * (profile ? 0.26 : 0.36);
-  const mx = profile ? fx + r * 0.32 : fx;
-  const my = y + r * 0.56;
-  const curve = 0.1 * r;
-  const smile = Skia.PathBuilder.Make();
-  smile.moveTo(mx - half, my);
-  smile.quadTo(mx, my + curve * 2, mx + half, my);
-  c.drawPath(smile.build(), ink);
-  for (let i = 1; i <= 4; i++) {
-    const t = (i / 5) * 2 - 1;
-    const sx = mx + t * half;
-    const sy = my + curve * (1 - t * t);
-    c.drawLine(sx, sy - r * 0.05, sx, sy + r * 0.05, fine);
-  }
-  // Small petals on the forehead.
-  for (let i = 0; i < 5; i++) {
-    const t = (i / 5) * 2 * Math.PI - Math.PI / 2;
-    c.drawCircle(fx + Math.cos(t) * r * 0.1, y - r * 0.56 + Math.sin(t) * r * 0.1, r * 0.055, fine);
-  }
-  c.restore();
 }
 
 /** A few flowers in the hair or at the hat, seated on the outline, never in the air. */
@@ -195,25 +143,18 @@ function contour(c: SkCanvas, art: SkPath, width: number) {
   c.restore();
 }
 
-function paintPerson(c: SkCanvas, entry: ArtEntry, art: SkPath, rand: Rand) {
+function paintPerson(c: SkCanvas, entry: ArtEntry, art: SkPath, rand: Rand, holdsCandle: boolean) {
   const a = entry.anchors as PersonAnchors;
   contour(c, art, 0.007);
-  face(c, a, art);
   hairFlowers(c, a, art, entry.archetype, rand);
   bodyFlowers(c, a, art, rand);
-  candle(c, a, rand);
+  if (holdsCandle) candle(c, a, rand);
 }
 
-/** A pet of light: its outline, a kind eye in strokes, a few flowers at the neck. */
+/** A pet of light: its outline and a few flowers at the neck. */
 function paintPet(c: SkCanvas, entry: ArtEntry, art: SkPath, rand: Rand) {
   const a = entry.anchors as PetAnchors;
   contour(c, art, 0.02);
-  c.save();
-  c.clipPath(art, ClipOp.Intersect, true);
-  const er = 0.04;
-  c.drawCircle(a.head.x, a.head.y, er, line(COLORS.stroke, 0.012, 0.8));
-  c.drawCircle(a.head.x, a.head.y, er * 0.35, fill(COLORS.stroke, 0.75));
-  c.restore();
   const cluster: [number, number][] = [[-0.16, 0.02], [-0.2, 0.1]];
   cluster.forEach(([dx, dy], i) => {
     const x = a.head.x + dx;
@@ -223,7 +164,7 @@ function paintPet(c: SkCanvas, entry: ArtEntry, art: SkPath, rand: Rand) {
 }
 
 /** The strokes and flowers of a drawing, in figure units. `seed` varies the flowers. */
-export function decoratedPicture(id: string, seed: number): SkPicture | null {
+export function decoratedPicture(id: string, seed: number, holdsCandle = false): SkPicture | null {
   const entry = artById(id);
   if (entry == null) return null;
   const art = artPath(id);
@@ -231,7 +172,7 @@ export function decoratedPicture(id: string, seed: number): SkPicture | null {
   const recorder = Skia.PictureRecorder();
   const canvas = recorder.beginRecording(Skia.XYWHRect(-2, -1.4, 4, 1.6));
   if (entry.archetype === 'perro' || entry.archetype === 'gato') paintPet(canvas, entry, art, rand);
-  else paintPerson(canvas, entry, art, rand);
+  else paintPerson(canvas, entry, art, rand, holdsCandle);
   return recorder.finishRecordingAsPicture();
 }
 
@@ -267,12 +208,12 @@ export function bodyPaint(): SkPaint {
 }
 
 /** The figure rendered once on the CPU, so that drawing it costs one image per frame. */
-export function dressedFigure(id: string, seed: number): Dressed | null {
-  const key = `${id}:${seed}`;
+export function dressedFigure(id: string, seed: number, holdsCandle = false): Dressed | null {
+  const key = `${id}:${seed}:${holdsCandle}`;
   const cached = cache.get(key);
   if (cached != null) return cached;
   const entry = artById(id);
-  const picture = decoratedPicture(id, seed);
+  const picture = decoratedPicture(id, seed, holdsCandle);
   if (entry == null || picture == null) return null;
   const width = entry.aspect + 2 * MARGIN;
   const height = 1 + MARGIN + 0.02;
@@ -286,7 +227,7 @@ export function dressedFigure(id: string, seed: number): Dressed | null {
   canvas.drawPath(artPath(id), bodyPaint());
   canvas.drawPicture(picture);
   surface.flush();
-  const person = entry.archetype !== 'perro' && entry.archetype !== 'gato';
+  const person = holdsCandle && entry.archetype !== 'perro' && entry.archetype !== 'gato';
   const dressed = { image: surface.makeImageSnapshot(), x, y, width, height, flame: person ? flameAt(entry.anchors as PersonAnchors) : null };
   if (cache.size >= CACHE_SIZE) cache.delete(cache.keys().next().value as string);
   cache.set(key, dressed);

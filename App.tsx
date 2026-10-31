@@ -105,7 +105,7 @@ function Altar() {
   const events = useMemo(
     () => ({
       // The farewell shows the visitor in the frame and the silhouette beside it: no person mask is needed.
-      onMask: () => undefined,
+      onMask: feed.setMaskActive,
       onReveal: () => undefined,
       onMessage: () => engine.current?.duckMusic(),
       onWhisper: (v: Visit) => {

@@ -64,8 +64,10 @@ export interface PetLook {
   fluffy: boolean;
   /** Sitting or standing while the family waits. */
   sits: boolean;
-  /** The silhouette drawing that shows this pet, or null to draw the procedural figure. */
+  /** The silhouette drawing that shows this pet walking, or null to draw the procedural figure. */
   art: string | null;
+  /** The drawing that shows it while the family waits, sitting or standing, or null for the procedural figure. */
+  still: string | null;
 }
 
 /** Height of a pet drawing per unit of size, in person-height units (a size-1 dog stands about 0.32 tall). */
@@ -192,6 +194,7 @@ export function randomPetLook(rand: Rand, kind: PetKind): PetLook {
       fluffy: rand() < 0.35,
       sits: rand() < 0.4,
       art: null,
+      still: null,
     };
   }
   return {
@@ -206,6 +209,7 @@ export function randomPetLook(rand: Rand, kind: PetKind): PetLook {
     fluffy: rand() < 0.35,
     sits: rand() < 0.6,
     art: null,
+    still: null,
   };
 }
 

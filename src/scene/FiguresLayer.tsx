@@ -116,8 +116,8 @@ export function FiguresLayer({
     for (let i = 0; i < waitingPets.length; i++) {
       const p = waitingPets[i];
       if (p.companion) continue;
-      if (p.look.art != null) {
-        main.addPath(placeArt(artPath(p.look.art), p.place.x, p.place.y, p.place.h * PET_ART_HEIGHT * p.look.size, 1, 0));
+      if (p.look.still != null) {
+        main.addPath(placeArt(artPath(p.look.still), p.place.x, p.place.y, p.place.h * PET_ART_HEIGHT * p.look.size, 1, 0));
         continue;
       }
       const tf: ScreenTransform = { ox: p.place.x, oy: p.place.y, h: p.place.h, facing: 1 };

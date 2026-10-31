@@ -5,7 +5,7 @@
  */
 import { MESSAGES } from '../content/messages';
 import { chooseCompanion, chooseMessage, chooseWalker, HUMAN_PROFILE, HUMANS, type HumanKind, type PetKind, PETS, type Rand, type VoiceId } from '../figures/catalog';
-import { artOf } from '../figures/artData';
+import { ART, artOf } from '../figures/artData';
 import { type Look, type PetLook, randomLook, randomPetLook } from '../figures/looks';
 import { TIMELINE } from './timeline';
 
@@ -53,12 +53,21 @@ export interface History {
   lastArt: Record<string, string>;
 }
 
-/** A drawing for a figure, chosen at random among its walking drawings, never the one it showed last. */
-export function pickArt(random: Rand, kind: HumanKind | PetKind, last: string | undefined): string | null {
-  const all = artOf(kind, 'walk').map((a) => a.id);
+/** A drawing for a figure, chosen at random among those given, never the one it showed last. */
+function pickFrom(random: Rand, all: string[], last: string | undefined): string | null {
   if (all.length === 0) return null;
   const pool = all.length > 1 && last != null ? all.filter((id) => id !== last) : all;
   return pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))];
+}
+
+/** A walking drawing for a figure. */
+export function pickArt(random: Rand, kind: HumanKind | PetKind, last: string | undefined): string | null {
+  return pickFrom(random, artOf(kind, 'walk').map((a) => a.id), last);
+}
+
+/** A drawing for a pet that waits with the family: any of its drawings, sitting or standing. */
+function pickStillArt(random: Rand, kind: PetKind, last: string | undefined): string | null {
+  return pickFrom(random, ART.filter((a) => a.archetype === kind).map((a) => a.id), last);
 }
 
 export function emptyHistory(): History {
@@ -85,12 +94,21 @@ function shuffledIndices(random: Rand, n: number): number[] {
  */
 export function planVisit(h: History, random: Rand = Math.random): Visit {
   const people = HUMANS.map((kind) => ({ ...randomLook(random, kind), art: pickArt(random, kind, h.lastArt[kind]) }));
-  const pets = PETS.map((kind) => ({ ...randomPetLook(random, kind), art: pickArt(random, kind, h.lastArt[kind]) }));
+  const pets = PETS.map((kind) => ({
+    ...randomPetLook(random, kind),
+    art: pickArt(random, kind, h.lastArt[kind]),
+    still: pickStillArt(random, kind, h.lastArt[`${kind}:still`]),
+  }));
   for (const f of [...people.map((p) => ({ k: p.human as string, a: p.art })), ...pets.map((p) => ({ k: p.kind as string, a: p.art }))]) {
     if (f.a != null) h.lastArt[f.k] = f.a;
   }
   const walkerKind = chooseWalker(random, h.human);
   const companionKind: PetKind | null = chooseCompanion(random);
+  for (const p of pets) {
+    if (p.still != null) h.lastArt[`${p.kind}:still`] = p.still;
+    // The pet that walks is the same drawing while it waits, on the path and beside the frame.
+    if (p.kind === companionKind) p.still = p.art;
+  }
   const messageIndex = chooseMessage(random, MESSAGES.length, h.messageBag, h.message);
   const spots = [...shuffledIndices(random, PEOPLE_SPOTS), ...shuffledIndices(random, PET_SPOTS).map((i) => PEOPLE_SPOTS + i)];
   h.human = walkerKind;

@@ -23,10 +23,22 @@ ROOT = HERE.parents[1]
 OUT = ROOT / "assets" / "voice"
 MESSAGES = json.loads((HERE / "messages.json").read_text(encoding="utf-8"))
 SPOKEN = json.loads((HERE / "spoken.json").read_text(encoding="utf-8"))
-VOICE_GENDER = {"mujer": "female", "hombre": "male", "mujer-2": "female", "hombre-2": "male"}
+VOICE_GENDER = {
+    "mujer": "female", "hombre": "male", "mujer-2": "female", "hombre-2": "male", "mujer-3": "female",
+    "hombre-3": "male", "hombre-4": "male", "hombre-5": "male",
+}
 # Second voices, for variety between visits (the owner, 2026-10-31). Chosen by hand among the candidates whose measured
 # F0 meets the same rule; the first voices are still chosen by the rule.
-EXTRA_VOICES = {"mujer-2": "kokoro-ef_dora", "hombre-2": "kokoro-em_santa"}
+EXTRA_VOICES = {
+    "mujer-2": "kokoro-ef_dora", "hombre-2": "kokoro-em_santa", "mujer-3": "es_ES-sharvard-medium-1",
+    "hombre-3": "es_ES-davefx-medium", "hombre-4": "es_ES-sharvard-medium-0",
+    "hombre-5": "es_ES-carlfm-x_low",
+}
+# The tone of each added voice: (breath, low-pass Hz, room), so that each has its own warmth, air and space.
+VOICE_TONE = {
+    "mujer-3": (0.24, 6500.0, 0.16), "hombre-3": (0.10, 5000.0, 0.14),
+    "hombre-4": (0.26, 7000.0, 0.10), "hombre-5": (0.16, 5800.0, 0.20),
+}
 TARGET_LUFS = -20.0
 TRUE_PEAK_CEILING = -3.0
 LUFS_TOLERANCE = 0.3
@@ -123,7 +135,8 @@ def choose_voices(table: dict) -> dict:
 def render_clip(candidate: synth.Candidate, voice_id: str, message: dict, scratch: Path) -> dict:
     neutral, sr = neutral_speech(candidate, message, scratch)
     seed = clip_seed(voice_id, message["id"])
-    far = distance.close_chain(whisper.add_breath(neutral, sr, seed), sr, seed)
+    breath, lowpass, wet = VOICE_TONE.get(voice_id, (whisper.BREATH, distance.CLOSE_LOWPASS_HZ, distance.CLOSE_WET))
+    far = distance.close_chain(whisper.add_breath(neutral, sr, seed, breath), sr, seed, lowpass, wet)
     dest = OUT / voice_id / f"{message['id']}.m4a"
     margin = 0.3  # headroom for the AAC encoder; the ceiling and the target are checked on the decoded file
     final = measure.normalize_loudness(far, sr, TARGET_LUFS, TRUE_PEAK_CEILING, margin_db=margin)

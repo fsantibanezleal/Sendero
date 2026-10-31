@@ -6,7 +6,8 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 ## [Unreleased]
 
 ### Added
-- Two more voices (a woman, Kokoro dora; a man, Kokoro santa): each visit picks one of the two of the walker's gender.
+- Eight voices (three women, five men), each with its own tone; a visit never repeats the last voice and plays it at a
+  random pitch and pace, lower for the grandparents.
 - Flowers in the visitor's hair, two or three chosen at random per visit, placed by Google BlazeFace on the device and
   tilted with the head; the rising lights of the silhouettes over the real person too.
 - Veladoras on the ground around the silhouette at the farewell; pets painted as alebrijes.

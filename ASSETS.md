@@ -13,6 +13,17 @@ owner holds, imported on the tablet into the app's private storage.
 |---|---|---|---|
 | `assets/icon.png`, `assets/android-icon-*.png`, `assets/splash-icon.png`, `assets/favicon.png` | Rendered by `pipeline/icon/make_icons.py` (procedural cempasuchil head, same construction as the app's flowers) | MIT (this repository) | Own work; regenerate with `python -m pipeline.icon.make_icons` |
 
+### Added voices
+
+All clips under `assets/voice/mujer-2`, `mujer-3`, `hombre-2` to `hombre-5` are rendered offline like the first voices and listed in `assets/voice/catalog.json`.
+
+| Folder | Model | Licence | Credit |
+|---|---|---|---|
+| `mujer-2`, `hombre-2` | Kokoro-82M `ef_dora`, `em_santa` | Apache-2.0 | hexgrad/Kokoro-82M |
+| `mujer-3`, `hombre-4` | Piper `es_ES-sharvard-medium` (speakers 1, 0) | MIT; dataset CC BY 3.0 | SHARVARD speech corpus, University of Edinburgh (https://datashare.ed.ac.uk/handle/10283/574) |
+| `hombre-3` | Piper `es_ES-davefx-medium` | MIT; dataset CC0 | rhasspy/piper-voices |
+| `hombre-5` | Piper `es_ES-carlfm-x_low` | MIT; dataset public domain | rhasspy/piper-voices |
+
 ## Music
 
 Mastered by `pipeline/music/master.py` from the pieces listed; the set and how it was chosen are in `docs/music.md`.

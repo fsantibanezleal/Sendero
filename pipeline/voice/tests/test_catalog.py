@@ -30,7 +30,8 @@ def test_messages_are_verbatim():
 def good_catalog():
     voices = [
         {"id": v, "gender": g, "engine": "piper", "model": "es_MX-x", "license": "MIT", "medianF0Hz": f}
-        for v, g, f in (("mujer", "female", 200.0), ("hombre", "male", 120.0), ("mujer-2", "female", 171.0), ("hombre-2", "male", 135.0))
+        for v, g, f in (("mujer", "female", 200.0), ("hombre", "male", 120.0), ("mujer-2", "female", 171.0), ("hombre-2", "male", 135.0), ("mujer-3", "female", 185.0),
+                        ("hombre-3", "male", 90.0), ("hombre-4", "male", 107.0), ("hombre-5", "male", 113.0))
     ]
     clips = [
         {"message": m["id"], "voice": v["id"], "file": f"{v['id']}/{m['id']}.m4a", "durationSec": 3.0,

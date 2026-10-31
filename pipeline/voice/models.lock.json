@@ -1,4 +1,100 @@
 {
+  "es_ES-carlfm-x_low": {
+    "engine": "piper",
+    "files": {
+      "es_ES-carlfm-x_low.onnx": {
+        "bytes": 28130791,
+        "sha256": "d69677323a907cd4963f42b29c20a98b5d6bfa7f3e64df339915e4650c00d125",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/carlfm/x_low/es_ES-carlfm-x_low.onnx"
+      },
+      "es_ES-carlfm-x_low.onnx.json": {
+        "bytes": 4159,
+        "sha256": "d9bdfa9ff01eb2bc9e62e7d2593939d1e4c4d8eb7cf75f972731539d12399966",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/carlfm/x_low/es_ES-carlfm-x_low.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset public domain"
+  },
+  "es_ES-davefx-medium": {
+    "engine": "piper",
+    "files": {
+      "es_ES-davefx-medium.onnx": {
+        "bytes": 63201294,
+        "sha256": "6658b03b1a6c316ee4c265a9896abc1393353c2d9e1bca7d66c2c442e222a917",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx"
+      },
+      "es_ES-davefx-medium.onnx.json": {
+        "bytes": 4817,
+        "sha256": "0e0dda87c732f6f38771ff274a6380d9252f327dca77aa2963d5fbdf9ec54842",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset CC0"
+  },
+  "es_ES-mls_10246-low": {
+    "engine": "piper",
+    "files": {
+      "es_ES-mls_10246-low.onnx": {
+        "bytes": 63104526,
+        "sha256": "3f9d76d2778778942297aab052aa7b2e67248d3f43614c889ee82901a230e197",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx"
+      },
+      "es_ES-mls_10246-low.onnx.json": {
+        "bytes": 4160,
+        "sha256": "a865944d7f6972af347263b0b8152466dabba3b78b8fe5a6985f7d3b19fd06a1",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/mls_10246/low/es_ES-mls_10246-low.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset CC BY 4.0"
+  },
+  "es_ES-mls_9972-low": {
+    "engine": "piper",
+    "files": {
+      "es_ES-mls_9972-low.onnx": {
+        "bytes": 63104526,
+        "sha256": "afdd61beb26d3aba18245c0352a8173e7f96196fbe4979e115590e8f775c95f0",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/mls_9972/low/es_ES-mls_9972-low.onnx"
+      },
+      "es_ES-mls_9972-low.onnx.json": {
+        "bytes": 4159,
+        "sha256": "32234a0701c480bb6ba62d4f05d0c03a95369f2133aa655370db1c00b2193340",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/mls_9972/low/es_ES-mls_9972-low.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset CC BY 4.0"
+  },
+  "es_ES-sharvard-medium-0": {
+    "engine": "piper",
+    "files": {
+      "es_ES-sharvard-medium.onnx": {
+        "bytes": 76733615,
+        "sha256": "40febfb1679c69a4505ff311dc136e121e3419a13a290ef264fdf43ddedd0fb1",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx"
+      },
+      "es_ES-sharvard-medium.onnx.json": {
+        "bytes": 4903,
+        "sha256": "7438c9b699c72b0c3388dae1b68d3f364dc66a2150fe554a1c11f03372957b2c",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset CC BY 3.0"
+  },
+  "es_ES-sharvard-medium-1": {
+    "engine": "piper",
+    "files": {
+      "es_ES-sharvard-medium.onnx": {
+        "bytes": 76733615,
+        "sha256": "40febfb1679c69a4505ff311dc136e121e3419a13a290ef264fdf43ddedd0fb1",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx"
+      },
+      "es_ES-sharvard-medium.onnx.json": {
+        "bytes": 4903,
+        "sha256": "7438c9b699c72b0c3388dae1b68d3f364dc66a2150fe554a1c11f03372957b2c",
+        "source": "https://huggingface.co/rhasspy/piper-voices/resolve/main/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx.json"
+      }
+    },
+    "license": "MIT (rhasspy/piper-voices); dataset CC BY 3.0"
+  },
   "es_MX-ald-medium": {
     "engine": "piper",
     "files": {

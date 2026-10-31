@@ -125,11 +125,14 @@ export class SoundEngine {
   }
 
   /** Plays the message clip loaded by prepareVoice, or loads and plays this one. */
-  playVoice(source: number | string): void {
-    log(`voice: at volume ${this.voiceVolume.toFixed(2)}, music ducked to ${this.duckTarget.toFixed(2)}${this.voicePrepared ? '' : ', not preloaded'}`);
+  playVoice(source: number | string, rate = 1): void {
+    log(`voice: at volume ${this.voiceVolume.toFixed(2)}, pitch ${rate.toFixed(2)}, music ducked to ${this.duckTarget.toFixed(2)}${this.voicePrepared ? '' : ', not preloaded'}`);
     if (!this.voicePrepared) this.prepareVoice(source);
     this.voicePrepared = false;
     this.voice.volume = this.voiceVolume;
+    // Without pitch correction the rate moves pitch and pace together, as a higher or deeper voice would.
+    this.voice.shouldCorrectPitch = false;
+    this.voice.setPlaybackRate(rate);
     this.voice.play();
   }
 

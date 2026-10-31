@@ -114,7 +114,7 @@ function Altar() {
       onMessage: () => engine.current?.duckMusic(),
       onWhisper: (v: Visit) => {
         const clip = clipFor(v);
-        if (clip != null) engine.current?.playVoice(clip);
+        if (clip != null) engine.current?.playVoice(clip, v.voiceRate);
         else log(`voice: no clip for ${v.voice} ${MESSAGES[v.messageIndex].id}`);
       },
       onReturn: () => {

@@ -128,16 +128,14 @@ export function useCameraFeed(active: boolean): CameraFeed {
   const image = useSharedValue<SkImage | null>(null);
   const size = useSharedValue<FrameSize>({ width: 0, height: 0 });
   const mask = useSharedValue<SkImage | null>(null);
-  const retired = useRef<SkImage[]>([]);
   const maskRate = useSharedValue(0);
   const head = useSharedValue<HeadPlace>({ x: 0.5, y: 0.3, width: 0.2, seen: 0 });
   const [info, setInfo] = useState<ModelInfo | null>(null);
   const [modelState, setModelState] = useState<ModelState>('loading');
 
   const flags = useMemo(() => createSynchronizable({ maskActive: false, frozen: false }), []);
-  // Backpressure: at most one frame on its way to the JS thread. Without it a slow device queues CPU
-  // frame copies (several MB each) faster than JS drains them, starving touches and React updates
-  // (seen on the emulator: 1.8 GB and taps never handled).
+  // Backpressure: at most one frame on its way to the UI thread. Without it a slow device queues CPU
+  // frame copies (several MB each) faster than they drain (seen on the emulator: 1.8 GB and taps never handled).
   const inFlight = useMemo(() => createSynchronizable(false), []);
 
   useEffect(() => {
@@ -152,64 +150,67 @@ export function useCameraFeed(active: boolean): CameraFeed {
     };
   }, []);
 
-  const frames = useRef(0);
-  const ratedAt = useRef(0);
-  const firstFrame = useRef(true);
-
   const report = useCallback((message: string) => log(`camera: ${message}`), []);
 
-  /** Disposes a replaced image only after RETIRE_AFTER more replacements (see RETIRE_AFTER). */
-  const retire = useCallback((old: SkImage | null) => {
-    if (old == null) return;
-    const queue = retired.current;
-    queue.push(old);
-    while (queue.length > RETIRE_AFTER * 2) {
-      queue.shift()?.dispose();
-    }
-  }, []);
+  // What the scene holds, kept here too. Reading a shared value on the JS thread waits for the UI thread: on the TCL
+  // Tab A1 Plus that made a frame take 1.4 to 10 seconds to pass, with the JS thread idle and the video frozen.
+  const shown = useRef<{ image: SkImage | null; width: number; height: number }>({ image: null, width: 0, height: 0 });
+  const place = useRef<HeadPlace>({ x: 0.5, y: 0.3, width: 0.2, seen: 0 });
+  const retired = useRef<SkImage[]>([]);
+  const rate = useRef({ frames: 0, at: 0 });
 
+  /** Hands a finished frame to the scene. Only writes shared values, it never reads them. */
   const publish = useCallback(
     (next: SkImage, measured: boolean, found: HeadPlace | null) => {
       inFlight.setBlocking(false);
       const w = next.width();
       const h = next.height();
-      if (firstFrame.current) {
-        firstFrame.current = false;
-        log(`camera: first frame ${w} x ${h}`);
-      }
-      const current = size.get();
+      const current = shown.current;
+      if (current.width === 0) log(`camera: first frame ${w} x ${h}`);
       if (current.width !== w || current.height !== h) {
+        current.width = w;
+        current.height = h;
         size.set({ width: w, height: h });
       }
-      retire(image.get());
       image.set(next);
-      frames.current += 1;
-      const now = Date.now();
-      if (ratedAt.current === 0) ratedAt.current = now;
-      if (now - ratedAt.current >= RATE_LOG_MS) {
-        log(`camera: ${((frames.current * 1000) / (now - ratedAt.current)).toFixed(1)} frames per second reach the scene`);
-        frames.current = 0;
-        ratedAt.current = now;
-      }
-      if (measured) {
-        const h = head.get();
-        // Follows the person gently; a measure that is lost fades the flowers without moving them.
-        if (found != null) {
-          const k = h.seen < 0.05 ? 1 : HEAD_EMA;
-          head.set({ x: h.x + (found.x - h.x) * k, y: h.y + (found.y - h.y) * k, width: h.width + (found.width - h.width) * k, seen: Math.min(1, h.seen + 0.34) });
-        } else {
-          head.set({ ...h, seen: Math.max(0, h.seen - 0.34) });
+      if (current.image != null) {
+        // Disposed only after RETIRE_AFTER more replacements (see RETIRE_AFTER).
+        retired.current.push(current.image);
+        while (retired.current.length > RETIRE_AFTER) {
+          retired.current.shift()?.dispose();
         }
       }
+      current.image = next;
+      const r = rate.current;
+      r.frames += 1;
+      const now = Date.now();
+      if (r.at === 0) r.at = now;
+      if (now - r.at >= RATE_LOG_MS) {
+        log(`camera: ${((r.frames * 1000) / (now - r.at)).toFixed(1)} frames per second reach the scene`);
+        r.frames = 0;
+        r.at = now;
+      }
+      if (measured) {
+        const p = place.current;
+        // Follows the person gently; a measure that is lost fades the flowers without moving them.
+        if (found != null) {
+          const k = p.seen < 0.05 ? 1 : HEAD_EMA;
+          place.current = { x: p.x + (found.x - p.x) * k, y: p.y + (found.y - p.y) * k, width: p.width + (found.width - p.width) * k, seen: Math.min(1, p.seen + 0.34) };
+        } else {
+          place.current = { ...p, seen: Math.max(0, p.seen - 0.34) };
+        }
+        head.set(place.current);
+      }
     },
-    [image, size, head, inFlight, retire],
+    [image, size, head, inFlight],
   );
 
   const setMaskActive = useCallback(
     (on: boolean) => {
       flags.setBlocking((f) => ({ ...f, maskActive: on }));
       if (!on) {
-        head.set({ ...head.get(), seen: 0 });
+        place.current = { ...place.current, seen: 0 };
+        head.set(place.current);
       }
     },
     [flags, head],
@@ -241,8 +242,12 @@ export function useCameraFeed(active: boolean): CameraFeed {
       let snapshot: SkImage | undefined;
       let cpu: CpuFrame | null = null;
       try {
+        const t0 = Date.now();
+        const stats = frameStats();
+        stats.calls += 1;
         const state = flags.getBlocking();
         if (state.frozen || inFlight.getBlocking()) {
+          stats.busy += 1;
           return;
         }
         const g = globalThis as unknown as { __senderoSource?: SourceState; __senderoMask?: MaskScratch };
@@ -253,10 +258,12 @@ export function useCameraFeed(active: boolean): CameraFeed {
         if (source.mode !== 'gpu') {
           cpu = cpuFrame(frame, source.mode === 'probe');
         }
+        const t1 = Date.now();
         const raster = source.mode === 'cpu' && cpu != null ? cpu.image : null;
         snapshot = renderToTexture(frame, ({ canvas, frameTexture }) => {
           canvas.drawImage(raster ?? frameTexture, 0, 0);
         });
+        const t2 = Date.now();
         if (source.mode === 'probe') {
           source.gpuSum += meanOfImage(snapshot);
           source.probes += 1;
@@ -273,6 +280,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
           }
         }
 
+        const t3 = Date.now();
         let measured = false;
         let found: HeadPlace | null = null;
         if (state.maskActive && model != null && inW > 0) {
@@ -296,7 +304,20 @@ export function useCameraFeed(active: boolean): CameraFeed {
           }
         }
 
+        const t4 = Date.now();
         const cpuImage = snapshot.makeNonTextureImage();
+        const t5 = Date.now();
+        stats.read += t1 - t0;
+        stats.render += t2 - t1;
+        stats.probe += t3 - t2;
+        stats.measure += t4 - t3;
+        stats.copy += t5 - t4;
+        stats.done += 1;
+        if (t5 - stats.at > 5000) {
+          const k = Math.max(1, stats.done);
+          scheduleOnRN(report, `frames ${stats.calls} called, ${stats.busy} busy, ${stats.done} done; ms read ${(stats.read / k).toFixed(0)} render ${(stats.render / k).toFixed(0)} probe ${(stats.probe / k).toFixed(0)} measure ${(stats.measure / k).toFixed(0)} copy ${(stats.copy / k).toFixed(0)}`);
+          Object.assign(stats, { calls: 0, busy: 0, done: 0, read: 0, render: 0, probe: 0, measure: 0, copy: 0, at: t5 });
+        }
         if (cpuImage != null) {
           inFlight.setBlocking(true);
           scheduleOnRN(publish, cpuImage, measured, found);
@@ -332,14 +353,6 @@ export function useCameraFeed(active: boolean): CameraFeed {
     frameOutput.outputOrientation = orientation;
   }, [frameOutput, orientation]);
 
-  useEffect(
-    () => () => {
-      for (const old of retired.current) old.dispose();
-      retired.current = [];
-    },
-    [],
-  );
-
   return { image, size, mask, head, maskRate, modelState, setMaskActive, setFrozen };
 }
 
@@ -352,6 +365,28 @@ interface SourceState {
   cpuReads: number;
   maskError: boolean;
   frameError: boolean;
+}
+
+interface FrameStats {
+  calls: number;
+  busy: number;
+  done: number;
+  read: number;
+  render: number;
+  probe: number;
+  measure: number;
+  copy: number;
+  at: number;
+}
+
+/** Timings of the frame path on the camera thread, logged every few seconds to diagnose a device. */
+function frameStats(): FrameStats {
+  'worklet';
+  const g = globalThis as unknown as { __senderoStats?: FrameStats };
+  if (g.__senderoStats == null) {
+    g.__senderoStats = { calls: 0, busy: 0, done: 0, read: 0, render: 0, probe: 0, measure: 0, copy: 0, at: Date.now() };
+  }
+  return g.__senderoStats;
 }
 
 interface CpuFrame {

@@ -41,7 +41,7 @@ export class SoundEngine {
   private duckTarget = 1;
   private duckRate = 0;
   private musicVolume = 0.8;
-  private voiceVolume = 0.9;
+  private voiceVolume = 0.6;
   private running = false;
 
   constructor() {

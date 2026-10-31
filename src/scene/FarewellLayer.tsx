@@ -1,24 +1,26 @@
-import { Circle, Group, RadialGradient, Skia, vec } from '@shopify/react-native-skia';
+import { Circle, Group, RadialGradient, Skia, type Transforms3d, vec } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
-import type { Layout } from '../experience/layout';
+import { besideFrame, type Layout } from '../experience/layout';
 import type { Visit } from '../experience/plan';
 import { TIMELINE } from '../experience/timeline';
 import type { FlowerAtlas } from '../flowers/atlas';
-import { artPath, placeArt } from '../figures/art';
+import { artById, artPath, placeArt } from '../figures/art';
+import { dressedFigure } from '../figures/decor';
 import { humanFrontPath, petSitPath, type ScreenTransform } from '../figures/draw';
 import { BASE_HEIGHT, PET_ART_HEIGHT, silhouetteTop } from '../figures/looks';
 import { mulberry32, smoothstep } from '../procedural';
 import { palette } from '../theme/palette';
+import { DressedFigure } from './DressedFigure';
 import { Ghost } from './Ghost';
 import { Sparkles } from './Sparkles';
 
 /**
  * The farewell (the owner's design of 2026-10-30): the frame with the visitor stands on the right
  * (the stage), and the soft silhouette of the person who walked the path stands beside it on the
- * left, facing the viewer, one hand resting on the frame's garland, never over the picture; their
- * pet, when one came, sits at their other side. Warm lights drift around them.
+ * left, turned toward it, never over the picture; their pet, when one came, stands at their other
+ * side. Warm lights drift around them.
  */
 export function FarewellLayer({
   visit,
@@ -65,9 +67,29 @@ export function FarewellLayer({
   const empty = useMemo(() => Skia.Path.Make(), []);
   // The drawings of the person and the pet, when they have one, united once on the JS thread.
   const personArt = useMemo(() => (look.art != null ? artPath(look.art) : null), [look.art]);
-  const personArtH = ghostH * BASE_HEIGHT[look.human] * look.build.height;
+  const person = useMemo(
+    () => besideFrame(layout, companion.x, ghostH * BASE_HEIGHT[look.human] * look.build.height, look.art != null ? (artById(look.art)?.aspect ?? 0.4) : 0.4),
+    [layout, companion.x, ghostH, look],
+  );
+  const personArtH = person.height;
+  const personX = person.x;
   const petArt = useMemo(() => (pet?.art != null ? artPath(pet.art) : null), [pet?.art]);
-  const petArtH = pet != null ? ghostH * PET_ART_HEIGHT * pet.size : 0;
+  const petPlace = useMemo(
+    () => (pet != null ? besideFrame({ ...layout, stage: { ...stage, x: stage.x * 0.5 } }, petSpot.x, ghostH * PET_ART_HEIGHT * pet.size, pet.art != null ? (artById(pet.art)?.aspect ?? 1) : 1) : null),
+    [pet, layout, stage, petSpot.x, ghostH],
+  );
+  const petArtH = petPlace?.height ?? 0;
+  const petX = petPlace?.x ?? petSpot.x;
+  const personDressed = useMemo(() => (look.art != null ? dressedFigure(look.art, visit.id * 10 + visit.walker) : null), [look.art, visit.id, visit.walker]);
+  const petDressed = useMemo(
+    () => (pet?.art != null && visit.companion != null ? dressedFigure(pet.art, visit.id * 10 + 4 + visit.companion) : null),
+    [pet?.art, visit.id, visit.companion],
+  );
+  const personImage = useDerivedValue((): Transforms3d => {
+    const breath = 0.5 + 0.5 * Math.sin(time.value * 1.25);
+    const s = personArtH * (1 + 0.004 * breath);
+    return [{ translateX: personX }, { translateY: companion.ground }, { rotate: 0.035 + 0.006 * breath }, { scale: s }];
+  });
   const ghostMain = useDerivedValue(() => {
     // Built only while shown (it breathes, so it is rebuilt every frame then).
     if (appear.value <= 0) return empty;
@@ -76,13 +98,13 @@ export function FarewellLayer({
     // A drawing stands beside the frame facing it, leaning toward it a little and breathing.
     const person =
       personArt != null
-        ? placeArt(personArt, companion.x, companion.ground, personArtH * (1 + 0.004 * breath), 1, 0.035 + 0.006 * breath)
+        ? placeArt(personArt, personX, companion.ground, personArtH * (1 + 0.004 * breath), 1, 0.035 + 0.006 * breath)
         : humanFrontPath(look, tf, breath, rest);
     if (pet == null) return person;
     const pt: ScreenTransform = { ox: petSpot.x, oy: petSpot.ground, h: ghostH, facing: 1 };
     const both = Skia.PathBuilder.Make();
     both.addPath(person);
-    both.addPath(petArt != null ? placeArt(petArt, petSpot.x, petSpot.ground, petArtH, 1, 0) : petSitPath(pet, pt));
+    both.addPath(petArt != null ? placeArt(petArt, petX, petSpot.ground, petArtH, 1, 0) : petSitPath(pet, pt));
     return both.build();
   });
   const ghostFar = useDerivedValue(() => empty);
@@ -102,6 +124,8 @@ export function FarewellLayer({
         <Bokeh key={i} x={b.x} y={b.y} r={b.r} phase={b.phase} time={time} strength={appear} />
       ))}
       <Ghost main={ghostMain} far={ghostFar} opacity={ghostOpacity} top={ghostTop} bottom={ghostBottom} glow={ghostGlow} />
+      <DressedFigure figure={personDressed} transform={personImage} opacity={ghostOpacity} />
+      <DressedFigure figure={petDressed} transform={[{ translateX: petX }, { translateY: petSpot.ground }, { scale: petArtH }]} opacity={ghostOpacity} />
       <Sparkles
         image={atlas.image}
         sprite={atlas.glow}

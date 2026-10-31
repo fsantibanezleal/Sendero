@@ -12,10 +12,9 @@ not overlapping it". This page describes the farewell as built since 0.01.001.
   its top at 20 percent of the height, with its garland, papel picado, candles and the live camera inside. The visitor
   sees themselves in it, live.
 - The silhouette of the person who walked the path stands beside the frame on the left (the side the walk came from),
-  facing the viewer, feet on the ground at 94 percent of the height, as tall as 74 percent of the screen for a person of
-  height 1 (and never taller than the top of the screen allows with a hat or a bun). One hand rests on the garland along
-  the frame's left side, below the middle, the elbow bent (`humanFrontPath` with a resting point: a two-segment arm with
-  the rig's upper arm and forearm lengths). Nothing of the silhouette covers the picture.
+  turned toward it, feet on the ground at 94 percent of the height, as tall as 74 percent of the screen for a person of
+  height 1 (and never taller than the top of the screen allows with a hat or a bun). `besideFrame` places each drawing by its
+  real width, so nothing of the silhouette touches the frame or leaves the screen; a very wide drawing is scaled down.
 - The pet, when one walked with them, sits at the silhouette's other side.
 - Warm lights drift around them; the silhouette breathes slowly and glows (`Ghost.tsx`).
 - The message then covers the screen; at the return the frame goes back to full screen and the silhouette fades.

@@ -117,3 +117,16 @@ export function frameAt(layout: Layout, shrink: number, arrive: number, back: nu
   if (arrive > 0) return between(mini, stage, arrive);
   return between(full, mini, shrink);
 }
+
+/**
+ * Where a drawing of the given aspect stands beside the frame: it never touches the frame nor leaves the screen.
+ * `prefer` is the x wanted for its centre; a drawing too wide for the room is scaled down.
+ */
+export function besideFrame(layout: Layout, prefer: number, height: number, aspect: number): { x: number; height: number } {
+  const margin = 0.02 * layout.screen.width;
+  const limit = layout.stage.x - margin;
+  const room = limit - margin;
+  const h = Math.min(height, room / aspect);
+  const half = (h * aspect) / 2;
+  return { x: Math.max(margin + half, Math.min(prefer, limit - half)), height: h };
+}

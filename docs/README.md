@@ -4,7 +4,7 @@
 |---|---|
 | [experience.md](experience.md) | What a visitor lives: the tradition behind it, the timeline, who walks the path, the messages, the design rules for a grieving audience |
 | [scene.md](scene.md) | The single canvas: palette, cempasuchil heads, garland, papel picado, candles, the petal path, the silhouettes and their gait |
-| [reveal.md](reveal.md) | The farewell: the frame on the stage, the silhouette beside it with a hand resting on the garland, the pet |
+| [reveal.md](reveal.md) | The farewell: the frame on the stage, the silhouette beside it, the pet |
 | [sound.md](sound.md) | Music sources and playlist, the crossfading and ducking engine, the whisper |
 | [music.md](music.md) | The bundled public-domain recordings: why each may be redistributed, the mastering chain |
 | [voice.md](voice.md) | The whispered voice clips: voices, licences, the whisper conversion, the distance effect |

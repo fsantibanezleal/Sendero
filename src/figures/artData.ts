@@ -6,12 +6,30 @@ import type { HumanKind, PetKind } from './catalog';
 
 export type ArtView = 'walk' | 'stand' | 'sit';
 
+/** Where the body is in a drawing, measured by the pipeline, in figure units (height 1, feet at y = 0). */
+export interface PersonAnchors {
+  head: { x: number; y: number; r: number };
+  neck: { x: number; y: number; w: number };
+  shoulder: { x: number; y: number; w: number };
+  waist: { x: number; y: number; w: number };
+  /** Height of the skirt's or coat's hem when the figure ends wide, or null. */
+  hemY: number | null;
+  /** How much of the head lies ahead of its centre: near 0 is a frontal face, higher a profile. */
+  bias: number;
+}
+
+export interface PetAnchors {
+  head: { x: number; y: number; r: number };
+  body: { x: number; y: number };
+}
+
 export interface ArtEntry {
   id: string;
   archetype: HumanKind | PetKind;
   view: ArtView;
   /** Width over height of the figure. */
   aspect: number;
+  anchors: PersonAnchors | PetAnchors;
   parts: { d: string; evenodd: boolean }[];
   source: string;
   author: string;

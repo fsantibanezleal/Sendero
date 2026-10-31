@@ -20,6 +20,8 @@ import re
 import sys
 from pathlib import Path
 
+import numpy as np
+from PIL import Image, ImageChops, ImageDraw
 from svgelements import SVG, Color, Matrix, Path as SvgPath, Rect, Shape
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,6 +31,8 @@ ARCHETYPES = ("abuela", "abuelo", "mujer", "hombre", "perro", "gato")
 VIEWS = ("walk", "stand", "sit")
 ACCEPTED = re.compile(r"^(PD|public domain|Public Domain|CC0|CC BY [234]\.0|PD-\w+)", re.I)
 PRECISION = 4
+ANCHOR_RASTER = 500
+PEOPLE = ("abuela", "abuelo", "mujer", "hombre")
 
 
 def is_background(shape: Shape, view_w: float, view_h: float) -> bool:
@@ -97,6 +101,109 @@ def round_d(p: SvgPath) -> str:
     return re.sub(r"-?\d+\.\d+(?:e-?\d+)?", lambda m: f"{float(m.group(0)):.{PRECISION}f}".rstrip("0").rstrip("."), d)
 
 
+def raster(parts: list[dict], aspect: float) -> tuple[np.ndarray, float]:
+    """The figure as a boolean mask, ANCHOR_RASTER rows tall; returns the mask and x = 0 in columns."""
+    n = ANCHOR_RASTER
+    w = int(n * max(aspect, 0.2)) + 8
+    ox = w / 2
+    acc = Image.new("1", (w, n + 1), 0)
+    for part in parts:
+        layer = Image.new("1", (w, n + 1), 0)
+        for sub in SvgPath(part["d"]).as_subpaths():
+            pts = []
+            for seg in SvgPath(sub):
+                steps = 10 if type(seg).__name__ in ("CubicBezier", "QuadraticBezier", "Arc") else 2
+                for i in range(steps):
+                    try:
+                        q = seg.point(i / (steps - 1))
+                    except (TypeError, ValueError, AttributeError):
+                        q = None
+                    if q is not None:
+                        pts.append((ox + q.x * n, n + q.y * n))
+            if len(pts) > 2:
+                one = Image.new("1", (w, n + 1), 0)
+                ImageDraw.Draw(one).polygon(pts, fill=1)
+                layer = ImageChops.logical_xor(layer, one)
+        acc = ImageChops.logical_or(acc, layer)
+    return np.array(acc, dtype=bool), ox
+
+
+def run_at(row: np.ndarray, x: float) -> tuple[int, int] | None:
+    """The filled run of a row that holds column x, or the nearest one."""
+    cols = np.flatnonzero(row)
+    if cols.size == 0:
+        return None
+    runs = np.split(cols, np.flatnonzero(np.diff(cols) > 1) + 1)
+    best = min(runs, key=lambda r: 0 if r[0] <= x <= r[-1] else min(abs(r[0] - x), abs(r[-1] - x)))
+    return int(best[0]), int(best[-1])
+
+
+def person_anchors(mask: np.ndarray, ox: float) -> dict:
+    """Head, neck, shoulders, waist and hem of a person, followed down the body from the top, in figure units."""
+    n = ANCHOR_RASTER
+    top = int(np.flatnonzero(mask.any(axis=1))[0])
+    x = float(np.flatnonzero(mask[top])[0])
+    rows = []
+    for y in range(top, n):
+        run = run_at(mask[y], x)
+        if run is None:
+            rows.append((y, x, 0.0))
+            continue
+        x = 0.8 * x + 0.2 * (run[0] + run[1]) / 2
+        rows.append((y, (run[0] + run[1]) / 2, float(run[1] - run[0] + 1)))
+    width = np.array([r[2] for r in rows])
+    centre = np.array([r[1] for r in rows])
+    # The neck: the first narrow row with the body widening clearly below it.
+    neck = int(0.16 * n)
+    for i in range(int(0.08 * n), int(0.3 * n)):
+        if width[i] == width[max(0, i - 25) : i + 1].min() and width[i + 1 : i + 45].max() > 1.5 * width[i]:
+            neck = i
+            break
+    above = width[max(0, neck - 34) : max(1, neck - 6)]
+    r = float(np.clip(np.median(above) / 2 / n, 0.04, 0.085))
+    head_x = float(np.median(centre[max(0, neck - 34) : max(1, neck - 6)]))
+    head_rows = [mask[top + i, :] for i in range(max(0, neck - 36), neck)]
+    left = sum(int(row[: int(head_x)].sum()) for row in head_rows)
+    right = sum(int(row[int(head_x) :].sum()) for row in head_rows)
+    body = width[neck:]
+    wide = body[: int(0.2 * n)] > 1.9 * max(width[neck], 1)
+    shoulder = neck + (int(np.argmax(wide)) if wide.any() else int(np.argmax(body[: int(0.14 * n)])))
+    # The waist: the narrowest part of the trunk; thin runs are an arm or a stick, not the body.
+    waist_lo, waist_hi = shoulder + int(0.12 * n), shoulder + int(0.3 * n)
+    trunk = np.where(width[waist_lo:waist_hi] > 0.45 * width[shoulder], width[waist_lo:waist_hi], np.inf)
+    waist = waist_lo + (int(np.argmin(trunk)) if np.isfinite(trunk).any() else int(0.1 * n))
+    hem = next((i for i in range(len(width) - 1, int(0.6 * n), -1) if width[i] > 0.75 * width[shoulder]), None)
+    u = lambda v: round(float(v) / n, 4)
+    y_of = lambda i: round(float(top + i - n) / n, 4)
+    return {
+        "head": {"x": u(head_x - ox), "y": round(y_of(neck) - r * 1.05, 4), "r": round(r, 4)},
+        "neck": {"x": u(centre[neck] - ox), "y": y_of(neck), "w": u(width[neck])},
+        "shoulder": {"x": u(centre[shoulder] - ox), "y": y_of(shoulder), "w": u(width[shoulder])},
+        "waist": {"x": u(centre[waist] - ox), "y": y_of(waist), "w": u(width[waist])},
+        "hemY": y_of(hem) if hem is not None else None,
+        "bias": round((right - left) / max(1, right + left), 3),
+    }
+
+
+def pet_anchors(mask: np.ndarray, ox: float) -> dict:
+    """Head and body of a pet: the widest mass in the upper front part, and the middle of the body."""
+    n = ANCHOR_RASTER
+    ys, xs = np.nonzero(mask)
+    rows = mask[: int(0.4 * n)]
+    columns = rows.sum(axis=0).astype(float)
+    # A pet faces right, so the head is in the front half; a raised tail stays out of the search.
+    columns[: int(ox - 0.02 * n)] = 0
+    if columns.max() <= 0:
+        columns = mask.sum(axis=0).astype(float)
+    smooth = np.convolve(columns, np.ones(60) / 60, mode="same")
+    hx = int(np.argmax(smooth))
+    hy = float(np.nonzero(mask[:, max(0, hx - 30) : hx + 30])[0].min()) + 0.13 * n
+    return {
+        "head": {"x": round((hx - ox) / n, 4), "y": round((hy - n) / n, 4), "r": 0.15},
+        "body": {"x": round((float(xs.mean()) - ox) / n, 4), "y": round((float(ys.mean()) - n) / n, 4)},
+    }
+
+
 def build(raw: Path) -> list[dict]:
     manifest = json.loads((raw / "manifest.json").read_text(encoding="utf-8"))
     entries = []
@@ -111,12 +218,16 @@ def build(raw: Path) -> list[dict]:
             print(f"skipped (no filled shape): {item['file']}", file=sys.stderr)
             continue
         norm, aspect = normalize(parts, item.get("facing", "right"))
+        mask, ox = raster(norm, aspect)
+        anchors = person_anchors(mask, ox) if archetype in PEOPLE else pet_anchors(mask, ox)
+        anchors.update(item.get("anchors", {}))
         entries.append(
             {
                 "id": Path(item["file"]).stem,
                 "archetype": archetype,
                 "view": view,
                 "aspect": round(aspect, 4),
+                "anchors": anchors,
                 "parts": norm,
                 "source": item["source_url"],
                 "author": item.get("author", ""),

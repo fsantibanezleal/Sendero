@@ -26,7 +26,7 @@ own constants. Phases overlap on purpose.
 | Gather | 2.8 | 4.2 | Three to five soft silhouettes dissolve in at the far end of the path |
 | Walk | 4.2 | 11.2 | One of them (and their pet, if they have one) walks the path toward the frame, growing as it comes closer; the others fade by 6.0 |
 | Arrive | 11.2 | 12.4 | A warm bloom from the frame, which grows from the corner to the stage on the right |
-| Farewell | 12.4 | 15.4 | The visitor live in the frame on the stage, the same person's silhouette beside it with a hand resting on the garland, the pet at their side |
+| Farewell | 12.4 | 15.4 | The visitor live in the frame on the stage, the same person's silhouette beside it, the pet at their side |
 | Message | 15.4 | 25.4 | An indigo veil and one message; at 16.0 a distant whisper says it while the music softens a little |
 | Return | 25.4 | 26.8 | Everything fades back to the idle screen |
 
@@ -75,7 +75,7 @@ left upper area, the 4 main silhouettes, and the 2 pets, but always random choos
   percent of visits one of the two pets walks beside them. A pet never walks alone. No children: the owner considers it
   too sensitive, and November 1 is popularly associated with deceased children (research: Mexican press citing INAH).
 - The walker steps out of the family and onto the path; at the farewell the same variant stands beside the frame,
-  facing the viewer, one hand resting on the garland, and the pet, when there is one, sits at their other side
+  turned toward it, and the pet, when there is one, stands at their other side
   (`docs/reveal.md`).
 - The whispered voice matches the person: a woman's voice for the grandmother and the woman, a man's for the
   grandfather and the man.

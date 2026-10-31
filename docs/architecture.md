@@ -7,8 +7,7 @@ no network.
 
 Everything the visitor sees is drawn in a single `@shopify/react-native-skia` canvas (`src/scene/Scene.tsx`): the
 camera image, the flower frame, the petal path, the figures, the farewell and the message. One canvas means one
-coordinate system and one draw order, which the farewell needs: the resting hand is drawn over the garland, and the
-silhouette in front of the night.
+coordinate system and one draw order, which the farewell needs: the silhouette stands in front of the night, beside the frame.
 
 ## The camera feed
 

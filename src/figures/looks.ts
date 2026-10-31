@@ -70,8 +70,8 @@ export interface PetLook {
   still: string | null;
 }
 
-/** Height of a pet drawing per unit of size, in person-height units (a size-1 dog stands about 0.32 tall). */
-export const PET_ART_HEIGHT = 0.32;
+/** Height of a pet drawing per unit of size, in person-height units (a size-1 dog stands about 0.4 tall). */
+export const PET_ART_HEIGHT = 0.4;
 
 /** Base height of each archetype relative to the tallest (the man). */
 export const BASE_HEIGHT: Record<HumanKind, number> = { abuela: 0.92, abuelo: 0.96, mujer: 0.95, hombre: 1 };

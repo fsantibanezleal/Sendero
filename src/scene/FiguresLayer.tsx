@@ -272,7 +272,7 @@ export function FiguresLayer({
 
   return (
     <Group>
-      <Ghost main={familyMain} far={familyFar} opacity={familyOpacity} top={familyTop} bottom={familyBottom} glow={familyGlow} />
+      <Ghost main={familyMain} far={familyFar} opacity={familyOpacity} top={familyTop} bottom={familyBottom} glow={familyGlow} halo={dressedFamily.length > 0} />
       {dressedFamily.map((f, i) => (
         <DressedFigure key={i} figure={f.figure} transform={f.transform} opacity={familyOpacity} />
       ))}
@@ -293,7 +293,7 @@ export function FiguresLayer({
           <RadialGradient c={vec(0, 0)} r={groundR} colors={['rgba(255, 213, 138, 0.8)', 'rgba(255, 170, 60, 0.25)', 'rgba(255, 170, 60, 0)']} />
         </Circle>
       </Group>
-      <Ghost main={walkerMain} far={walkerFar} opacity={walkerOpacity} top={walkerTop} bottom={walkerBottom} glow={walkerGlow} />
+      <Ghost main={walkerMain} far={walkerFar} opacity={walkerOpacity} top={walkerTop} bottom={walkerBottom} glow={walkerGlow} halo={walkerDressed != null} />
       <DressedFigure figure={walkerDressed} transform={walkerImage} opacity={walkerOpacity} />
       <DressedFigure figure={companionDressed} transform={petImage} opacity={walkerOpacity} />
     </Group>

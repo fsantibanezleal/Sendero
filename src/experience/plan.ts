@@ -118,6 +118,9 @@ export function planVisit(h: History, random: Rand = Math.random): Visit {
     if (f.a != null) h.lastArt[f.k] = f.a;
   }
   const walkerKind = chooseWalker(random, h.human);
+  // The person who walks is the same drawing in the family, on the path and beside the frame (the owner, 2026-10-31).
+  const walkerLook = people[HUMANS.indexOf(walkerKind)];
+  if (walkerLook.front != null) walkerLook.art = walkerLook.front;
   const companionKind: PetKind | null = chooseCompanion(random);
   for (const p of pets) {
     if (p.still != null) h.lastArt[`${p.kind}:still`] = p.still;

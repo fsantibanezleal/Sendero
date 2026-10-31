@@ -21,6 +21,16 @@ import { coverRect } from './revealGeometry';
  * the reveal composite and the garland stays around it ("with the same border background of
  * flowers").
  */
+/** Where the frame is at clock t: full screen, the corner, the stage, back. Shared with the native camera view. */
+export function frameNow(layout: Layout, t: number): { tx: number; ty: number; s: number } {
+  'worklet';
+  if (t < 0) return { tx: 0, ty: 0, s: 1 };
+  const shrink = easeInOutCubic(windowProgress(t, TIMELINE.shrink));
+  const arrive = easeOutCubic(windowProgress(t, TIMELINE.arrive));
+  const back = easeInOutCubic(windowProgress(t, TIMELINE.return));
+  return frameAt(layout, shrink, arrive, back);
+}
+
 export function FrameLayer({
   layout,
   feed,
@@ -39,14 +49,7 @@ export function FrameLayer({
   // Full screen while waiting; to the lower right corner for the walk; to the stage on the right at
   // the arrival, where it stays for the farewell and the message; back to full screen at the return.
   const transform = useDerivedValue(() => {
-    const t = clock.value;
-    let f = { tx: 0, ty: 0, s: 1 };
-    if (t >= 0) {
-      const shrink = easeInOutCubic(windowProgress(t, TIMELINE.shrink));
-      const arrive = easeOutCubic(windowProgress(t, TIMELINE.arrive));
-      const back = easeInOutCubic(windowProgress(t, TIMELINE.return));
-      f = frameAt(layout, shrink, arrive, back);
-    }
+    const f = frameNow(layout, clock.value);
     return [{ translateX: f.tx }, { translateY: f.ty }, { scale: f.s }];
   });
 
@@ -55,10 +58,6 @@ export function FrameLayer({
     const f = feed.size.value;
     return coverRect(f.width, f.height, W, H);
   });
-  const cx = useDerivedValue(() => cover.value.x);
-  const cy = useDerivedValue(() => cover.value.y);
-  const cw = useDerivedValue(() => cover.value.width);
-  const ch = useDerivedValue(() => cover.value.height);
 
   // The flowers in the visitor's hair: a little wider than the head, the arc resting on its top.
   const crown = useMemo(() => visitorCrown(), []);
@@ -87,7 +86,6 @@ export function FrameLayer({
   return (
     <Group transform={transform}>
       <Group clip={clip}>
-        <Image image={feed.image} x={cx} y={cy} width={cw} height={ch} fit="fill" />
         <Image image={crown} x={0} y={0} width={1} height={1} transform={crownTransform} opacity={crownOpacity} fit="fill" />
       </Group>
       <Atlas image={atlas.image} sprites={garland.rects} transforms={garland.transforms} />

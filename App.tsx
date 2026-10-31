@@ -13,6 +13,7 @@ import { BUNDLED_TRACKS, VOICE_CLIPS } from './src/audio/assets.generated';
 import { clearImportedMusic, importFromPickedFolder, ownTracks } from './src/audio/importMusic';
 import { buildRound, type Track } from './src/audio/playlist';
 import { SoundEngine } from './src/audio/soundEngine';
+import { CameraView } from './src/camera/CameraView';
 import { useCameraFeed } from './src/camera/useCameraFeed';
 import { MESSAGES } from './src/content/messages';
 import { log } from './src/diagnostics/log';
@@ -106,7 +107,10 @@ function Altar() {
     () => ({
       // The farewell shows the visitor in the frame and the silhouette beside it: no person mask is needed.
       onMask: feed.setMaskActive,
-      onReveal: () => undefined,
+      onReveal: (v: Visit) => {
+        const clip = VOICE_CLIPS[v.voice]?.[MESSAGES[v.messageIndex].id];
+        if (clip != null) engine.current?.prepareVoice(clip);
+      },
       onMessage: () => engine.current?.duckMusic(),
       onWhisper: (v: Visit) => {
         const clip = VOICE_CLIPS[v.voice]?.[MESSAGES[v.messageIndex].id];
@@ -211,6 +215,7 @@ function Altar() {
     <View style={styles.root}>
       <GestureDetector gesture={touch}>
         <View style={styles.root} collapsable={false}>
+          <CameraView feed={feed} layout={layout} clock={experience.clock} />
           <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} shown={experience.shown} />
           <Hint clock={experience.clock} time={experience.time} visible={settings.showHint} />
           <MessageOverlay visit={experience.shown} clock={experience.clock} />

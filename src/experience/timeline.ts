@@ -31,8 +31,8 @@ export const TIMELINE = {
   arrive: { start: 11.2, end: 12.4 },
   reveal: { start: 12.4, end: 15.4 },
   message: { start: 15.4, end: 25.4 },
-  /** The whisper starts a little after the message appears. */
-  whisperAt: 16.0,
+  /** The voice starts with the message (its clip opens with 0.4 s of silence). */
+  whisperAt: 15.5,
   return: { start: 25.4, end: 26.8 },
   /** The person mask runs from the walk to the end of the message (research-android D2). */
   mask: { start: 4.2, end: 25.4 },

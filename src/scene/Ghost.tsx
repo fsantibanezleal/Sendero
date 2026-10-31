@@ -15,7 +15,6 @@ export function Ghost({
   top,
   bottom,
   glow,
-  halo = false,
 }: {
   main: SharedValue<SkPath>;
   far: SharedValue<SkPath>;
@@ -25,8 +24,6 @@ export function Ghost({
   bottom: SharedValue<number>;
   /** Blur radius of the wide halo, pixels. */
   glow: SharedValue<number>;
-  /** Only the light: a dressed figure draws its own body over it, and the gaps of a drawing stay open. */
-  halo?: boolean;
 }) {
   const start = useDerivedValue(() => vec(0, top.value));
   const end = useDerivedValue(() => vec(0, bottom.value));
@@ -44,7 +41,7 @@ export function Ghost({
       <Path path={main} color="#FFE7B0" opacity={0.6} blendMode="plus">
         <Blur blur={tight} />
       </Path>
-      <Path path={main} opacity={halo ? 0 : 1}>
+      <Path path={main}>
         <LinearGradient
           start={start}
           end={end}

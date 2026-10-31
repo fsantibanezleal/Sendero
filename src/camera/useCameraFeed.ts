@@ -2,7 +2,7 @@ import { AlphaType, ColorType, Skia, type SkImage } from '@shopify/react-native-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { loadTensorflowModel, type TensorflowModel } from 'react-native-fast-tflite';
-import { type Frame, useCamera, useFrameOutput, useOrientation } from 'react-native-vision-camera';
+import { type CameraPreviewOutput, type Frame, useCamera, useFrameOutput, useOrientation, usePreviewOutput } from 'react-native-vision-camera';
 import { renderToTexture } from 'react-native-vision-camera-skia';
 import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
 
@@ -17,7 +17,7 @@ import { log } from '../diagnostics/log';
  * published to a shared value the scene canvas draws (the pattern of `<SkiaCamera />`, without its
  * own canvas, so the whole experience is ONE canvas).
  *
- * The mask: while `maskActive` is on, every MASK_EVERY-th frame the upright image is drawn into a
+ * The mask: while `maskActive` is on, about twice a second the upright image is drawn into a
  * small surface of the model's input size, read back as RGB floats in [0, 1] and run through the
  * MediaPipe selfie segmenter (landscape, 144 x 256, Apache-2.0); the person probability is smoothed
  * over frames (exponential moving average) and turned into an alpha image with soft edges. Because
@@ -41,7 +41,9 @@ export interface FrameSize {
 }
 
 export interface CameraFeed {
-  /** The latest upright, mirrored camera frame, or null before the first frame. */
+  /** The live camera for the native preview view (`CameraView.tsx`); the scene never copies its frames. */
+  preview: CameraPreviewOutput;
+  /** Unused since the native preview: always null. */
   image: SharedValue<SkImage | null>;
   /**
    * The size of the camera frames (0 x 0 before the first one). Layout reads this, never the image
@@ -62,7 +64,12 @@ export interface CameraFeed {
 }
 
 /** Run the model on one frame out of MASK_EVERY. */
-const MASK_EVERY = 2;
+/** Milliseconds between person measures: the flowers follow gently, and the camera keeps its frames. */
+const MASK_INTERVAL_MS = 450;
+const CAMERA_SIZE = { width: 640, height: 360 };
+const CAMERA_CONSTRAINTS = [{ fps: 24 }];
+/** How often the camera's real rate is logged, to diagnose a device. */
+const RATE_LOG_MS = 10000;
 /** Weight of the newest mask in the moving average. */
 const MASK_EMA = 0.6;
 /** Weight of the newest head position, so the flowers do not tremble. */
@@ -70,16 +77,6 @@ const HEAD_EMA = 0.35;
 /** A pixel counts as the person from this probability; the head is measured this far under its top. */
 const HEAD_PROBABILITY = 0.6;
 const HEAD_DROP = 0.1;
-/** Probability band mapped to the soft edge of the cut-out. */
-const EDGE_LOW = 0.3;
-const EDGE_HIGH = 0.7;
-/**
- * Replaced images are disposed this many publishes later, not at once: the shared value reaches the UI
- * thread asynchronously, so the canvas may still draw (or a layer measure) the previous image for a
- * frame after the JS thread replaced it. Disposing it at once crashed the app ("Attempted to access a
- * disposed object" in a UI-thread derived value).
- */
-const RETIRE_AFTER = 4;
 /**
  * Frames probed at start to choose how frames reach Skia. The GPU path imports the camera's hardware
  * buffer as a texture (`renderToTexture`); some GPUs return a black texture for it (the Android
@@ -104,9 +101,9 @@ interface ModelInfo {
   channels: number;
 }
 
-/** Loads the segmenter on the GPU delegate, falling back to the CPU. */
+/** Loads the segmenter on the CPU: on the GPU it competes with the scene and stalls a modest tablet. */
 async function loadSegmenter(): Promise<ModelInfo | null> {
-  for (const delegates of [['android-gpu'], []] as const) {
+  for (const delegates of [[], ['android-gpu']] as const) {
     try {
       const model = await loadTensorflowModel(MODEL_SOURCE, [...delegates]);
       const shape = model.inputs[0]?.shape ?? [];
@@ -126,16 +123,14 @@ export function useCameraFeed(active: boolean): CameraFeed {
   const image = useSharedValue<SkImage | null>(null);
   const size = useSharedValue<FrameSize>({ width: 0, height: 0 });
   const mask = useSharedValue<SkImage | null>(null);
-  const retired = useRef<SkImage[]>([]);
   const maskRate = useSharedValue(0);
   const head = useSharedValue<HeadPlace>({ x: 0.5, y: 0.3, width: 0.2, seen: 0 });
   const [info, setInfo] = useState<ModelInfo | null>(null);
   const [modelState, setModelState] = useState<ModelState>('loading');
 
   const flags = useMemo(() => createSynchronizable({ maskActive: false, frozen: false }), []);
-  // Backpressure: at most one frame on its way to the JS thread. Without it a slow device queues CPU
-  // frame copies (several MB each) faster than JS drains them, starving touches and React updates
-  // (seen on the emulator: 1.8 GB and taps never handled).
+  // Backpressure: at most one frame on its way to the UI thread. Without it a slow device queues CPU
+  // frame copies (several MB each) faster than they drain (seen on the emulator: 1.8 GB and taps never handled).
   const inFlight = useMemo(() => createSynchronizable(false), []);
 
   useEffect(() => {
@@ -150,69 +145,58 @@ export function useCameraFeed(active: boolean): CameraFeed {
     };
   }, []);
 
-  const lastMaskAt = useSharedValue(0);
-  const firstFrame = useRef(true);
-
   const report = useCallback((message: string) => log(`camera: ${message}`), []);
 
-  /** Disposes a replaced image only after RETIRE_AFTER more replacements (see RETIRE_AFTER). */
-  const retire = useCallback((old: SkImage | null) => {
-    if (old == null) return;
-    const queue = retired.current;
-    queue.push(old);
-    while (queue.length > RETIRE_AFTER * 2) {
-      queue.shift()?.dispose();
-    }
-  }, []);
+  // What the scene holds, kept here too. Reading a shared value on the JS thread waits for the UI thread: on the TCL
+  // Tab A1 Plus that made a frame take 1.4 to 10 seconds to pass, with the JS thread idle and the video frozen.
+  const shown = useRef({ width: 0, height: 0 });
+  const place = useRef<HeadPlace>({ x: 0.5, y: 0.3, width: 0.2, seen: 0 });
+  const rate = useRef({ frames: 0, at: 0 });
 
+  /** Hands a finished frame to the scene. Only writes shared values, it never reads them. */
   const publish = useCallback(
-    (next: SkImage, nextMask: SkImage | null, found: HeadPlace | null) => {
+    (w: number, h: number, measured: boolean, found: HeadPlace | null) => {
       inFlight.setBlocking(false);
-      const w = next.width();
-      const h = next.height();
-      if (firstFrame.current) {
-        firstFrame.current = false;
-        log(`camera: first frame ${w} x ${h}`);
-      }
-      const current = size.get();
+      const current = shown.current;
+      if (current.width === 0) log(`camera: first frame ${w} x ${h}`);
       if (current.width !== w || current.height !== h) {
+        current.width = w;
+        current.height = h;
         size.set({ width: w, height: h });
       }
-      retire(image.get());
-      image.set(next);
-      if (nextMask != null) {
-        const h = head.get();
+      const r = rate.current;
+      r.frames += 1;
+      const now = Date.now();
+      if (r.at === 0) r.at = now;
+      if (now - r.at >= RATE_LOG_MS) {
+        log(`camera: ${((r.frames * 1000) / (now - r.at)).toFixed(1)} person measures per second`);
+        r.frames = 0;
+        r.at = now;
+      }
+      if (measured) {
+        const p = place.current;
         // Follows the person gently; a measure that is lost fades the flowers without moving them.
         if (found != null) {
-          const k = h.seen < 0.05 ? 1 : HEAD_EMA;
-          head.set({ x: h.x + (found.x - h.x) * k, y: h.y + (found.y - h.y) * k, width: h.width + (found.width - h.width) * k, seen: Math.min(1, h.seen + 0.25) });
+          const k = p.seen < 0.05 ? 1 : HEAD_EMA;
+          place.current = { x: p.x + (found.x - p.x) * k, y: p.y + (found.y - p.y) * k, width: p.width + (found.width - p.width) * k, seen: Math.min(1, p.seen + 0.34) };
         } else {
-          head.set({ ...h, seen: Math.max(0, h.seen - 0.25) });
+          place.current = { ...p, seen: Math.max(0, p.seen - 0.34) };
         }
-        retire(mask.get());
-        mask.set(nextMask);
-        const now = Date.now();
-        const dt = (now - lastMaskAt.get()) / 1000;
-        lastMaskAt.set(now);
-        if (dt > 0 && dt < 2) {
-          maskRate.set(maskRate.get() * 0.8 + (1 / dt) * 0.2);
-        }
+        head.set(place.current);
       }
     },
-    [image, size, mask, maskRate, head, lastMaskAt, inFlight, retire],
+    [size, head, inFlight],
   );
 
   const setMaskActive = useCallback(
     (on: boolean) => {
       flags.setBlocking((f) => ({ ...f, maskActive: on }));
       if (!on) {
-        retire(mask.get());
-        mask.set(null);
-        maskRate.set(0);
-        head.set({ ...head.get(), seen: 0 });
+        place.current = { ...place.current, seen: 0 };
+        head.set(place.current);
       }
     },
-    [flags, mask, maskRate, head, retire],
+    [flags, head],
   );
 
   const setFrozen = useCallback(
@@ -227,6 +211,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
   const inH = info?.height ?? 0;
   const channels = info?.channels ?? 1;
 
+  const preview = usePreviewOutput();
   const frameOutput = useFrameOutput({
     // RGB: 'native' resolves to PRIVATE, which some devices refuse for image analysis, and YUV hardware
     // buffers were imported as black frames on the emulator; RGBA buffers import everywhere (CameraX
@@ -234,17 +219,26 @@ export function useCameraFeed(active: boolean): CameraFeed {
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     allowDeferredStart: false,
-    enablePreviewSizedOutputBuffers: true,
+    // The camera is a small part of the screen most of the time: this size and rate keep a modest tablet fluid.
+    targetResolution: CAMERA_SIZE,
     onFrame: (frame) => {
       'worklet';
       let snapshot: SkImage | undefined;
       let cpu: CpuFrame | null = null;
       try {
+        const t0 = Date.now();
+        const stats = frameStats();
+        stats.calls += 1;
         const state = flags.getBlocking();
-        if (state.frozen || inFlight.getBlocking()) {
+        if (state.frozen || inFlight.getBlocking() || !state.maskActive || model == null || inW <= 0) {
+          stats.busy += 1;
           return;
         }
         const g = globalThis as unknown as { __senderoSource?: SourceState; __senderoMask?: MaskScratch };
+        if (g.__senderoMask != null && t0 - g.__senderoMask.measuredAt < MASK_INTERVAL_MS) {
+          stats.busy += 1;
+          return;
+        }
         if (g.__senderoSource == null) {
           g.__senderoSource = { mode: 'probe', probes: 0, gpuSum: 0, cpuSum: 0, cpuReads: 0, maskError: false, frameError: false };
         }
@@ -252,10 +246,12 @@ export function useCameraFeed(active: boolean): CameraFeed {
         if (source.mode !== 'gpu') {
           cpu = cpuFrame(frame, source.mode === 'probe');
         }
+        const t1 = Date.now();
         const raster = source.mode === 'cpu' && cpu != null ? cpu.image : null;
         snapshot = renderToTexture(frame, ({ canvas, frameTexture }) => {
           canvas.drawImage(raster ?? frameTexture, 0, 0);
         });
+        const t2 = Date.now();
         if (source.mode === 'probe') {
           source.gpuSum += meanOfImage(snapshot);
           source.probes += 1;
@@ -272,17 +268,21 @@ export function useCameraFeed(active: boolean): CameraFeed {
           }
         }
 
-        let maskImage: SkImage | null = null;
+        const t3 = Date.now();
+        let measured = false;
+        let found: HeadPlace | null = null;
         if (state.maskActive && model != null && inW > 0) {
           // Per-runtime scratch state survives between frames on the camera thread.
           if (g.__senderoMask == null || g.__senderoMask.width !== inW) {
             g.__senderoMask = createScratch(inW, inH);
           }
           const scratch = g.__senderoMask;
-          scratch.frame += 1;
-          if (scratch.frame % MASK_EVERY === 0) {
+          const now = Date.now();
+          if (now - scratch.measuredAt >= MASK_INTERVAL_MS) {
+            scratch.measuredAt = now;
             try {
-              maskImage = computeMask(snapshot, model, scratch, channels);
+              measured = computeMask(snapshot, model, scratch, channels);
+              found = measured ? findHead(scratch) : null;
             } catch (e) {
               if (!source.maskError) {
                 source.maskError = true;
@@ -292,13 +292,21 @@ export function useCameraFeed(active: boolean): CameraFeed {
           }
         }
 
-        const cpuImage = snapshot.makeNonTextureImage();
-        if (cpuImage != null) {
-          inFlight.setBlocking(true);
-          scheduleOnRN(publish, cpuImage, maskImage, maskImage != null ? findHead(g.__senderoMask as MaskScratch) : null);
-        } else {
-          maskImage?.dispose();
+        const t4 = Date.now();
+        const t5 = Date.now();
+        stats.read += t1 - t0;
+        stats.render += t2 - t1;
+        stats.probe += t3 - t2;
+        stats.measure += t4 - t3;
+        stats.copy += t5 - t4;
+        stats.done += 1;
+        if (t5 - stats.at > 5000) {
+          const k = Math.max(1, stats.done);
+          scheduleOnRN(report, `frames ${stats.calls} called, ${stats.busy} busy, ${stats.done} done; ms read ${(stats.read / k).toFixed(0)} render ${(stats.render / k).toFixed(0)} probe ${(stats.probe / k).toFixed(0)} measure ${(stats.measure / k).toFixed(0)} copy ${(stats.copy / k).toFixed(0)}`);
+          Object.assign(stats, { calls: 0, busy: 0, done: 0, read: 0, render: 0, probe: 0, measure: 0, copy: 0, at: t5 });
         }
+        inFlight.setBlocking(true);
+        scheduleOnRN(publish, snapshot.width(), snapshot.height(), measured, found);
       } catch (e) {
         // Reported once; the next frame tries again.
         const g = globalThis as unknown as { __senderoSource?: SourceState };
@@ -317,7 +325,8 @@ export function useCameraFeed(active: boolean): CameraFeed {
   useCamera({
     isActive: active,
     device: 'front',
-    outputs: [frameOutput],
+    outputs: [preview, frameOutput],
+    constraints: CAMERA_CONSTRAINTS,
     mirrorMode: 'on',
     orientationSource: 'custom',
   });
@@ -329,15 +338,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
     frameOutput.outputOrientation = orientation;
   }, [frameOutput, orientation]);
 
-  useEffect(
-    () => () => {
-      for (const old of retired.current) old.dispose();
-      retired.current = [];
-    },
-    [],
-  );
-
-  return { image, size, mask, head, maskRate, modelState, setMaskActive, setFrozen };
+  return { preview, image, size, mask, head, maskRate, modelState, setMaskActive, setFrozen };
 }
 
 interface SourceState {
@@ -349,6 +350,28 @@ interface SourceState {
   cpuReads: number;
   maskError: boolean;
   frameError: boolean;
+}
+
+interface FrameStats {
+  calls: number;
+  busy: number;
+  done: number;
+  read: number;
+  render: number;
+  probe: number;
+  measure: number;
+  copy: number;
+  at: number;
+}
+
+/** Timings of the frame path on the camera thread, logged every few seconds to diagnose a device. */
+function frameStats(): FrameStats {
+  'worklet';
+  const g = globalThis as unknown as { __senderoStats?: FrameStats };
+  if (g.__senderoStats == null) {
+    g.__senderoStats = { calls: 0, busy: 0, done: 0, read: 0, render: 0, probe: 0, measure: 0, copy: 0, at: Date.now() };
+  }
+  return g.__senderoStats;
 }
 
 interface CpuFrame {
@@ -440,10 +463,9 @@ function meanOfImage(image: SkImage): number {
 interface MaskScratch {
   width: number;
   height: number;
-  frame: number;
+  measuredAt: number;
   input: Float32Array;
   smooth: Float32Array;
-  rgba: Uint8Array;
   hasPrevious: boolean;
 }
 
@@ -487,20 +509,19 @@ function createScratch(width: number, height: number): MaskScratch {
   return {
     width,
     height,
-    frame: 0,
+    measuredAt: 0,
     input: new Float32Array(n * 3),
     smooth: new Float32Array(n),
-    rgba: new Uint8Array(n * 4),
     hasPrevious: false,
   };
 }
 
-/** Runs the segmenter on the upright image and returns the smoothed person mask as an image. */
-function computeMask(source: SkImage, model: TensorflowModel, s: MaskScratch, channels: number): SkImage | null {
+/** Runs the segmenter on the upright image and updates the smoothed person mask; true when it ran. */
+function computeMask(source: SkImage, model: TensorflowModel, s: MaskScratch, channels: number): boolean {
   'worklet';
   const surface = Skia.Surface.MakeOffscreen(s.width, s.height);
   if (surface == null) {
-    return null;
+    return false;
   }
   try {
     const canvas = surface.getCanvas();
@@ -521,7 +542,7 @@ function computeMask(source: SkImage, model: TensorflowModel, s: MaskScratch, ch
     });
     small.dispose();
     if (pixels == null) {
-      return null;
+      return false;
     }
     const n = s.width * s.height;
     const px = pixels as Uint8Array;
@@ -532,27 +553,12 @@ function computeMask(source: SkImage, model: TensorflowModel, s: MaskScratch, ch
     }
     const outputs = model.runSync([s.input.buffer as ArrayBuffer]);
     const out = new Float32Array(outputs[0]);
-    const span = EDGE_HIGH - EDGE_LOW;
     for (let i = 0; i < n; i++) {
       const p = channels >= 2 ? out[channels * i + 1] : out[i];
-      const m = s.hasPrevious ? MASK_EMA * p + (1 - MASK_EMA) * s.smooth[i] : p;
-      s.smooth[i] = m;
-      let a = (m - EDGE_LOW) / span;
-      a = a < 0 ? 0 : a > 1 ? 1 : a;
-      a = a * a * (3 - 2 * a);
-      const o = 4 * i;
-      s.rgba[o] = 255;
-      s.rgba[o + 1] = 255;
-      s.rgba[o + 2] = 255;
-      s.rgba[o + 3] = Math.round(a * 255);
+      s.smooth[i] = s.hasPrevious ? MASK_EMA * p + (1 - MASK_EMA) * s.smooth[i] : p;
     }
     s.hasPrevious = true;
-    const data = Skia.Data.fromBytes(s.rgba);
-    return Skia.Image.MakeImage(
-      { width: s.width, height: s.height, colorType: ColorType.RGBA_8888, alphaType: AlphaType.Unpremul },
-      data,
-      s.width * 4,
-    );
+    return true;
   } finally {
     surface.dispose();
   }

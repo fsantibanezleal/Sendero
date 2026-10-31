@@ -44,6 +44,17 @@ class SenderoKioskModule : Module() {
   }
 
   override fun definition() = ModuleDefinition {
+    // The scene draws the whole screen every frame: 60 Hz is smooth, and a 120 Hz panel would only double the load.
+    OnActivityEntersForeground {
+      val activity = appContext.currentActivity
+      activity?.runOnUiThread {
+        val window = activity.window
+        val attributes = window.attributes
+        attributes.preferredRefreshRate = 60f
+        window.attributes = attributes
+      }
+    }
+
     Name("SenderoKiosk")
 
     Function("isDeviceOwner") { deviceOwner() }

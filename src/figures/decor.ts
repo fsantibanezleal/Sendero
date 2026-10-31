@@ -105,34 +105,46 @@ function flameAt(a: PersonAnchors): { x: number; y: number } {
   return { x: cx, y: a.shoulder.y + (a.waist.y - a.shoulder.y) * 0.34 - 0.03 };
 }
 
-/** The candle of the day held before the chest in both hands: white wax, a marigold band, a small flower. */
+/**
+ * The veladora of the altars, held before the chest: a small glass of amber light with a marigold on it, a slender
+ * flame above. Soft shapes and the figure's own warm light, nothing hard.
+ */
 function candle(c: SkCanvas, a: PersonAnchors, rand: Rand) {
   const flame = flameAt(a);
-  const w = 0.03;
-  const top = flame.y + 0.03;
-  const bottom = top + 0.15;
   const x = flame.x;
-  const wax = Skia.RRectXY(Skia.XYWHRect(x - w / 2, top, w, bottom - top), 0.006, 0.006);
-  c.drawRRect(wax, fill(COLORS.wax));
-  c.drawRRect(wax, line(COLORS.stroke, 0.0025, 0.7));
-  c.drawRect(Skia.XYWHRect(x - w / 2, top + 0.035, w, 0.012), fill(COLORS.marigold, 0.9));
-  flower(c, x, top + 0.075, 0.013, COLORS.rose, rand);
-  c.drawLine(x, top, x, top - 0.008, line(COLORS.stroke, 0.0025));
+  const top = flame.y + 0.032;
+  const w = 0.05;
+  const h = 0.062;
+  // The glass, narrower at the foot, glowing from inside.
+  const glass = Skia.PathBuilder.Make();
+  glass.moveTo(x - w / 2, top);
+  glass.lineTo(x + w / 2, top);
+  glass.quadTo(x + w * 0.44, top + h, x + w * 0.36, top + h);
+  glass.lineTo(x - w * 0.36, top + h);
+  glass.quadTo(x - w * 0.44, top + h, x - w / 2, top);
+  glass.close();
+  const body = glass.build();
+  const light = fill('#FFFFFF');
+  light.setShader(
+    Skia.Shader.MakeLinearGradient(vec(0, top), vec(0, top + h), [Skia.Color('#FFE7A8'), Skia.Color('#F6A33A'), Skia.Color('#C9611E')], [0, 0.55, 1], TileMode.Clamp),
+  );
+  c.drawPath(body, light);
+  c.drawPath(body, line('#FFF3DC', 0.0022, 0.7));
+  c.drawLine(x - w / 2, top + 0.004, x + w / 2, top + 0.004, line('#FFF7E6', 0.003, 0.85));
+  flower(c, x, top + h * 0.56, 0.013, COLORS.marigoldLight, rand);
+  // The flame: a slender drop with a white heart.
   const drop = Skia.PathBuilder.Make();
-  drop.moveTo(x, top - 0.05);
-  drop.quadTo(x + 0.017, top - 0.02, x, top - 0.006);
-  drop.quadTo(x - 0.017, top - 0.02, x, top - 0.05);
+  drop.moveTo(x, top - 0.052);
+  drop.cubicTo(x + 0.004, top - 0.03, x + 0.013, top - 0.016, x, top - 0.002);
+  drop.cubicTo(x - 0.013, top - 0.016, x - 0.004, top - 0.03, x, top - 0.052);
   drop.close();
-  c.drawPath(drop.build(), fill(COLORS.flame));
-  c.drawCircle(x, top - 0.018, 0.005, fill(COLORS.flameCore));
-  // The hands around the wax, the same light as the body, with the fingers in strokes.
-  const hy = bottom - 0.05;
-  const hand = Skia.XYWHRect(x - 0.03, hy - 0.016, 0.06, 0.032);
-  c.drawOval(hand, fill('#FFE9C4'));
-  c.drawOval(hand, line(COLORS.stroke, 0.003, 0.75));
-  for (let i = -1; i <= 1; i++) {
-    c.drawLine(x + i * 0.012, hy - 0.013, x + i * 0.012, hy + 0.005, line(COLORS.stroke, 0.002, 0.6));
-  }
+  c.drawPath(drop.build(), fill(COLORS.flame, 0.95));
+  const heart = Skia.PathBuilder.Make();
+  heart.moveTo(x, top - 0.03);
+  heart.cubicTo(x + 0.002, top - 0.018, x + 0.006, top - 0.01, x, top - 0.004);
+  heart.cubicTo(x - 0.006, top - 0.01, x - 0.002, top - 0.018, x, top - 0.03);
+  heart.close();
+  c.drawPath(heart.build(), fill(COLORS.flameCore));
 }
 
 /** The inner stroke that gives the shape an edge against its own light. */
@@ -209,9 +221,17 @@ export function bodyPaint(): SkPaint {
   return p;
 }
 
+/** The GPU image copied to memory once, so any thread's canvas can draw it. */
+function snapshotOf(surface: { makeImageSnapshot: () => SkImage }): SkImage | null {
+  const gpu = surface.makeImageSnapshot();
+  const cpu = gpu.makeNonTextureImage();
+  if (cpu != null) gpu.dispose();
+  return cpu ?? gpu;
+}
+
 /** The halo baked small: a blur every frame is what a modest GPU cannot afford, a stretched image is nothing. */
 function glowOf(id: string, width: number, height: number, x: number, y: number): SkImage | null {
-  const surface = Skia.Surface.Make(Math.ceil(width * GLOW_PX), Math.ceil(height * GLOW_PX));
+  const surface = Skia.Surface.MakeOffscreen(Math.ceil(width * GLOW_PX), Math.ceil(height * GLOW_PX));
   if (surface == null) return null;
   const canvas = surface.getCanvas();
   canvas.scale(GLOW_PX, GLOW_PX);
@@ -220,7 +240,7 @@ function glowOf(id: string, width: number, height: number, x: number, y: number)
   paint.setMaskFilter(Skia.MaskFilter.MakeBlur(BlurStyle.Normal, 0.045, true));
   canvas.drawPath(artPath(id), paint);
   surface.flush();
-  return surface.makeImageSnapshot();
+  return snapshotOf(surface);
 }
 
 /** The figure rendered once on the CPU, so that drawing it costs one image per frame. */
@@ -235,7 +255,7 @@ export function dressedFigure(id: string, seed: number, px: number, holdsCandle 
   const height = 1 + MARGIN + 0.02;
   const x = -width / 2;
   const y = -1 - MARGIN;
-  const surface = Skia.Surface.Make(Math.ceil(width * px), Math.ceil(height * px));
+  const surface = Skia.Surface.MakeOffscreen(Math.ceil(width * px), Math.ceil(height * px));
   if (surface == null) return null;
   const canvas = surface.getCanvas();
   canvas.scale(px, px);
@@ -244,7 +264,7 @@ export function dressedFigure(id: string, seed: number, px: number, holdsCandle 
   canvas.drawPicture(picture);
   surface.flush();
   const person = holdsCandle && entry.archetype !== 'perro' && entry.archetype !== 'gato';
-  const dressed = { image: surface.makeImageSnapshot(), glow: glowOf(id, width, height, x, y), x, y, width, height, flame: person ? flameAt(entry.anchors as PersonAnchors) : null };
+  const dressed = { image: snapshotOf(surface) ?? surface.makeImageSnapshot(), glow: glowOf(id, width, height, x, y), x, y, width, height, flame: person ? flameAt(entry.anchors as PersonAnchors) : null };
   if (cache.size >= CACHE_SIZE) cache.delete(cache.keys().next().value as string);
   cache.set(key, dressed);
   return dressed;
@@ -259,7 +279,7 @@ const CROWN_PX = 320;
 
 export function visitorCrown(): SkImage | null {
   if (visitorCrownImage != null) return visitorCrownImage;
-  const surface = Skia.Surface.Make(CROWN_PX, CROWN_PX);
+  const surface = Skia.Surface.MakeOffscreen(CROWN_PX, CROWN_PX);
   if (surface == null) return null;
   const c = surface.getCanvas();
   c.scale(CROWN_PX, CROWN_PX);
@@ -275,6 +295,6 @@ export function visitorCrown(): SkImage | null {
     flower(c, t * 0.42, t * t * 0.24, i % 2 === 0 ? 0.06 : 0.045, PETALS[i % 3], rand);
   }
   surface.flush();
-  visitorCrownImage = surface.makeImageSnapshot();
+  visitorCrownImage = snapshotOf(surface);
   return visitorCrownImage;
 }

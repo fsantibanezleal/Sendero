@@ -1,8 +1,10 @@
 # The figures
 
-The family is drawn from 69 licensed silhouette drawings, at least ten per archetype (grandmother, grandfather, woman,
-man, dog, cat); the source and licence of each are in `ASSETS.md`. Each visit picks a new drawing per figure, never the one
-it showed last.
+The family is drawn from licensed silhouette drawings of people in normal modern clothes (the owner, 2026-10-31: "i need
+normal clothes"): 7 grandmothers, 10 grandfathers, 8 women, 11 men, and the dogs and cats; the source and licence of each are in `ASSETS.md`. Each visit picks a new drawing per figure, never the one
+it showed last. Free silhouettes of older women in modern clothes are rare; the grandmothers are modestly dressed women
+and one older lady with a dog. The build can cut one person out of a group drawing (`crop` in the manifest) only where
+the figures are separate shapes.
 
 ## The look
 

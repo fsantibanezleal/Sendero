@@ -204,6 +204,27 @@ def pet_anchors(mask: np.ndarray, ox: float) -> dict:
     }
 
 
+def crop_parts(parts: list[tuple[SvgPath, bool]], crop: list[float] | None) -> list[tuple[SvgPath, bool]]:
+    """Keeps the closed shapes whose centre lies in [x0, x1] (fractions of the drawing's width): one person of a couple."""
+    if not crop:
+        return parts
+    boxes = [sp.bbox() for p, _ in parts for sp in p.as_subpaths() if SvgPath(sp).bbox() is not None for sp in [SvgPath(sp)]]
+    left = min(b[0] for b in boxes)
+    right = max(b[2] for b in boxes)
+    x0 = left + crop[0] * (right - left)
+    x1 = left + crop[1] * (right - left)
+    kept = []
+    for p, evenodd in parts:
+        subs = [SvgPath(sp) for sp in p.as_subpaths()]
+        chosen = [sp for sp in subs if sp.bbox() is not None and x0 <= (sp.bbox()[0] + sp.bbox()[2]) / 2 <= x1]
+        if chosen:
+            joined = SvgPath()
+            for sp in chosen:
+                joined += sp
+            kept.append((joined, evenodd))
+    return kept
+
+
 def build(raw: Path) -> list[dict]:
     manifest = json.loads((raw / "manifest.json").read_text(encoding="utf-8"))
     entries = []
@@ -214,6 +235,7 @@ def build(raw: Path) -> list[dict]:
         if not ACCEPTED.match(item["licence"].strip()):
             raise SystemExit(f"licence not accepted for {item['file']}: {item['licence']}")
         parts = parts_of(raw / item["file"])
+        parts = crop_parts(parts, item.get("crop"))
         if not parts:
             print(f"skipped (no filled shape): {item['file']}", file=sys.stderr)
             continue

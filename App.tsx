@@ -107,7 +107,10 @@ function Altar() {
     () => ({
       // The farewell shows the visitor in the frame and the silhouette beside it: no person mask is needed.
       onMask: feed.setMaskActive,
-      onReveal: () => undefined,
+      onReveal: (v: Visit) => {
+        const clip = VOICE_CLIPS[v.voice]?.[MESSAGES[v.messageIndex].id];
+        if (clip != null) engine.current?.prepareVoice(clip);
+      },
       onMessage: () => engine.current?.duckMusic(),
       onWhisper: (v: Visit) => {
         const clip = VOICE_CLIPS[v.voice]?.[MESSAGES[v.messageIndex].id];

@@ -51,11 +51,20 @@ export interface Experience {
   start(): boolean;
 }
 
+function beat(sentAt: number) {
+  log(`threads: ${Date.now() - sentAt} ms from the UI thread to the JS thread`);
+}
+
 export function useExperience(events: ExperienceEvents): Experience {
   const clock = useSharedValue(-1);
   const time = useSharedValue(0);
-  /** True once the planned visit's layers are mounted. */
-  const ready = useSharedValue(false);
+  /**
+   * The id of the planned visit whose layers are mounted, and of the last visit started. A touch starts a visit only
+   * when the mounted one is newer: no flag to set and clear in the right order (that order failed on the tablet and
+   * left the altar deaf after the first visit).
+   */
+  const mounted = useSharedValue(0);
+  const started = useSharedValue(0);
   /** A touch arrived while the next visit was being prepared. */
   const pending = useSharedValue(false);
   /** Frame timestamp (ms) at which the running visit started; -1 until its first frame. */
@@ -71,6 +80,7 @@ export function useExperience(events: ExperienceEvents): Experience {
   const [visit, setVisit] = useState<Visit>(first.visit);
   const [shown, setShown] = useState<Visit>(first.visit);
   const visitRef = useRef(first.visit);
+  const plannedAt = useRef(0);
   const shownRef = useRef(first.visit);
   const eventsRef = useRef(events);
   useEffect(() => {
@@ -81,8 +91,9 @@ export function useExperience(events: ExperienceEvents): Experience {
     // Effects run after the commit: the planned visit's path and figures are mounted now. A touch may
     // start it as soon as no visit is running.
     visitRef.current = visit;
-    if (clock.get() < 0) ready.set(true);
-  }, [visit, ready, clock]);
+    mounted.set(visit.id);
+    log(`visit ${visit.id} ready${plannedAt.current > 0 ? ` (${Date.now() - plannedAt.current} ms to plan and draw)` : ''}`);
+  }, [visit, mounted]);
 
   useFrameCallback((frame) => {
     'worklet';
@@ -92,16 +103,22 @@ export function useExperience(events: ExperienceEvents): Experience {
     // second (the app paused) is cut short.
     const dt = Math.min(0.5, (frame.timeSincePreviousFrame ?? 16) / 1000);
     time.value = time.value + dt;
+    // Diagnostic: how late the UI thread's messages reach the JS thread (it reached 20 s on the TCL tablet).
+    const g = globalThis as unknown as { __senderoBeat?: number };
+    if (g.__senderoBeat == null || Date.now() - g.__senderoBeat > 10000) {
+      g.__senderoBeat = Date.now();
+      scheduleOnRN(beat, g.__senderoBeat);
+    }
     if (clock.get() >= 0) {
       // The visit's clock is read from the frame's timestamp, not summed from steps: a visit lasts its
       // 26.8 s of real time even when frames come seconds apart (a loaded device ran one for 90 s).
       if (startedAt.get() < 0) startedAt.set(frame.timestamp - clock.get() * 1000);
       const next = (frame.timestamp - startedAt.get()) / 1000;
       clock.set(next >= TIMELINE.total ? -1 : next);
-    } else if (pending.get() && ready.get()) {
+    } else if (pending.get() && mounted.get() > started.get()) {
       // A touch that came while the next visit was being prepared starts it now.
       pending.set(false);
-      ready.set(false);
+      started.set(mounted.get());
       startedAt.set(-1);
       clock.set(0);
     }
@@ -130,6 +147,17 @@ export function useExperience(events: ExperienceEvents): Experience {
     }
   }, []);
 
+  const safeFire = useCallback(
+    (stage: number, v: Visit) => {
+      try {
+        fire(stage, v);
+      } catch (e) {
+        log(`visit ${v.id}: ${MARK_NAMES[stage - 1]} failed: ${String(e)}`);
+      }
+    },
+    [fire],
+  );
+
   const onStage = useCallback(
     (current: number, previous: number) => {
       if (previous < 0 && current >= 0) {
@@ -141,22 +169,29 @@ export function useExperience(events: ExperienceEvents): Experience {
       }
       const v = shownRef.current;
       if (current >= 0) {
-        for (let k = Math.max(previous, 0) + 1; k <= current; k++) fire(k, v);
-        if (previous < 2 && current >= 2) {
-          // The walk is over and its layers are hidden: plan the next visit now.
+        for (let k = Math.max(previous, 0) + 1; k <= current; k++) safeFire(k, v);
+        if (previous < 4 && current >= 4) {
+          // The voice is playing: plan the next visit now. Drawing its figures keeps this thread busy for a moment,
+          // which delayed the voice by seconds when it was done at the reveal on the tablet.
+          plannedAt.current = Date.now();
           setVisit(planVisit(history.current));
         }
         return;
       }
       // The visit ended. The mask and the music are always released, even if a mark was missed.
-      if (previous < LAST_STAGE) fire(LAST_STAGE, v);
+      if (previous < LAST_STAGE) safeFire(LAST_STAGE, v);
       log(`visit ${v.id} ended`);
-      eventsRef.current.onEnd();
-      if (previous < 2) setVisit(planVisit(history.current));
-      // The next visit is ready when its layers are mounted (else the effect above opens the altar).
-      if (visitRef.current.id !== v.id) ready.set(true);
+      try {
+        eventsRef.current.onEnd();
+      } catch (e) {
+        log(`visit ${v.id}: end failed: ${String(e)}`);
+      }
+      if (visitRef.current.id === v.id) {
+        // No next visit yet: plan it; a touch starts it once its layers are mounted.
+        setVisit(planVisit(history.current));
+      }
     },
-    [fire, ready],
+    [safeFire],
   );
 
   useAnimatedReaction(
@@ -170,28 +205,29 @@ export function useExperience(events: ExperienceEvents): Experience {
   const begin = useCallback((): boolean => {
     'worklet';
     if (clock.get() >= 0) return false;
-    if (!ready.get()) {
-      // Remembered: the frame callback starts the visit as soon as it is ready.
+    if (mounted.get() <= started.get()) {
+      // Remembered: the frame callback starts the visit as soon as it is mounted.
       pending.set(true);
       return false;
     }
-    ready.set(false);
+    started.set(mounted.get());
     startedAt.set(-1);
     clock.set(0);
     return true;
-  }, [clock, ready, pending, startedAt]);
+  }, [clock, mounted, started, pending, startedAt]);
 
   const start = useCallback((): boolean => {
     if (clock.get() >= 0) return false;
-    if (!ready.get()) {
+    if (mounted.get() <= started.get()) {
+      // Remembered: the frame callback starts the visit as soon as it is mounted.
       pending.set(true);
       return false;
     }
-    ready.set(false);
+    started.set(mounted.get());
     startedAt.set(-1);
     clock.set(0);
     return true;
-  }, [clock, ready, pending, startedAt]);
+  }, [clock, mounted, started, pending, startedAt]);
 
   return { clock, time, visit, shown, begin, start };
 }

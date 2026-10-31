@@ -12,8 +12,19 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
   per second, the person measure runs on the CPU about twice a second, the screen is held at 60 Hz, the glow is a baked
   image instead of a blur every frame, and the figure images are smaller.
 
-### Added
-- The real camera rate reaches the system log every 10 seconds, to diagnose a device.
+### Changed
+- The camera is the system's own preview layer under the scene, so no frame passes through the app; the frames are read
+  only during a visit, about twice a second, for the flowers in the visitor's hair.
+- People wear normal modern clothes: the Victorian and 1970s drawings are gone.
+- The voice plays softer (0.6), further behind the music, and starts with the message (it is loaded at the reveal).
+- The person who walks is the same frontal drawing in the family, on the path and at the farewell.
+- The candle is a veladora, a glass of amber light with a marigold and a slender flame.
+
+### Fixed
+- On the tablet touches stopped working after the first visit and the voice came after the visit: the music engine read
+  the players' position and set their volume 20 times a second, each call waiting for the busy main thread, so the
+  JavaScript thread fell 20 s behind. It now sets a volume only when it changes and reads the position once a second.
+- The next visit is planned once the voice plays, and a touch starts a visit when a newer one is mounted.
 
 ## [0.01.003] - 2026-10-31
 

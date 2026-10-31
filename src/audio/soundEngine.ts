@@ -23,10 +23,16 @@ export const LEAD_S = 6;
 export const DUCK_DB = -6;
 export const DUCK_ATTACK_MS = 400;
 export const DUCK_RELEASE_MS = 1500;
-const TICK_MS = 50;
+const TICK_MS = 100;
+/**
+ * How often the playing track's position is read. Every read and every volume set waits for the app's main thread;
+ * on the TCL Tab A1 Plus, whose main thread is busy drawing the scene, doing them 20 times a second starved the
+ * JavaScript thread (its timers ran 2 to 3 times late, events arrived 20 s late, touches and the voice with them).
+ */
+const POSITION_CHECK_MS = 1000;
 const LOAD_TIMEOUT_MS = 8000;
 
-type Slot = { player: AudioPlayer; track: Track | null; gain: number; startedAt: number };
+type Slot = { player: AudioPlayer; track: Track | null; gain: number; startedAt: number; applied: number };
 
 export class SoundEngine {
   private slots: [Slot, Slot];
@@ -36,18 +42,20 @@ export class SoundEngine {
   private index = -1;
   private nextRound: () => Track[] = () => [];
   private timer: ReturnType<typeof setInterval> | null = null;
+  private checkedAt = 0;
   private fade: { from: number; to: number; start: number } | null = null;
   private duck = 1;
   private duckTarget = 1;
   private duckRate = 0;
   private musicVolume = 0.8;
   private voiceVolume = 0.6;
+  private voicePrepared = false;
   private running = false;
 
   constructor() {
     this.slots = [
-      { player: createAudioPlayer(null), track: null, gain: 0, startedAt: 0 },
-      { player: createAudioPlayer(null), track: null, gain: 0, startedAt: 0 },
+      { player: createAudioPlayer(null), track: null, gain: 0, startedAt: 0, applied: -1 },
+      { player: createAudioPlayer(null), track: null, gain: 0, startedAt: 0, applied: -1 },
     ];
     this.voice = createAudioPlayer(null);
   }
@@ -109,12 +117,19 @@ export class SoundEngine {
     this.duckRate = (1 - dbToGain(DUCK_DB)) / (DUCK_RELEASE_MS / TICK_MS);
   }
 
-  /** Plays one whispered message clip. */
-  playVoice(source: number | string): void {
-    log(`voice: whisper at volume ${this.voiceVolume.toFixed(2)}, music ducked to ${this.duckTarget.toFixed(2)}`);
+  /** Loads a message clip ahead of time, so it starts on the instant it is played. */
+  prepareVoice(source: number | string): void {
     this.voice.replace(typeof source === 'string' ? { uri: source } : source);
     this.voice.volume = this.voiceVolume;
-    this.voice.seekTo(0).catch(() => undefined);
+    this.voicePrepared = true;
+  }
+
+  /** Plays the message clip loaded by prepareVoice, or loads and plays this one. */
+  playVoice(source: number | string): void {
+    log(`voice: at volume ${this.voiceVolume.toFixed(2)}, music ducked to ${this.duckTarget.toFixed(2)}${this.voicePrepared ? '' : ', not preloaded'}`);
+    if (!this.voicePrepared) this.prepareVoice(source);
+    this.voicePrepared = false;
+    this.voice.volume = this.voiceVolume;
     this.voice.play();
   }
 
@@ -158,9 +173,14 @@ export class SoundEngine {
     }
   }
 
+  /** Sets a player's volume only when it changes (each set waits for the main thread). */
   private apply(): void {
     for (const s of this.slots) {
-      s.player.volume = s.gain * this.musicVolume * this.duck;
+      const v = Math.round(s.gain * this.musicVolume * this.duck * 1000) / 1000;
+      if (v !== s.applied) {
+        s.player.volume = v;
+        s.applied = v;
+      }
     }
   }
 
@@ -183,6 +203,11 @@ export class SoundEngine {
         this.fade = null;
       }
     } else {
+      if (Date.now() - this.checkedAt < POSITION_CHECK_MS) {
+        this.apply();
+        return;
+      }
+      this.checkedAt = Date.now();
       const current = this.slots[this.active];
       const p = current.player;
       const loadedLate = !p.isLoaded && Date.now() - current.startedAt > LOAD_TIMEOUT_MS;

@@ -5,6 +5,8 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ## [Unreleased]
 
+## [0.01.004] - 2026-10-31
+
 ### Added
 - Eight voices (three women, five men), each with its own tone; a visit never repeats the last voice and plays it at a
   random pitch and pace, lower for the grandparents.
@@ -16,8 +18,6 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 - The person model never loaded in a release build (a bundled file is a raw resource, not a URL): it is copied to a
   file by the app's native module. The selfie segmenter needed a GPU feature the TCL tablet lacks; BlazeFace runs on the
   CPU.
-
-## [0.01.004] - 2026-10-31
 
 ### Fixed
 - A modest tablet (TCL Tab A1 Plus, Snapdragon 4 Gen 2, 2400 x 1600 at 120 Hz) froze: the camera is 960 x 540 at 24 frames

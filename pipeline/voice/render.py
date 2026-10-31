@@ -1,4 +1,4 @@
-"""Orchestrator: synthesize, select voices by measured F0, whisper, distance, loudness, encode, write the catalog.
+"""Orchestrator: synthesize, select voices by measured F0, soften, loudness, encode, write the catalog.
 
 Run from the repository root:  pipeline/voice/.venv/Scripts/python.exe -m pipeline.voice.render
 Environment: SENDERO_MODELS_ROOT (models root), SENDERO_SCRATCH (scratch folder, required: a folder in the device's temp root, never the system temp).
@@ -30,7 +30,6 @@ LUFS_TOLERANCE = 0.3
 SR = synth.SAMPLE_RATE
 OUT_SR = 44100
 MIN_DURATION, MAX_DURATION = 1.0, 6.0
-PERIODICITY_MAX = 0.30
 SELECTION_PATH = HERE / "selection.json"
 
 
@@ -121,7 +120,7 @@ def choose_voices(table: dict) -> dict:
 def render_clip(candidate: synth.Candidate, voice_id: str, message: dict, scratch: Path) -> dict:
     neutral, sr = neutral_speech(candidate, message, scratch)
     seed = clip_seed(voice_id, message["id"])
-    far = distance.distance_chain(whisper.whisper_convert(neutral, sr, seed), sr, seed)
+    far = distance.close_chain(whisper.add_breath(neutral, sr, seed), sr, seed)
     dest = OUT / voice_id / f"{message['id']}.m4a"
     margin = 0.3  # headroom for the AAC encoder; the ceiling and the target are checked on the decoded file
     final = measure.normalize_loudness(far, sr, TARGET_LUFS, TRUE_PEAK_CEILING, margin_db=margin)
@@ -176,7 +175,6 @@ def validate_catalog(c: dict) -> None:
         seen.add((x["message"], x["voice"]))
         need(x["file"] == f"{x['voice']}/{x['message']}.m4a", "file name must be <voice>/<message>.m4a")
         need(MIN_DURATION <= x["durationSec"] <= MAX_DURATION, f"duration out of range in {x['file']}")
-        need(x["periodicity"] < PERIODICITY_MAX, f"clip {x['file']} still carries pitch")
         need(x["truePeakDbtp"] <= TRUE_PEAK_CEILING, f"true peak too high in {x['file']}")
         need(abs(x["loudnessLufs"] - TARGET_LUFS) <= LUFS_TOLERANCE, f"loudness off target in {x['file']}")
 

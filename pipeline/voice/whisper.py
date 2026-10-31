@@ -68,3 +68,12 @@ def whisper_convert(x: np.ndarray, sr: int, seed: int) -> np.ndarray:
     y = lfilter([1.0], [1.0, -PREEMPHASIS], y)
     sos = butter(2, HIGHPASS_HZ, btype="highpass", fs=sr, output="sos")
     return sosfilt(sos, y)
+
+
+BREATH = 0.18
+
+
+def add_breath(x: np.ndarray, sr: int, seed: int, amount: float = BREATH) -> np.ndarray:
+    """The voice with a little of its own whisper under it, at `amount` of its level: breath, not noise."""
+    w = whisper_convert(x, sr, seed)
+    return x + amount * w * np.sqrt(np.mean(x**2) / max(1e-12, np.mean(w**2)))

@@ -19,7 +19,7 @@ import { Sparkles } from './Sparkles';
 /**
  * The farewell (the owner's design of 2026-10-30): the frame with the visitor stands on the right
  * (the stage), and the soft silhouette of the person who walked the path stands beside it on the
- * left, turned toward it, never over the picture; their pet, when one came, stands at their other
+ * left, facing the viewer, a candle in their hands, never over the picture; their pet, when one came, stands at their other
  * side. Warm lights drift around them.
  */
 export function FarewellLayer({
@@ -37,6 +37,8 @@ export function FarewellLayer({
 }) {
   const { height: H } = layout.screen;
   const look = visit.people[visit.walker];
+  // At the farewell the person faces the visitor: a frontal drawing, holding the candle.
+  const frontArt = look.front ?? look.art;
   const pet = visit.companion == null ? null : visit.pets[visit.companion];
   const { companion, petSpot, stage, stageScale, band } = layout;
 
@@ -66,10 +68,10 @@ export function FarewellLayer({
   });
   const empty = useMemo(() => Skia.Path.Make(), []);
   // The drawings of the person and the pet, when they have one, united once on the JS thread.
-  const personArt = useMemo(() => (look.art != null ? artPath(look.art) : null), [look.art]);
+  const personArt = useMemo(() => (frontArt != null ? artPath(frontArt) : null), [frontArt]);
   const person = useMemo(
-    () => besideFrame(layout, companion.x, ghostH * BASE_HEIGHT[look.human] * look.build.height, look.art != null ? (artById(look.art)?.aspect ?? 0.4) : 0.4),
-    [layout, companion.x, ghostH, look],
+    () => besideFrame(layout, companion.x, ghostH * BASE_HEIGHT[look.human] * look.build.height, frontArt != null ? (artById(frontArt)?.aspect ?? 0.4) : 0.4),
+    [layout, companion.x, ghostH, look, frontArt],
   );
   const personArtH = person.height;
   const personX = person.x;
@@ -80,7 +82,7 @@ export function FarewellLayer({
   );
   const petArtH = petPlace?.height ?? 0;
   const petX = petPlace?.x ?? petSpot.x;
-  const personDressed = useMemo(() => (look.art != null ? dressedFigure(look.art, visit.id * 10 + visit.walker) : null), [look.art, visit.id, visit.walker]);
+  const personDressed = useMemo(() => (frontArt != null ? dressedFigure(frontArt, visit.id * 10 + visit.walker, true) : null), [frontArt, visit.id, visit.walker]);
   const petArtId = pet?.art ?? null;
   const petDressed = useMemo(
     () => (petArtId != null && visit.companion != null ? dressedFigure(petArtId, visit.id * 10 + 4 + visit.companion) : null),

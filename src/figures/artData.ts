@@ -42,6 +42,14 @@ export const ART: readonly ArtEntry[] = require('../../assets/silhouettes/silhou
 
 const BY_ID = new Map(ART.map((a) => [a.id, a]));
 
+/** The drawings that show a person from the front, chosen by eye; the farewell uses these, the path the others. */
+export const FRONT_ART: Record<string, readonly string[]> = {
+  abuela: ['openclipart-308700', 'openclipart-64177', 'openclipart-340782'],
+  abuelo: ['openclipart-1194', 'commons-145', 'openclipart-284452'],
+  mujer: ['openclipart-247360', 'openclipart-307678', 'openclipart-64075', 'commons-46', 'commons-186'],
+  hombre: ['openclipart-24894', 'openclipart-68059', 'openclipart-260145', 'commons-83', 'commons-110', 'commons-117'],
+};
+
 /** The drawings of one archetype in one view (falls back to every view of that archetype). */
 export function artOf(archetype: HumanKind | PetKind, view: ArtView): ArtEntry[] {
   const exact = ART.filter((a) => a.archetype === archetype && a.view === view);

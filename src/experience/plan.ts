@@ -5,7 +5,7 @@
  */
 import { MESSAGES } from '../content/messages';
 import { chooseCompanion, chooseMessage, chooseWalker, HUMAN_PROFILE, HUMANS, type HumanKind, type PetKind, PETS, type Rand, type VoiceId } from '../figures/catalog';
-import { ART, artOf } from '../figures/artData';
+import { ART, artOf, FRONT_ART } from '../figures/artData';
 import { type Look, type PetLook, randomLook, randomPetLook } from '../figures/looks';
 import { TIMELINE } from './timeline';
 
@@ -60,9 +60,17 @@ function pickFrom(random: Rand, all: string[], last: string | undefined): string
   return pool[Math.min(pool.length - 1, Math.floor(random() * pool.length))];
 }
 
-/** A walking drawing for a figure. */
+/** A walking drawing for a figure: seen from the side where the figure has such drawings. */
 export function pickArt(random: Rand, kind: HumanKind | PetKind, last: string | undefined): string | null {
-  return pickFrom(random, artOf(kind, 'walk').map((a) => a.id), last);
+  const front = FRONT_ART[kind] ?? [];
+  const all = artOf(kind, 'walk').map((a) => a.id);
+  const side = all.filter((id) => !front.includes(id));
+  return pickFrom(random, side.length > 0 ? side : all, last);
+}
+
+/** A drawing of a person from the front, for the farewell. */
+function pickFront(random: Rand, kind: HumanKind, last: string | undefined): string | null {
+  return pickFrom(random, [...(FRONT_ART[kind] ?? [])], last);
 }
 
 /** A drawing for a pet that waits with the family: any of its drawings, sitting or standing. */
@@ -93,7 +101,14 @@ function shuffledIndices(random: Rand, n: number): number[] {
  * walks beside them, the message (never the same twice in a row) and the seed of the petal path.
  */
 export function planVisit(h: History, random: Rand = Math.random): Visit {
-  const people = HUMANS.map((kind) => ({ ...randomLook(random, kind), art: pickArt(random, kind, h.lastArt[kind]) }));
+  const people = HUMANS.map((kind) => ({
+    ...randomLook(random, kind),
+    art: pickArt(random, kind, h.lastArt[kind]),
+    front: pickFront(random, kind, h.lastArt[`${kind}:front`]),
+  }));
+  for (const p of people) {
+    if (p.front != null) h.lastArt[`${p.human}:front`] = p.front;
+  }
   const pets = PETS.map((kind) => ({
     ...randomPetLook(random, kind),
     art: pickArt(random, kind, h.lastArt[kind]),

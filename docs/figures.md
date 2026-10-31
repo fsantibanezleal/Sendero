@@ -9,13 +9,12 @@ it showed last.
 The owner's direction of 2026-10-31, after seeing painted masks and colored clothes: "you destroyed all the warm and
 spiritual" appearance. A figure is a silhouette of warm light that fades toward the feet, with a soft glow. On it:
 
-- the face in fine strokes only, never a filled mask: flower eyes, a small nose, a quiet stitched smile;
+- no face details at all (the owner, 2026-10-31: "no face details please"): the head is pure light;
 - a few flowers in the hair or at the hat, and small ones at the collar and sometimes the waist;
-- for a person, a white candle with a marigold band held before the chest, whose light breathes;
-- for a pet, its outline, a kind eye and two flowers at the neck.
+- at the farewell, a frontal drawing of the person holding a white candle with a marigold band, whose light breathes;
+- for a pet, its outline and two flowers at the neck.
 
-The motifs come from how people appear on Día de Muertos: flowers at the eyes of the calavera, a stitched smile,
-cempasúchil and roses in the hair (https://hiplatina.com/dia-de-los-muertos-6-things-you-should-know-before-painting-your-face/,
+The flowers come from how people appear on Día de Muertos: cempasúchil and roses in the hair (https://hiplatina.com/dia-de-los-muertos-6-things-you-should-know-before-painting-your-face/,
 https://rancholapuerta.com/2016/10/28/how-to-apply-la-catrina-makeup-a-day-of-the-dead-tutorial/).
 
 ## How it is made

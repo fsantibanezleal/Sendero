@@ -13,6 +13,17 @@ owner holds, imported on the tablet into the app's private storage.
 |---|---|---|---|
 | `assets/icon.png`, `assets/android-icon-*.png`, `assets/splash-icon.png`, `assets/favicon.png` | Rendered by `pipeline/icon/make_icons.py` (procedural cempasuchil head, same construction as the app's flowers) | MIT (this repository) | Own work; regenerate with `python -m pipeline.icon.make_icons` |
 
+### Added voices
+
+All clips under `assets/voice/mujer-2`, `mujer-3`, `hombre-2` to `hombre-5` are rendered offline like the first voices and listed in `assets/voice/catalog.json`.
+
+| Folder | Model | Licence | Credit |
+|---|---|---|---|
+| `mujer-2`, `hombre-2` | Kokoro-82M `ef_dora`, `em_santa` | Apache-2.0 | hexgrad/Kokoro-82M |
+| `mujer-3`, `hombre-4` | Piper `es_ES-sharvard-medium` (speakers 1, 0) | MIT; dataset CC BY 3.0 | SHARVARD speech corpus, University of Edinburgh (https://datashare.ed.ac.uk/handle/10283/574) |
+| `hombre-3` | Piper `es_ES-davefx-medium` | MIT; dataset CC0 | rhasspy/piper-voices |
+| `hombre-5` | Piper `es_ES-carlfm-x_low` | MIT; dataset public domain | rhasspy/piper-voices |
+
 ## Music
 
 Mastered by `pipeline/music/master.py` from the pieces listed; the set and how it was chosen are in `docs/music.md`.
@@ -51,7 +62,8 @@ target, see `docs/voice.md`).
 
 | File | Source | Licence | Notes |
 |---|---|---|---|
-| `assets/models/selfie_segmenter_landscape.tflite` | MediaPipe Selfie Segmenter, landscape (144 x 256), float16, https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite | Apache License 2.0 (model card: https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Selfie%20Segmentation.pdf) | Person mask for the reveal, computed on the tablet; SHA-256 490e9ea734313e0de10fa0cd9e3c6133e36ea4db2b7a49bde9ef019f72796b8e; authors Tingbo Hou, Siargey Pisarchyk, Karthik Raveendran (Google), 2021 |
+| `assets/models/selfie_segmenter_landscape.tflite` | MediaPipe Selfie Segmenter, landscape (144 x 256), float16; kept, not loaded since 2026-10-31 (it needs a GPU feature the TCL tablet lacks) | Apache-2.0 | https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter_landscape/float16/latest/selfie_segmenter_landscape.tflite |
+| `assets/models/blaze_face_short_range.tflite` | Google BlazeFace short range face detector (128 x 128), float16, finds the visitor's head for the flowers in their hair | Apache-2.0 | https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite |
 
 ## Fonts
 
@@ -75,51 +87,30 @@ Silhouette drawings of the people and pets, normalized by `pipeline/silhouettes/
 | Drawing | Figure | Author | Licence | Source |
 |---|---|---|---|---|
 | `openclipart-340782` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/340782/older-lady-with-dog |
-| `openclipart-351481` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/351481/young-lady-and-flowers |
-| `openclipart-255365` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/255365/old-fashioned-victorian-woman-silhouette |
-| `openclipart-246918` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/246918/vintage-victorian-lady-silhouette |
-| `openclipart-314836` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/314836/witch-with-a-cane-silhouette |
-| `openclipart-278681` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/278681/bride-with-flowers-silhouette |
-| `openclipart-308700` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/308700/princess-silhouette |
-| `openclipart-332105` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/332105/lady-with-a-parasol-isolated |
-| `openclipart-234054` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/234054/nun-silhouette |
 | `openclipart-64177` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/64177/woman-silhouette |
-| `openclipart-226293` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/226293/gentleman-silhouette-1 |
-| `openclipart-234000` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/234000/gentleman-pig-2 |
 | `openclipart-284452` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/284452/senex-the-old-man |
 | `openclipart-1194` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/1194/silhouette-of-a-man |
-| `openclipart-233753` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/233753/gentleman-silhouette-2 |
 | `commons-145` | abuelo, walk | Madeleine Price Ball | CC0 | https://commons.wikimedia.org/wiki/File:Silhouette_of_man_with_cane.svg |
-| `openclipart-291359` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/291359/dancer-with-cane-silhouette |
-| `openclipart-320826` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/320826/vintage-gentleman-silhouette |
-| `openclipart-320823` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/320823/gentleman-with-cane |
-| `openclipart-226294` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/226294/gentleman-silhouette-2 |
-| `openclipart-226295` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/226295/gentleman-silhouette-3 |
-| `openclipart-226296` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/226296/gentleman-silhouette-4 |
-| `openclipart-64075` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/64075/woman-silhouette |
+| `openclipart-64075` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/64075/woman-silhouette |
 | `openclipart-247360` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/247360/woman-silhouette |
 | `openclipart-247372` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/247372/woman-walking |
-| `openclipart-236557` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/236557/crossed-arms |
+| `openclipart-236557` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/236557/crossed-arms |
 | `openclipart-307678` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/307678/woman-with-hands-on-hips-silhouette |
-| `openclipart-220954` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/220954/woman-walking-silhouette |
 | `commons-46` | mujer, walk | OpenClipart-Vectors | CC0 | https://commons.wikimedia.org/wiki/File:Girl_silhouette_black.svg |
-| `commons-47` | mujer, walk | MdeVicente | CC0 | https://commons.wikimedia.org/wiki/File:Girl_silhouette_hand_up.svg |
-| `openclipart-259604` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/259604/woman-in-long-dress-silhouette |
+| `commons-47` | abuela, walk | MdeVicente | CC0 | https://commons.wikimedia.org/wiki/File:Girl_silhouette_hand_up.svg |
 | `openclipart-316199` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/316199/woman-with-hand-out-palm-up-silhouette |
 | `commons-2` | mujer, walk | Original:  Phil Bronnery from Moscow, Russia Vector:  Beao | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:1Silhouette_Female.svg |
-| `commons-186` | mujer, walk | nicubunu | CC0 | https://commons.wikimedia.org/wiki/File:Woman_Silhouette_53.svg |
-| `commons-194` | mujer, walk | Miguel Angel Omaña Rojas | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Yahleel_Abdala_Carmona_silueta.svg |
+| `commons-186` | abuela, walk | nicubunu | CC0 | https://commons.wikimedia.org/wiki/File:Woman_Silhouette_53.svg |
 | `openclipart-24894` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/24894/men-in-black-1 |
 | `openclipart-24897` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/24897/men-in-black-4 |
 | `openclipart-35263` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/35263/man-silhouette |
-| `openclipart-68059` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/68059/il-capo-architetto |
-| `openclipart-233752` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/233752/gentleman-silhouette |
+| `openclipart-68059` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/68059/il-capo-architetto |
 | `openclipart-236556` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/236556/hands-in-ur-pockets |
 | `openclipart-260145` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/260145/casual-man |
 | `openclipart-268051` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/268051/walking-man |
 | `commons-83` | hombre, walk | pitr | CC0 | https://commons.wikimedia.org/wiki/File:Man_standing_silhouette.svg |
-| `commons-110` | hombre, walk | rejon | CC0 | https://commons.wikimedia.org/wiki/File:Person_Outline_2.svg |
-| `commons-117` | hombre, walk | rejon | CC0 | https://commons.wikimedia.org/wiki/File:Rejon_Person_Outline_1.svg |
+| `commons-110` | abuelo, walk | rejon | CC0 | https://commons.wikimedia.org/wiki/File:Person_Outline_2.svg |
+| `commons-117` | abuelo, walk | rejon | CC0 | https://commons.wikimedia.org/wiki/File:Rejon_Person_Outline_1.svg |
 | `openclipart-63865` | perro, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/63865/dog-silhouette |
 | `openclipart-122197` | perro, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/122197/dog |
 | `openclipart-169096` | perro, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/169096/standing-dog-silhouette |
@@ -143,4 +134,15 @@ Silhouette drawings of the people and pets, normalized by `pipeline/silhouettes/
 | `openclipart-241490` | gato, sit | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/241490/cat-silhouette |
 | `openclipart-241491` | gato, sit | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/241491/cat-silhouette-2 |
 | `openclipart-319840` | gato, sit | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/319840/cat-silhouette |
+| `openclipart-283719a` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/283719/couple-walking-their-dogs-silhouette |
+| `openclipart-283719b` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/283719/couple-walking-their-dogs-silhouette |
+| `openclipart-233952` | abuelo, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/233952/waiting-silhouette |
+| `commons-m38` | abuelo, walk | Madeleine Price Ball | CC0 | https://commons.wikimedia.org/wiki/File:Silhouette_of_man_with_cane.svg |
+| `commons-m28` | abuelo, walk | rejon | CC0 | https://commons.wikimedia.org/wiki/File:Rejon_Person_Outline_1.svg |
+| `commons-m29` | abuelo, walk | Liftarn | Public domain | https://commons.wikimedia.org/wiki/File:Silhouette.svg |
+| `openclipart-24892` | hombre, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/24892/man-silhouette |
+| `commons-m24` | hombre, walk | pitr | CC0 | https://commons.wikimedia.org/wiki/File:Man_standing_silhouette.svg |
+| `commons-m36` | hombre, walk | Mette Aumala | CC0 | https://commons.wikimedia.org/wiki/File:Silhouette_of_a_woman_walking.svg |
+| `openclipart-321476` | abuela, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/321476/woman-silhouette |
+| `openclipart-49027` | mujer, walk | Openclipart contributor | Public Domain (Openclipart) | https://openclipart.org/detail/49027/woman-silhouette |
 <!-- silhouettes:end -->

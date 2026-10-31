@@ -6,8 +6,8 @@ import type { Layout } from '../experience/layout';
 import type { Visit } from '../experience/plan';
 import { TIMELINE, windowProgress } from '../experience/timeline';
 import { HUMAN_PROFILE } from '../figures/catalog';
-import { artPath, placeArt } from '../figures/art';
-import { type Dressed, dressedFigure } from '../figures/decor';
+import { artPath } from '../figures/art';
+import { type Dressed, dressedFigure, FIGURE_PX } from '../figures/decor';
 import { humanFarPath, humanMainPath, petSitPath, petWalkPaths, type ScreenTransform } from '../figures/draw';
 import { BASE_HEIGHT, PET_ART_HEIGHT } from '../figures/looks';
 import { gaitCurves } from '../figures/gait';
@@ -109,8 +109,6 @@ export function FiguresLayer({
       const w = waiting[i];
       if (w.walker) continue;
       if (w.look.art != null) {
-        const h = w.place.h * BASE_HEIGHT[w.look.human] * w.look.build.height;
-        main.addPath(placeArt(artPath(w.look.art), w.place.x, w.place.y, h, 1, 0));
         continue;
       }
       const tf: ScreenTransform = { ox: w.place.x, oy: w.place.y, h: w.place.h, facing: 1 };
@@ -121,10 +119,7 @@ export function FiguresLayer({
     for (let i = 0; i < waitingPets.length; i++) {
       const p = waitingPets[i];
       if (p.companion) continue;
-      if (p.look.still != null) {
-        main.addPath(placeArt(artPath(p.look.still), p.place.x, p.place.y, p.place.h * PET_ART_HEIGHT * p.look.size, 1, 0));
-        continue;
-      }
+      if (p.look.still != null) continue;
       const tf: ScreenTransform = { ox: p.place.x, oy: p.place.y, h: p.place.h, facing: 1 };
       if (p.look.sits) {
         main.addPath(petSitPath(p.look, tf));
@@ -143,13 +138,13 @@ export function FiguresLayer({
       const w = waiting[i];
       if (w.walker || w.look.art == null) continue;
       const h = w.place.h * BASE_HEIGHT[w.look.human] * w.look.build.height;
-      list.push({ figure: dressedFigure(w.look.art, visit.id * 10 + i), transform: [{ translateX: w.place.x }, { translateY: w.place.y }, { scale: h }] });
+      list.push({ figure: dressedFigure(w.look.art, visit.id * 10 + i, FIGURE_PX.family), transform: [{ translateX: w.place.x }, { translateY: w.place.y }, { scale: h }] });
     }
     for (let i = 0; i < waitingPets.length; i++) {
       const p = waitingPets[i];
       if (p.companion || p.look.still == null) continue;
       const h = p.place.h * PET_ART_HEIGHT * p.look.size;
-      list.push({ figure: dressedFigure(p.look.still, visit.id * 10 + 4 + i), transform: [{ translateX: p.place.x }, { translateY: p.place.y }, { scale: h }] });
+      list.push({ figure: dressedFigure(p.look.still, visit.id * 10 + 4 + i, FIGURE_PX.family), transform: [{ translateX: p.place.x }, { translateY: p.place.y }, { scale: h }] });
     }
     return list;
   }, [waiting, waitingPets, visit.id]);
@@ -173,10 +168,10 @@ export function FiguresLayer({
   const walkerArtScale = BASE_HEIGHT[walkerLook.human] * walkerLook.build.height;
   const companionArt = useMemo(() => (companion?.art != null ? artPath(companion.art) : null), [companion?.art]);
   const companionArtScale = companion != null ? PET_ART_HEIGHT * companion.size : 0;
-  const walkerDressed = useMemo(() => (walkerLook.art != null ? dressedFigure(walkerLook.art, visit.id * 10 + visit.walker) : null), [walkerLook.art, visit.id, visit.walker]);
+  const walkerDressed = useMemo(() => (walkerLook.art != null ? dressedFigure(walkerLook.art, visit.id * 10 + visit.walker, FIGURE_PX.walk) : null), [walkerLook.art, visit.id, visit.walker]);
   const companionArtId = companion?.art ?? null;
   const companionDressed = useMemo(
-    () => (companionArtId != null && visit.companion != null ? dressedFigure(companionArtId, visit.id * 10 + 4 + visit.companion) : null),
+    () => (companionArtId != null && visit.companion != null ? dressedFigure(companionArtId, visit.id * 10 + 4 + visit.companion, FIGURE_PX.walk) : null),
     [companionArtId, visit.id, visit.companion],
   );
   const walker = useDerivedValue(() => {
@@ -204,7 +199,6 @@ export function FiguresLayer({
     const bob = walking ? Math.abs(Math.sin(stepPhase)) * 0.012 * h : 0;
     const sway = walking ? 0.025 * Math.sin(stepPhase * 0.5) : 0.012 * Math.sin(time.value * 0.7);
     if (walkerArt != null) {
-      main.addPath(placeArt(walkerArt, x, y - bob, h * walkerArtScale, facing, sway));
       art = { x, y: y - bob, s: h * walkerArtScale, facing, tilt: sway };
     } else {
       const pose = walking
@@ -226,7 +220,6 @@ export function FiguresLayer({
       const pt: ScreenTransform = { ox: px, oy: py, h: petPlace.h + (h - petPlace.h) * m, facing };
       if (companionArt != null) {
         const petBob = walking ? Math.abs(Math.sin(stepPhase * 1.6)) * 0.01 * pt.h : 0;
-        main.addPath(placeArt(companionArt, px, py - petBob, pt.h * companionArtScale, facing, 0));
         pet = { x: px, y: py - petBob, s: pt.h * companionArtScale, facing, tilt: 0 };
       } else if (!walking && companion.sits) {
         main.addPath(petSitPath(companion, pt));
@@ -273,7 +266,7 @@ export function FiguresLayer({
 
   return (
     <Group>
-      <Ghost main={familyMain} far={familyFar} opacity={familyOpacity} top={familyTop} bottom={familyBottom} glow={familyGlow} halo={dressedFamily.length > 0} />
+      {dressedFamily.length === 0 ? <Ghost main={familyMain} far={familyFar} opacity={familyOpacity} top={familyTop} bottom={familyBottom} glow={familyGlow} /> : null}
       {dressedFamily.map((f, i) => (
         <DressedFigure key={i} figure={f.figure} transform={f.transform} opacity={familyOpacity} time={time} />
       ))}
@@ -294,7 +287,7 @@ export function FiguresLayer({
           <RadialGradient c={vec(0, 0)} r={groundR} colors={['rgba(255, 213, 138, 0.8)', 'rgba(255, 170, 60, 0.25)', 'rgba(255, 170, 60, 0)']} />
         </Circle>
       </Group>
-      <Ghost main={walkerMain} far={walkerFar} opacity={walkerOpacity} top={walkerTop} bottom={walkerBottom} glow={walkerGlow} halo={walkerDressed != null} />
+      {walkerDressed == null ? <Ghost main={walkerMain} far={walkerFar} opacity={walkerOpacity} top={walkerTop} bottom={walkerBottom} glow={walkerGlow} /> : null}
       <DressedFigure figure={walkerDressed} transform={walkerImage} opacity={walkerOpacity} time={time} />
       <DressedFigure figure={companionDressed} transform={petImage} opacity={walkerOpacity} time={time} />
     </Group>

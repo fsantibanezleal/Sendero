@@ -27,16 +27,16 @@ CLOSE_ROOM_SECONDS = 0.7
 CLOSE_DECAY = 4.0
 
 
-def close_chain(x: np.ndarray, sr: int, seed: int) -> np.ndarray:
+def close_chain(x: np.ndarray, sr: int, seed: int, lowpass_hz: float = CLOSE_LOWPASS_HZ, wet_mix: float = CLOSE_WET) -> np.ndarray:
     """A soft voice in a small warm room: gentle low-pass, a short wet mix, lead silence."""
     x = np.asarray(x, dtype=np.float64)
-    lp = sosfilt(butter(2, CLOSE_LOWPASS_HZ, btype="lowpass", fs=sr, output="sos"), x)
+    lp = sosfilt(butter(2, lowpass_hz, btype="lowpass", fs=sr, output="sos"), x)
     h = room_impulse_response(sr, seed)[: int(CLOSE_ROOM_SECONDS * sr)]
     h = h * np.exp(-np.arange(len(h)) / sr * CLOSE_DECAY)
     wet = fftconvolve(lp, h)
     y = np.zeros(len(wet))
     y[: len(lp)] += lp
-    y += CLOSE_WET * wet / max(1e-9, np.sqrt(np.sum(h**2)))
+    y += wet_mix * wet / max(1e-9, np.sqrt(np.sum(h**2)))
     return np.concatenate([np.zeros(int(LEAD_SECONDS * sr)), y])
 
 

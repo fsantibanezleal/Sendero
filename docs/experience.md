@@ -27,7 +27,7 @@ own constants. Phases overlap on purpose.
 | Walk | 4.2 | 11.2 | One of them (and their pet, if they have one) walks the path toward the frame, growing as it comes closer; the others fade by 6.0 |
 | Arrive | 11.2 | 12.4 | A warm bloom from the frame, which grows from the corner to the stage on the right |
 | Farewell | 12.4 | 15.4 | The visitor live in the frame on the stage, the same person's silhouette beside it, the pet at their side |
-| Message | 15.4 | 25.4 | An indigo veil and one message; at 16.0 a soft voice says it while the music softens a little |
+| Message | 15.4 | 25.4 | An indigo veil and one message; at 15.5 a soft voice says it while the music softens a little |
 | Return | 25.4 | 26.8 | Everything fades back to the idle screen |
 
 The camera is never analysed: since 0.01.001 the farewell needs no person mask (`docs/reveal.md`).

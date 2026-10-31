@@ -4,7 +4,7 @@
  * so they are tested directly.
  */
 import { MESSAGES } from '../content/messages';
-import { chooseCompanion, chooseMessage, chooseWalker, HUMAN_PROFILE, HUMANS, type HumanKind, type PetKind, PETS, type Rand, type VoiceId } from '../figures/catalog';
+import { VOICES, chooseCompanion, chooseMessage, chooseWalker, HUMAN_PROFILE, HUMANS, type HumanKind, type PetKind, PETS, type Rand, type VoiceId } from '../figures/catalog';
 import { ART, artOf, FRONT_ART } from '../figures/artData';
 import { type Look, type PetLook, randomLook, randomPetLook } from '../figures/looks';
 import { TIMELINE } from './timeline';
@@ -23,6 +23,8 @@ export interface Visit {
   spots: number[];
   messageIndex: number;
   voice: VoiceId;
+  /** Pitch and pace of the voice in this visit (1 is as recorded): the same voice never sounds quite the same. */
+  voiceRate: number;
   /** Seed of this visit's petal path, so every visit draws a different path. */
   pathSeed: number;
 }
@@ -51,6 +53,8 @@ export interface History {
   messageBag: number[];
   /** The drawing each figure showed last, so the next visit shows another one. */
   lastArt: Record<string, string>;
+  /** The voice of the last visit, so the next one sounds different. */
+  lastVoice: VoiceId | null;
 }
 
 /** A drawing for a figure, chosen at random among those given, never the one it showed last. */
@@ -78,8 +82,20 @@ function pickStillArt(random: Rand, kind: PetKind, last: string | undefined): st
   return pickFrom(random, ART.filter((a) => a.archetype === kind).map((a) => a.id), last);
 }
 
+/** One of the voices of the walker's gender, at random. */
+function pickVoice(random: Rand, gender: VoiceId, last: VoiceId | null): VoiceId {
+  const list = VOICES[gender.startsWith('mujer') ? 'mujer' : 'hombre'].filter((v) => v !== last);
+  return list[Math.min(list.length - 1, Math.floor(random() * list.length))];
+}
+
+/** Grandparents speak a little lower and calmer, the younger a little lighter; about two semitones either way. */
+function pickVoiceRate(random: Rand, kind: HumanKind): number {
+  const [low, high] = kind === 'abuela' || kind === 'abuelo' ? [0.88, 0.99] : [0.97, 1.12];
+  return low + random() * (high - low);
+}
+
 export function emptyHistory(): History {
-  return { human: null, message: null, count: 0, messageBag: [], lastArt: {} };
+  return { human: null, message: null, count: 0, messageBag: [], lastArt: {}, lastVoice: null };
 }
 
 /** Number of places in the upper left: four for the people, two in front for the pets. */
@@ -118,6 +134,9 @@ export function planVisit(h: History, random: Rand = Math.random): Visit {
     if (f.a != null) h.lastArt[f.k] = f.a;
   }
   const walkerKind = chooseWalker(random, h.human);
+  // The person who walks is the same drawing in the family, on the path and beside the frame (the owner, 2026-10-31).
+  const walkerLook = people[HUMANS.indexOf(walkerKind)];
+  if (walkerLook.front != null) walkerLook.art = walkerLook.front;
   const companionKind: PetKind | null = chooseCompanion(random);
   for (const p of pets) {
     if (p.still != null) h.lastArt[`${p.kind}:still`] = p.still;
@@ -127,6 +146,8 @@ export function planVisit(h: History, random: Rand = Math.random): Visit {
   const messageIndex = chooseMessage(random, MESSAGES.length, h.messageBag, h.message);
   const spots = [...shuffledIndices(random, PEOPLE_SPOTS), ...shuffledIndices(random, PET_SPOTS).map((i) => PEOPLE_SPOTS + i)];
   h.human = walkerKind;
+  const voice = pickVoice(random, HUMAN_PROFILE[walkerKind].voice, h.lastVoice);
+  h.lastVoice = voice;
   h.message = messageIndex;
   h.count += 1;
   return {
@@ -137,7 +158,8 @@ export function planVisit(h: History, random: Rand = Math.random): Visit {
     companion: companionKind == null ? null : PETS.indexOf(companionKind),
     spots,
     messageIndex,
-    voice: HUMAN_PROFILE[walkerKind].voice,
+    voice,
+    voiceRate: pickVoiceRate(random, walkerKind),
     pathSeed: Math.floor(random() * 2 ** 31),
   };
 }

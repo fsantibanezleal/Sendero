@@ -21,7 +21,7 @@ export const DEFAULT_SETTINGS: Settings = {
   version: 1,
   pin: null,
   musicVolume: 0.8,
-  voiceVolume: 0.9,
+  voiceVolume: 0.6,
   maskMode: 'auto',
   mixTraditional: true,
   showHint: true,

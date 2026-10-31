@@ -13,6 +13,7 @@ import { BUNDLED_TRACKS, VOICE_CLIPS } from './src/audio/assets.generated';
 import { clearImportedMusic, importFromPickedFolder, ownTracks } from './src/audio/importMusic';
 import { buildRound, type Track } from './src/audio/playlist';
 import { SoundEngine } from './src/audio/soundEngine';
+import { CameraView } from './src/camera/CameraView';
 import { useCameraFeed } from './src/camera/useCameraFeed';
 import { MESSAGES } from './src/content/messages';
 import { log } from './src/diagnostics/log';
@@ -106,11 +107,14 @@ function Altar() {
     () => ({
       // The farewell shows the visitor in the frame and the silhouette beside it: no person mask is needed.
       onMask: feed.setMaskActive,
-      onReveal: () => undefined,
+      onReveal: (v: Visit) => {
+        const clip = clipFor(v);
+        if (clip != null) engine.current?.prepareVoice(clip);
+      },
       onMessage: () => engine.current?.duckMusic(),
       onWhisper: (v: Visit) => {
-        const clip = VOICE_CLIPS[v.voice]?.[MESSAGES[v.messageIndex].id];
-        if (clip != null) engine.current?.playVoice(clip);
+        const clip = clipFor(v);
+        if (clip != null) engine.current?.playVoice(clip, v.voiceRate);
         else log(`voice: no clip for ${v.voice} ${MESSAGES[v.messageIndex].id}`);
       },
       onReturn: () => {
@@ -211,6 +215,7 @@ function Altar() {
     <View style={styles.root}>
       <GestureDetector gesture={touch}>
         <View style={styles.root} collapsable={false}>
+          <CameraView feed={feed} layout={layout} clock={experience.clock} />
           <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} shown={experience.shown} />
           <Hint clock={experience.clock} time={experience.time} visible={settings.showHint} />
           <MessageOverlay visit={experience.shown} clock={experience.clock} />
@@ -231,6 +236,12 @@ function Waiting({ needsCamera }: { needsCamera: boolean }) {
       {needsCamera ? <Text style={styles.notice}>Sendero necesita permiso para usar la cámara frontal.</Text> : null}
     </View>
   );
+}
+
+/** The visit's voice clip; a voice without its clips falls back to the first voice of the same gender. */
+function clipFor(v: Visit): number | undefined {
+  const id = MESSAGES[v.messageIndex].id;
+  return VOICE_CLIPS[v.voice]?.[id] ?? VOICE_CLIPS[v.voice.replace(/-\d+$/, '')]?.[id];
 }
 
 const styles = StyleSheet.create({

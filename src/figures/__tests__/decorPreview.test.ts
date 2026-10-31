@@ -35,7 +35,7 @@ const out = process.env.SENDERO_DECOR_PREVIEW;
       canvas.scale(h, h);
       const r = artPath(a.id).ref;
       canvas.drawPath(r.snapshot?.() ?? r.detach?.() ?? r, bodyPaint().ref);
-      canvas.drawPicture(decoratedPicture(a.id, 11 + i).ref);
+      canvas.drawPicture(decoratedPicture(a.id, 11 + i, process.env.SENDERO_DECOR_CANDLE === '1').ref);
       canvas.restore();
     });
     const png = surface.makeImageSnapshot().encodeToBytes();

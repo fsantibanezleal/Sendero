@@ -73,7 +73,9 @@ describe('planning the next visit', () => {
       }
       expect([...v.spots].sort()).toEqual([0, 1, 2, 3, 4, 5]);
       expect(v.spots.slice(0, 4).every((s) => s < 4)).toBe(true);
-      expect(v.voice).toBe(HUMAN_PROFILE[v.people[v.walker].human].voice);
+      expect(v.voice.startsWith(HUMAN_PROFILE[v.people[v.walker].human].voice)).toBe(true);
+      expect(v.voiceRate).toBeGreaterThanOrEqual(0.88);
+      expect(v.voiceRate).toBeLessThanOrEqual(1.12);
       expect(Number.isInteger(v.pathSeed)).toBe(true);
       expect(v.pathSeed).toBeGreaterThanOrEqual(0);
       expect(v.pathSeed).toBeLessThan(2 ** 31);

@@ -1,4 +1,4 @@
-import { Canvas, Circle, Group, RadialGradient, vec } from '@shopify/react-native-skia';
+import { Canvas, Circle, Group, RadialGradient, rrect, Skia, vec } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
@@ -12,7 +12,7 @@ import { buildPetalPath } from '../path/petalPath';
 import { palette } from '../theme/palette';
 import { FarewellLayer } from './FarewellLayer';
 import { FiguresLayer } from './FiguresLayer';
-import { FrameLayer } from './FrameLayer';
+import { FrameLayer, frameNow } from './FrameLayer';
 import { Gate } from './Gate';
 import { LayerBoundary } from './LayerBoundary';
 import { NightLayer } from './NightLayer';
@@ -60,15 +60,23 @@ export function Scene({
   const pathOn = useDerivedValue(() => clock.value >= TIMELINE.path.start && clock.value < TIMELINE.reveal.start);
   const figuresOn = useDerivedValue(() => clock.value >= TIMELINE.family.start && clock.value < TIMELINE.reveal.start);
   const farewellOn = useDerivedValue(() => clock.value >= TIMELINE.reveal.start - 0.3);
+  // The camera is a native view under this canvas (no frame copies); the night and the path leave its window open.
+  const window = useDerivedValue(() => {
+    const f = frameNow(layout, clock.value);
+    const r = layout.radius * f.s;
+    return rrect(Skia.XYWHRect(f.tx, f.ty, W * f.s, H * f.s), r, r);
+  });
   return (
     <Canvas style={styles.fill}>
-      <NightLayer layout={layout} time={time} />
-      <Gate on={pathOn} width={W} height={H}>
-        <LayerBoundary name="path" resetKey={visit.id}>
-          <PathLayer data={path} atlas={atlas} clock={clock} height={H} />
-        </LayerBoundary>
-      </Gate>
-      <FrameLayer layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} />
+      <Group clip={window} invertClip>
+        <NightLayer layout={layout} time={time} />
+        <Gate on={pathOn} width={W} height={H}>
+          <LayerBoundary name="path" resetKey={visit.id}>
+            <PathLayer data={path} atlas={atlas} clock={clock} height={H} />
+          </LayerBoundary>
+        </Gate>
+      </Group>
+      <FrameLayer layout={layout} feed={feed} atlas={atlas} clock={clock} time={time} seed={shown.id} />
       <Gate on={figuresOn} width={W} height={H}>
         <LayerBoundary name="figures" resetKey={visit.id}>
           <FiguresLayer visit={visit} layout={layout} path={path} atlas={atlas} clock={clock} time={time} />

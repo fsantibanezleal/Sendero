@@ -1,4 +1,4 @@
-import { Circle, Group, RadialGradient, Skia, vec } from '@shopify/react-native-skia';
+import { Circle, Group, RadialGradient, Skia, type Transforms3d, vec } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
@@ -6,15 +6,22 @@ import type { Layout } from '../experience/layout';
 import type { Visit } from '../experience/plan';
 import { TIMELINE, windowProgress } from '../experience/timeline';
 import { HUMAN_PROFILE } from '../figures/catalog';
+import { artPath, placeArt } from '../figures/art';
+import { type Dressed, dressedFigure } from '../figures/decor';
 import { humanFarPath, humanMainPath, petSitPath, petWalkPaths, type ScreenTransform } from '../figures/draw';
+import { BASE_HEIGHT, PET_ART_HEIGHT } from '../figures/looks';
 import { gaitCurves } from '../figures/gait';
 import { standPose, walkPose } from '../figures/rig';
 import { rigStyle } from '../figures/style';
 import type { FlowerAtlas } from '../flowers/atlas';
 import type { PetalPathData } from '../path/petalPath';
 import { easeInOutSine, pointAtDistance, smoothstep } from '../procedural';
+import { DressedFigure } from './DressedFigure';
 import { Ghost } from './Ghost';
 import { Sparkles } from './Sparkles';
+
+/** Placement of a dressed figure that is not on screen. */
+const hidden = { x: -9999, y: -9999, s: 1, facing: 1, tilt: 0 };
 
 /**
  * Where the family waits around the far end of the path, in units of the far figure height:
@@ -101,6 +108,11 @@ export function FiguresLayer({
     for (let i = 0; i < waiting.length; i++) {
       const w = waiting[i];
       if (w.walker) continue;
+      if (w.look.art != null) {
+        const h = w.place.h * BASE_HEIGHT[w.look.human] * w.look.build.height;
+        main.addPath(placeArt(artPath(w.look.art), w.place.x, w.place.y, h, 1, 0));
+        continue;
+      }
       const tf: ScreenTransform = { ox: w.place.x, oy: w.place.y, h: w.place.h, facing: 1 };
       const pose = standPose(w.style, 1.2 * Math.sin(w.phase));
       back.addPath(humanFarPath(w.look, pose, tf));
@@ -109,6 +121,10 @@ export function FiguresLayer({
     for (let i = 0; i < waitingPets.length; i++) {
       const p = waitingPets[i];
       if (p.companion) continue;
+      if (p.look.still != null) {
+        main.addPath(placeArt(artPath(p.look.still), p.place.x, p.place.y, p.place.h * PET_ART_HEIGHT * p.look.size, 1, 0));
+        continue;
+      }
       const tf: ScreenTransform = { ox: p.place.x, oy: p.place.y, h: p.place.h, facing: 1 };
       if (p.look.sits) {
         main.addPath(petSitPath(p.look, tf));
@@ -120,6 +136,23 @@ export function FiguresLayer({
     }
     return { main: main.build(), back: back.build() };
   }, [waiting, waitingPets]);
+  // The dressed figures of the family, each with its own seed: the same person keeps their colors all visit.
+  const dressedFamily = useMemo(() => {
+    const list: { figure: Dressed | null; transform: Transforms3d }[] = [];
+    for (let i = 0; i < waiting.length; i++) {
+      const w = waiting[i];
+      if (w.walker || w.look.art == null) continue;
+      const h = w.place.h * BASE_HEIGHT[w.look.human] * w.look.build.height;
+      list.push({ figure: dressedFigure(w.look.art, visit.id * 10 + i), transform: [{ translateX: w.place.x }, { translateY: w.place.y }, { scale: h }] });
+    }
+    for (let i = 0; i < waitingPets.length; i++) {
+      const p = waitingPets[i];
+      if (p.companion || p.look.still == null) continue;
+      const h = p.place.h * PET_ART_HEIGHT * p.look.size;
+      list.push({ figure: dressedFigure(p.look.still, visit.id * 10 + 4 + i), transform: [{ translateX: p.place.x }, { translateY: p.place.y }, { scale: h }] });
+    }
+    return list;
+  }, [waiting, waitingPets, visit.id]);
   const familyMain = useDerivedValue(() => family.main);
   const familyFar = useDerivedValue(() => family.back);
   const familyOpacity = useDerivedValue(() => {
@@ -135,13 +168,25 @@ export function FiguresLayer({
   // The walker: waiting at their place, then stepping onto the path and walking it.
   const walkerPlace = places[visit.walker];
   const petPlace = visit.companion == null ? null : places[4 + visit.companion];
+  // The drawings of the walker and the pet beside them, united once on the JS thread.
+  const walkerArt = useMemo(() => (walkerLook.art != null ? artPath(walkerLook.art) : null), [walkerLook.art]);
+  const walkerArtScale = BASE_HEIGHT[walkerLook.human] * walkerLook.build.height;
+  const companionArt = useMemo(() => (companion?.art != null ? artPath(companion.art) : null), [companion?.art]);
+  const companionArtScale = companion != null ? PET_ART_HEIGHT * companion.size : 0;
+  const walkerDressed = useMemo(() => (walkerLook.art != null ? dressedFigure(walkerLook.art, visit.id * 10 + visit.walker) : null), [walkerLook.art, visit.id, visit.walker]);
+  const companionDressed = useMemo(
+    () => (companion?.art != null && visit.companion != null ? dressedFigure(companion.art, visit.id * 10 + 4 + visit.companion) : null),
+    [companion?.art, visit.id, visit.companion],
+  );
   const walker = useDerivedValue(() => {
     const t = clock.value;
     if (t < TIMELINE.family.start || t >= TIMELINE.reveal.start) {
-      return { main: empty, back: empty, x: walkerPlace.x, y: walkerPlace.y, h: walkerPlace.h };
+      return { main: empty, back: empty, x: walkerPlace.x, y: walkerPlace.y, h: walkerPlace.h, art: hidden, pet: hidden };
     }
     const main = Skia.PathBuilder.Make();
     const back = Skia.PathBuilder.Make();
+    let art = hidden;
+    let pet = hidden;
     const u = easeInOutSine(windowProgress(t, TIMELINE.walk));
     const p = pointAtDistance(table, u * table.total);
     const onPath = far + (near - far) * Math.pow(u, 1.3);
@@ -153,11 +198,20 @@ export function FiguresLayer({
     const facing = m < 1 && p.x < walkerPlace.x ? -1 : p.tx < -0.25 ? -1 : 1;
     const tf: ScreenTransform = { ox: x, oy: y, h, facing };
     const walking = t >= TIMELINE.walk.start && t < TIMELINE.walk.end;
-    const pose = walking
-      ? walkPose(curves, (t - TIMELINE.walk.start) * cadence, walkStyle)
-      : standPose(rigStyle(walkerLook, true), 1.5 * Math.sin(time.value * 0.7));
-    back.addPath(humanFarPath(walkerLook, pose, tf));
-    main.addPath(humanMainPath(walkerLook, pose, tf));
+    // A drawing glides like a spirit: a soft rise and fall at each step and a gentle sway.
+    const stepPhase = (t - TIMELINE.walk.start) * cadence * 2 * Math.PI;
+    const bob = walking ? Math.abs(Math.sin(stepPhase)) * 0.012 * h : 0;
+    const sway = walking ? 0.025 * Math.sin(stepPhase * 0.5) : 0.012 * Math.sin(time.value * 0.7);
+    if (walkerArt != null) {
+      main.addPath(placeArt(walkerArt, x, y - bob, h * walkerArtScale, facing, sway));
+      art = { x, y: y - bob, s: h * walkerArtScale, facing, tilt: sway };
+    } else {
+      const pose = walking
+        ? walkPose(curves, (t - TIMELINE.walk.start) * cadence, walkStyle)
+        : standPose(rigStyle(walkerLook, true), 1.5 * Math.sin(time.value * 0.7));
+      back.addPath(humanFarPath(walkerLook, pose, tf));
+      main.addPath(humanMainPath(walkerLook, pose, tf));
+    }
     if (companion != null && petPlace != null) {
       // The pet walks beside the person, on the viewer's side of the path, a little ahead.
       const nx = -p.ty;
@@ -169,7 +223,11 @@ export function FiguresLayer({
       const px = petPlace.x + (besideX - petPlace.x) * m;
       const py = petPlace.y + (besideY - petPlace.y) * m;
       const pt: ScreenTransform = { ox: px, oy: py, h: petPlace.h + (h - petPlace.h) * m, facing };
-      if (!walking && companion.sits) {
+      if (companionArt != null) {
+        const petBob = walking ? Math.abs(Math.sin(stepPhase * 1.6)) * 0.01 * pt.h : 0;
+        main.addPath(placeArt(companionArt, px, py - petBob, pt.h * companionArtScale, facing, 0));
+        pet = { x: px, y: py - petBob, s: pt.h * companionArtScale, facing, tilt: 0 };
+      } else if (!walking && companion.sits) {
         main.addPath(petSitPath(companion, pt));
       } else {
         const pet = petWalkPaths(companion, q > 0 ? (t - TIMELINE.walk.start) * 1.7 : 0.1, pt);
@@ -177,7 +235,15 @@ export function FiguresLayer({
         back.addPath(pet.far);
       }
     }
-    return { main: main.build(), back: back.build(), x, y, h };
+    return { main: main.build(), back: back.build(), x, y, h, art, pet };
+  });
+  const walkerImage = useDerivedValue((): Transforms3d => {
+    const a = walker.value.art;
+    return [{ translateX: a.x }, { translateY: a.y }, { rotate: a.tilt }, { scaleX: a.facing * a.s }, { scaleY: a.s }];
+  });
+  const petImage = useDerivedValue((): Transforms3d => {
+    const a = walker.value.pet;
+    return [{ translateX: a.x }, { translateY: a.y }, { scaleX: a.facing * a.s }, { scaleY: a.s }];
   });
   const walkerMain = useDerivedValue(() => walker.value.main);
   const walkerFar = useDerivedValue(() => walker.value.back);
@@ -206,7 +272,10 @@ export function FiguresLayer({
 
   return (
     <Group>
-      <Ghost main={familyMain} far={familyFar} opacity={familyOpacity} top={familyTop} bottom={familyBottom} glow={familyGlow} />
+      <Ghost main={familyMain} far={familyFar} opacity={familyOpacity} top={familyTop} bottom={familyBottom} glow={familyGlow} halo={dressedFamily.length > 0} />
+      {dressedFamily.map((f, i) => (
+        <DressedFigure key={i} figure={f.figure} transform={f.transform} opacity={familyOpacity} />
+      ))}
       <Sparkles
         image={atlas.image}
         sprite={atlas.glow}
@@ -224,7 +293,9 @@ export function FiguresLayer({
           <RadialGradient c={vec(0, 0)} r={groundR} colors={['rgba(255, 213, 138, 0.8)', 'rgba(255, 170, 60, 0.25)', 'rgba(255, 170, 60, 0)']} />
         </Circle>
       </Group>
-      <Ghost main={walkerMain} far={walkerFar} opacity={walkerOpacity} top={walkerTop} bottom={walkerBottom} glow={walkerGlow} />
+      <Ghost main={walkerMain} far={walkerFar} opacity={walkerOpacity} top={walkerTop} bottom={walkerBottom} glow={walkerGlow} halo={walkerDressed != null} />
+      <DressedFigure figure={walkerDressed} transform={walkerImage} opacity={walkerOpacity} />
+      <DressedFigure figure={companionDressed} transform={petImage} opacity={walkerOpacity} />
     </Group>
   );
 }

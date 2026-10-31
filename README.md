@@ -15,7 +15,7 @@ their world to ours. Sendero turns that path into a short, warm moment for each 
    sometimes with a dog or a cat beside them) walks the path toward the visitor, coming closer for about seven
    seconds, stepping with real human gait data.
 4. The frame returns to full screen: the visitor, a little smaller, with the soft silhouette standing behind them.
-5. A message covers the screen ("Siempre te recordaré", "También te extraño", ...), whispered from a distance while
+5. A message covers the screen ("Siempre te recordaré", "También te extraño", ...), said by a soft voice while
    the music softens. About ten seconds later the screen waits for the next friend.
 
 The figures are generic and faceless, there are no children, and nothing the camera sees is stored or sent: the app
@@ -30,7 +30,7 @@ has no internet permission.
 | App | `App.tsx`, `src/` | `experience/` (timeline, clock, choices), `scene/` (the single Skia canvas and its layers), `flowers/` (procedural marigolds, garland), `path/` (petal path), `figures/` (rig, gait, silhouettes), `camera/` (feed and person mask), `audio/` (music, voice), `staff/` (panel), `kiosk/`, `procedural/` (geometry library) |
 | Native module | `modules/sendero-kiosk/` | Kotlin: device owner, lock task mode, home launcher, screen on while plugged |
 | Config plugins | `plugins/` | Privacy (no internet), kiosk manifest, release signing, Windows native build paths |
-| Assets | `assets/` | Icons, Cormorant Garamond fonts (OFL), public-domain music, whispered voice clips, the MediaPipe selfie segmenter (Apache-2.0); every third-party file is listed in [ASSETS.md](ASSETS.md) |
+| Assets | `assets/` | Icons, Cormorant Garamond fonts (OFL), warm instrumental music (CC BY 4.0), spoken voice clips, the MediaPipe selfie segmenter (Apache-2.0); every third-party file is listed in [ASSETS.md](ASSETS.md) |
 | Offline pipeline | `pipeline/` | Python: music fetch and mastering, gait curve fitting, voice rendering, icons |
 | Data | `data/gait/` | Fourier gait curves fitted from Fukuchi et al. 2018 (CC BY 4.0) |
 | Docs | `docs/` | [Index](docs/README.md): the experience, the scene, the reveal, sound, music, voice, gait, kiosk, architecture, guides |

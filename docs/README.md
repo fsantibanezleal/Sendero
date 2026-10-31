@@ -4,10 +4,11 @@
 |---|---|
 | [experience.md](experience.md) | What a visitor lives: the tradition behind it, the timeline, who walks the path, the messages, the design rules for a grieving audience |
 | [scene.md](scene.md) | The single canvas: palette, cempasuchil heads, garland, papel picado, candles, the petal path, the silhouettes and their gait |
-| [reveal.md](reveal.md) | The person mask (MediaPipe selfie segmenter), live or still cut-out, the fallback, privacy |
+| [reveal.md](reveal.md) | The farewell: the frame on the stage, the silhouette beside it, the pet |
 | [sound.md](sound.md) | Music sources and playlist, the crossfading and ducking engine, the whisper |
 | [music.md](music.md) | The bundled public-domain recordings: why each may be redistributed, the mastering chain |
-| [voice.md](voice.md) | The whispered voice clips: voices, licences, the whisper conversion, the distance effect |
+| [voice.md](voice.md) | The soft voice clips: voices, licences, how they are processed |
+| [figures.md](figures.md) | The silhouette drawings and how the family is dressed for the day |
 | [gait.md](gait.md) | The gait dataset (Fukuchi 2018), the Fourier fit and its errors |
 | [procedural.md](procedural.md) | The procedural geometry library: phyllotaxis, splines, arc length, Poisson disk, noise, easing |
 | [kiosk.md](kiosk.md) | Lock task mode as device owner, the home launcher, screen on, the staff exit |

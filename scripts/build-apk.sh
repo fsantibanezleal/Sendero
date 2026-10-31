@@ -24,6 +24,8 @@ major="$(node --version | sed 's/^v//' | cut -d. -f1)"
 # Optional on Linux and macOS: SENDERO_CXX_ROOT moves the native C++ build trees to a short folder
 # (needed on Windows, where the native build passes the 260-character path limit otherwise).
 if [ -n "${SENDERO_CXX_ROOT:-}" ]; then mkdir -p "$SENDERO_CXX_ROOT"; export SENDERO_CXX_ROOT; fi
+# Parallel compilers per native module (CMake job pool, plugins/with-short-native-build.js); default 4.
+export SENDERO_CXX_JOBS="${SENDERO_CXX_JOBS:-4}"
 
 if [ -n "$signing" ]; then
   props_dir="$(cd "$(dirname "$signing")" && pwd)"

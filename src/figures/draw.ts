@@ -536,10 +536,36 @@ export function humanMainPath(look: Look, pose: HumanPose, t: ScreenTransform): 
 // ---- People from the front (the reveal) --------------------------------------------------------
 
 /**
- * A person standing and facing the viewer, for the reveal behind the visitor. `breath` in [0, 1]
- * widens the chest slightly. Proportions from the same anthropometric fractions as the rig.
+ * Elbow of a two-segment arm from the shoulder s to the hand h (body units), bending downward; the hand
+ * is pulled toward the shoulder when it is out of reach. Returns the elbow and the reachable hand.
  */
-export function humanFrontPath(look: Look, t: ScreenTransform, breath: number): SkPath {
+function armTo(s: Vec, h: Vec, upper: number, lower: number): { elbow: Vec; hand: Vec } {
+  'worklet';
+  let dx = h.x - s.x;
+  let dy = h.y - s.y;
+  let d = Math.sqrt(dx * dx + dy * dy) || 1e-6;
+  const reach = upper + lower - 0.005;
+  if (d > reach) {
+    dx = (dx / d) * reach;
+    dy = (dy / d) * reach;
+    d = reach;
+  }
+  const a = Math.atan2(dy, dx);
+  const c = Math.min(1, Math.max(-1, (upper * upper + d * d - lower * lower) / (2 * upper * d)));
+  const bend = Math.acos(c) * (dx >= 0 ? -1 : 1);
+  return {
+    elbow: { x: s.x + upper * Math.cos(a + bend), y: s.y + upper * Math.sin(a + bend) },
+    hand: { x: s.x + dx, y: s.y + dy },
+  };
+}
+
+/**
+ * A person standing and facing the viewer, for the farewell beside the frame. `breath` in [0, 1]
+ * widens the chest slightly. `rest`, a point on screen, is where the hand on the +x side of the
+ * picture rests (on the frame's edge); what the person carries then moves to the other hand.
+ * Proportions from the same anthropometric fractions as the rig.
+ */
+export function humanFrontPath(look: Look, t: ScreenTransform, breath: number, rest?: { x: number; y: number }): SkPath {
   'worklet';
   const tt = personTransform(t, look);
   const path = Skia.PathBuilder.Make();
@@ -590,11 +616,26 @@ export function humanFrontPath(look: Look, t: ScreenTransform, breath: number): 
   const handY = top - BODY.upperArm - BODY.forearm;
   for (const side of [-1, 1]) {
     const sh = { x: side * (sw + 0.004), y: top - 0.028 };
-    const el = { x: side * (sw + 0.03 + belly * 0.3), y: top - BODY.upperArm };
-    const ha = { x: side * (sw + 0.018 + belly * 0.3), y: handY };
+    let el = { x: side * (sw + 0.03 + belly * 0.3), y: top - BODY.upperArm };
+    let ha = { x: side * (sw + 0.018 + belly * 0.3), y: handY };
+    let resting = false;
+    if (side === 1 && rest != null) {
+      // The resting hand, from screen pixels to this person's body units.
+      const target = { x: (rest.x - tt.ox) / (tt.facing * tt.h), y: (tt.oy - rest.y) / tt.h };
+      const arm = armTo(sh, target, BODY.upperArm, BODY.forearm + 0.03);
+      el = arm.elbow;
+      ha = arm.hand;
+      resting = true;
+    }
     muscle(path, tt, sh, el, 0.037 * k, 0.036 * k, 0.3, 0.027 * k);
     muscle(path, tt, el, ha, 0.027 * k, 0.03 * k, 0.28, 0.019 * k);
-    blob(path, tt, { x: ha.x + side * 0.002, y: ha.y - 0.034 }, 0.022, 0.036, 0);
+    if (resting) {
+      const hx2 = ha.x - el.x;
+      const hy2 = ha.y - el.y;
+      blob(path, tt, ha, 0.036, 0.022, Math.atan2(hy2, hx2));
+    } else {
+      blob(path, tt, { x: ha.x + side * 0.002, y: ha.y - 0.034 }, 0.022, 0.036, 0);
+    }
     const hip = { x: side * hipX * 0.52, y: 0.52 };
     const knee = { x: side * hw * 0.48, y: 0.285 };
     const ankle = { x: side * hw * 0.46, y: 0.05 };
@@ -752,33 +793,35 @@ export function humanFrontPath(look: Look, t: ScreenTransform, breath: number): 
     );
   }
 
-  // What they carry (in the right hand of the picture, the left for the basket).
+  // What they carry (in the right hand of the picture, the left for the basket), mirrored to the other
+  // hand while the right one rests on the frame.
   const c = look.carry;
+  const carryT: ScreenTransform = rest != null ? { ox: tt.ox, oy: tt.oy, h: tt.h, facing: -tt.facing } : tt;
   const hx = sw + 0.012;
   if (c === 'cane') {
-    limb(path, tt, { x: hx + 0.018, y: handY + 0.02 }, 0.011, { x: hx + 0.058, y: 0 }, 0.009);
+    limb(path, carryT, { x: hx + 0.018, y: handY + 0.02 }, 0.011, { x: hx + 0.058, y: 0 }, 0.009);
   } else if (c === 'flowers') {
     const cx = hx + 0.03;
     const cy = handY + 0.08;
-    limb(path, tt, { x: hx, y: handY - 0.02 }, 0.007, { x: cx, y: cy }, 0.006);
+    limb(path, carryT, { x: hx, y: handY - 0.02 }, 0.007, { x: cx, y: cy }, 0.006);
     const dx = [0, 0.03, -0.026, 0.012, 0.04, -0.012];
     const dy = [0, 0.014, 0.012, 0.036, 0.04, 0.045];
-    for (let i = 0; i < dx.length; i++) blob(path, tt, { x: cx + dx[i], y: cy + dy[i] }, 0.022, 0.02, 0);
+    for (let i = 0; i < dx.length; i++) blob(path, carryT, { x: cx + dx[i], y: cy + dy[i] }, 0.022, 0.02, 0);
   } else if (c === 'guitar') {
-    limb(path, tt, { x: -sw * 0.2, y: 0.62 }, 0.014, { x: -sw - 0.09, y: headY + 0.08 }, 0.013);
-    blob(path, tt, { x: -sw - 0.1, y: headY + 0.1 }, 0.022, 0.032, -0.6);
-    blob(path, tt, { x: hw + 0.02, y: 0.6 }, 0.07, 0.085, 0.5);
+    limb(path, carryT, { x: -sw * 0.2, y: 0.62 }, 0.014, { x: -sw - 0.09, y: headY + 0.08 }, 0.013);
+    blob(path, carryT, { x: -sw - 0.1, y: headY + 0.1 }, 0.022, 0.032, -0.6);
+    blob(path, carryT, { x: hw + 0.02, y: 0.6 }, 0.07, 0.085, 0.5);
   } else if (c === 'bag') {
-    limb(path, tt, { x: -sw * 0.8, y: top - 0.01 }, 0.007, { x: hw + 0.04, y: 0.55 }, 0.007);
-    blob(path, tt, { x: hw + 0.06, y: 0.52 }, 0.05, 0.045, 0);
+    limb(path, carryT, { x: -sw * 0.8, y: top - 0.01 }, 0.007, { x: hw + 0.04, y: 0.55 }, 0.007);
+    blob(path, carryT, { x: hw + 0.06, y: 0.52 }, 0.05, 0.045, 0);
   } else if (c === 'basket') {
     const bx = -hx;
-    poly(path, tt, [bx - 0.06, bx + 0.06, bx + 0.045, bx - 0.045], [handY - 0.02, handY - 0.02, handY - 0.09, handY - 0.09]);
-    limb(path, tt, { x: bx - 0.05, y: handY - 0.02 }, 0.006, { x: bx, y: handY + 0.035 }, 0.006);
-    limb(path, tt, { x: bx, y: handY + 0.035 }, 0.006, { x: bx + 0.05, y: handY - 0.02 }, 0.006);
+    poly(path, carryT, [bx - 0.06, bx + 0.06, bx + 0.045, bx - 0.045], [handY - 0.02, handY - 0.02, handY - 0.09, handY - 0.09]);
+    limb(path, carryT, { x: bx - 0.05, y: handY - 0.02 }, 0.006, { x: bx, y: handY + 0.035 }, 0.006);
+    limb(path, carryT, { x: bx, y: handY + 0.035 }, 0.006, { x: bx + 0.05, y: handY - 0.02 }, 0.006);
   } else if (c === 'candle') {
-    poly(path, tt, [hx - 0.02, hx + 0.025, hx + 0.025, hx - 0.02], [handY + 0.0, handY + 0.0, handY + 0.07, handY + 0.07]);
-    blob(path, tt, { x: hx + 0.002, y: handY + 0.098 }, 0.012, 0.024, 0);
+    poly(path, carryT, [hx - 0.02, hx + 0.025, hx + 0.025, hx - 0.02], [handY + 0.0, handY + 0.0, handY + 0.07, handY + 0.07]);
+    blob(path, carryT, { x: hx + 0.002, y: handY + 0.098 }, 0.012, 0.024, 0);
   }
   return path.build();
 }

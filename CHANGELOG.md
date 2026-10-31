@@ -5,6 +5,35 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ## [Unreleased]
 
+## [0.01.002] - 2026-10-30
+
+### Changed
+- The silhouettes are now 69 licensed drawings, at least ten per archetype, with realistic proportions, in place of the
+  drawn rig figures.
+- The family is dressed for the day: inner contour strokes, calavera face paint, flower crowns, marigold necklaces,
+  rebozo, huipil, serape and catrin clothes, and alebrije pets, in random colors per visit (`docs/figures.md`).
+- The music: ten warm instrumental pieces under CC BY 4.0 replace the noisy recordings of 1904 to 1920.
+- The voice: a soft near voice with a little breath replaces the distant whisper, which measured as far less natural.
+
+### Fixed
+- The next visit is planned during the farewell and a touch during the end of a visit is remembered, so touching
+  after a visit always starts the next one; the clock follows real time when the camera slows down.
+- The farewell places each drawing by its real width: it never touches the frame or leaves the screen.
+
+## [0.01.001] - 2026-10-30
+
+### Changed
+- The farewell, after the owner's review ("the final overlay of the frame and the silhouette are messy ... render the
+  silhouettes at the sides of the frames, like resting on it, not overlapping it"): the frame grows from the corner
+  to a stage on the right (60 percent of the screen) with the live camera, and the silhouette stands beside it on the
+  left with one hand resting on the garland; the pet sits at its other side. No person mask is run any more.
+- The staff panel no longer offers the cut-out mode, which the farewell does not use.
+
+### Added
+- One system-log line when the music starts, for each track, for each whisper, and when the music fails to start.
+- The native build caps its parallel compilers per module (CMake job pool, `-CxxJobs`, default 4): a 32-core machine
+  ran out of memory.
+
 ## [0.01.000] - 2026-10-30
 
 First release: the full altar experience, built as a signed APK for an Android tablet.

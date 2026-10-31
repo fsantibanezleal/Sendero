@@ -30,16 +30,9 @@ def test_death_boundary_and_publication_cutoff():
     assert rules.decide("A", 1900, False, 1931)[0] is False
 
 
-def test_manifest_matches_rules():
+def test_manifest_items_are_licensed_and_instrumental():
     manifest = json.loads((common.REPO_ROOT / "pipeline/music/manifest.json").read_text(encoding="utf-8"))
     assert manifest["items"]
     for item in manifest["items"]:
-        c = item["composer"]
-        ok, reason = rules.decide(c.get("name"), c.get("deathYear"), c.get("traditional", False), item["year"])
-        assert item["include"] is ok, item["id"]
-        assert item["reason"] == reason, item["id"]
-        if ok:
-            assert c.get("source"), f"{item['id']}: an included composer needs a cited source"
-    included = [i["id"] for i in manifest["items"] if i["include"]]
-    assert "golondrinas-1920" in included
-    assert "cielito-lindo-1919" not in included
+        assert item["include"] and item["instrumental"], item["id"]
+        assert item["url"].startswith("https://incompetech.com/"), item["id"]

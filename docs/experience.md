@@ -25,13 +25,12 @@ own constants. Phases overlap on purpose.
 | Path | 0.8 | 3.6 | The petal path draws itself from the upper left corner to the frame |
 | Gather | 2.8 | 4.2 | Three to five soft silhouettes dissolve in at the far end of the path |
 | Walk | 4.2 | 11.2 | One of them (and their pet, if they have one) walks the path toward the frame, growing as it comes closer; the others fade by 6.0 |
-| Arrive | 11.2 | 12.4 | A warm bloom from the frame, which returns to full screen |
-| Reveal | 12.4 | 15.4 | The visitor, smaller, with the same person's silhouette standing behind them, inside the same garland |
-| Message | 15.4 | 25.4 | An indigo veil and one message; at 16.0 a distant whisper says it while the music softens a little |
+| Arrive | 11.2 | 12.4 | A warm bloom from the frame, which grows from the corner to the stage on the right |
+| Farewell | 12.4 | 15.4 | The visitor live in the frame on the stage, the same person's silhouette beside it, the pet at their side |
+| Message | 15.4 | 25.4 | An indigo veil and one message; at 16.0 a soft voice says it while the music softens a little |
 | Return | 25.4 | 26.8 | Everything fades back to the idle screen |
 
-The person mask is computed only from 4.2 to 25.4 (`TIMELINE.mask`): the camera is never segmented while nobody has
-asked for the experience.
+The camera is never analysed: since 0.01.001 the farewell needs no person mask (`docs/reveal.md`).
 
 ## The clock
 
@@ -75,9 +74,10 @@ left upper area, the 4 main silhouettes, and the 2 pets, but always random choos
 - One of the four people walks the path, chosen at random, never the same kind of person twice in a row; in about 35
   percent of visits one of the two pets walks beside them. A pet never walks alone. No children: the owner considers it
   too sensitive, and November 1 is popularly associated with deceased children (research: Mexican press citing INAH).
-- The walker steps out of the family and onto the path; the reveal shows the same variant from the front, and the
-  pet, when there is one, sitting beside it.
-- The whispered voice matches the person: a woman's voice for the grandmother and the woman, a man's for the
+- The walker steps out of the family and onto the path; at the farewell the same variant stands beside the frame,
+  turned toward it, and the pet, when there is one, stands at their other side
+  (`docs/reveal.md`).
+- The voice matches the person: a woman's voice for the grandmother and the woman, a man's for the
   grandfather and the man.
 
 ## The messages

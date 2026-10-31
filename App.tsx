@@ -13,7 +13,7 @@ import { BUNDLED_TRACKS, VOICE_CLIPS } from './src/audio/assets.generated';
 import { clearImportedMusic, importFromPickedFolder, ownTracks } from './src/audio/importMusic';
 import { buildRound, type Track } from './src/audio/playlist';
 import { SoundEngine } from './src/audio/soundEngine';
-import { type CameraFeed, useCameraFeed } from './src/camera/useCameraFeed';
+import { useCameraFeed } from './src/camera/useCameraFeed';
 import { MESSAGES } from './src/content/messages';
 import { log } from './src/diagnostics/log';
 import { computeLayout } from './src/experience/layout';
@@ -27,8 +27,6 @@ import { loadSettings, saveSettings, type Settings } from './src/settings/settin
 import { StaffPanel, type StaffStatus } from './src/staff/StaffPanel';
 import { palette } from './src/theme/palette';
 
-/** Below this many masks per second the automatic mode shows a still cut-out instead of a live one. */
-const LIVE_MASK_MIN_RATE = 6;
 
 /** The display version (X.XX.XXX) from the manifest's semver. */
 function displayVersion(semver: string): string {
@@ -76,10 +74,6 @@ function Altar() {
   const [settings, setSettings] = useState<Settings>(() => loadSettings());
   const settingsRef = useRef(settings);
   const feed = useCameraFeed(true);
-  const feedRef = useRef<CameraFeed>(feed);
-  useEffect(() => {
-    feedRef.current = feed;
-  }, [feed]);
 
   const engine = useRef<SoundEngine | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -96,7 +90,7 @@ function Altar() {
     engine.current = e;
     e.setMusicVolume(settingsRef.current.musicVolume);
     e.setVoiceVolume(settingsRef.current.voiceVolume);
-    e.start(roundFactory).catch(() => undefined);
+    e.start(roundFactory).catch((err: unknown) => log(`music: failed to start: ${String(err)}`));
     return () => e.dispose();
   }, [roundFactory]);
 
@@ -110,22 +104,17 @@ function Altar() {
 
   const events = useMemo(
     () => ({
-      onMask: (on: boolean) => feedRef.current.setMaskActive(on),
-      onReveal: () => {
-        const mode = settingsRef.current.maskMode;
-        const slow = feedRef.current.maskRate.value < LIVE_MASK_MIN_RATE;
-        if (mode === 'still' || (mode === 'auto' && slow)) {
-          feedRef.current.setFrozen(true);
-        }
-      },
+      // The farewell shows the visitor in the frame and the silhouette beside it: no person mask is needed.
+      onMask: () => undefined,
+      onReveal: () => undefined,
       onMessage: () => engine.current?.duckMusic(),
       onWhisper: (v: Visit) => {
         const clip = VOICE_CLIPS[v.voice]?.[MESSAGES[v.messageIndex].id];
         if (clip != null) engine.current?.playVoice(clip);
+        else log(`voice: no clip for ${v.voice} ${MESSAGES[v.messageIndex].id}`);
       },
       onReturn: () => {
         engine.current?.releaseMusic();
-        feedRef.current.setFrozen(false);
       },
       onEnd: () => undefined,
     }),
@@ -141,13 +130,11 @@ function Altar() {
       version: displayVersion(pkg.version),
       kiosk: Kiosk.kioskState(),
       deviceOwner: Kiosk.isDeviceOwner(),
-      model: feed.modelState === 'ready' ? 'lista' : feed.modelState === 'loading' ? 'cargando' : 'no disponible',
-      maskRate: feed.maskRate.get(),
       ownTracks: ownCount,
       bundledTracks: BUNDLED_TRACKS.length,
       nowPlaying: engine.current?.nowPlaying() ?? '',
     }),
-    [feed.modelState, feed.maskRate, ownCount],
+    [ownCount],
   );
   const onStaffTap = useCallback(
     (x: number, y: number) => {
@@ -160,7 +147,7 @@ function Altar() {
     [staff, readStatus],
   );
   const onTouched = useCallback((x: number, y: number, started: boolean, at: number) => {
-    const why = at === -2 ? 'staff corner' : at >= 0 ? `ignored, a visit is running (${at.toFixed(1)} s)` : 'ignored, the next visit is being prepared';
+    const why = at === -2 ? 'staff corner' : at >= 0 ? `ignored, a visit is running (${at.toFixed(1)} s)` : 'the next visit is being prepared: it starts as soon as it is ready';
     log(`touch at ${Math.round(x)},${Math.round(y)}: ${started ? 'visit starts' : why}`);
   }, []);
 
@@ -224,9 +211,9 @@ function Altar() {
     <View style={styles.root}>
       <GestureDetector gesture={touch}>
         <View style={styles.root} collapsable={false}>
-          <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} />
+          <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} shown={experience.shown} />
           <Hint clock={experience.clock} time={experience.time} visible={settings.showHint} />
-          <MessageOverlay visit={experience.visit} clock={experience.clock} />
+          <MessageOverlay visit={experience.shown} clock={experience.clock} />
         </View>
       </GestureDetector>
       {/* Outside the touch detector, so the panel's buttons never start a visit. */}

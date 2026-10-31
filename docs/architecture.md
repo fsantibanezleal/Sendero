@@ -6,9 +6,8 @@ no network.
 ## One canvas
 
 Everything the visitor sees is drawn in a single `@shopify/react-native-skia` canvas (`src/scene/Scene.tsx`): the
-camera image, the flower frame, the petal path, the figures, the reveal and the message. One canvas means one
-coordinate system and one draw order, which the reveal needs: the visitor must be drawn in front of the ghost, and the
-ghost in front of the background.
+camera image, the flower frame, the petal path, the figures, the farewell and the message. One canvas means one
+coordinate system and one draw order, which the farewell needs: the silhouette stands in front of the night, beside the frame.
 
 ## The camera feed
 
@@ -39,8 +38,8 @@ without its own canvas:
    updates starved.
 4. The scene canvas draws that shared value, cropped to cover the screen.
 
-The person mask of the reveal is computed in the same camera worklet from this upright, mirrored image, so the mask
-lines up with the image on screen without any extra transform.
+The person mask (MediaPipe selfie segmenter) can be computed in the same camera worklet from this upright, mirrored
+image; since 0.01.001 the farewell does not use it (`docs/reveal.md`), so it is not run.
 
 ```
 camera thread                         JS thread                 UI thread (canvas)
@@ -53,8 +52,8 @@ React Native Skia replays every mounted node on every frame, and its player has 
 hidden layer costs as much as a visible one. The scene keeps the next visit's layers mounted (so the touch shows them
 at once) and wraps every layer that is hidden part of the time in a `Gate` (`src/scene/Gate.tsx`): an empty clip
 while the layer is hidden, so Skia rejects every draw inside, including the offscreen layers of blurs and blend
-groups. Gated: the petal path and the figures (outside the walk), the reveal (outside the reveal), the camera under
-the full reveal, and the bloom of the arrival. The silhouettes' paths are built only while they are shown.
+groups. Gated: the petal path and the figures (outside the walk), the farewell (before the arrival), and the bloom of
+the arrival. The silhouettes' paths are built only while they are shown.
 
 ## Privacy
 

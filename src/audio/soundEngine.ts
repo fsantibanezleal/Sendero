@@ -14,6 +14,8 @@
  */
 import { type AudioPlayer, createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 
+import { log } from '../diagnostics/log';
+
 import { dbToGain, equalPower, type Track } from './playlist';
 
 export const CROSSFADE_S = 4;
@@ -57,6 +59,7 @@ export class SoundEngine {
     this.running = true;
     this.round = roundFactory();
     this.index = -1;
+    log(`music: starting, ${this.round.length} tracks in the round, volume ${this.musicVolume.toFixed(2)}`);
     this.startNext(true);
     if (this.timer == null) {
       this.timer = setInterval(() => this.tick(), TICK_MS);
@@ -108,6 +111,7 @@ export class SoundEngine {
 
   /** Plays one whispered message clip. */
   playVoice(source: number | string): void {
+    log(`voice: whisper at volume ${this.voiceVolume.toFixed(2)}, music ducked to ${this.duckTarget.toFixed(2)}`);
     this.voice.replace(typeof source === 'string' ? { uri: source } : source);
     this.voice.volume = this.voiceVolume;
     this.voice.seekTo(0).catch(() => undefined);
@@ -136,7 +140,11 @@ export class SoundEngine {
 
   private startNext(first: boolean): void {
     const track = this.pickNext();
-    if (track == null) return;
+    if (track == null) {
+      log('music: no track to play');
+      return;
+    }
+    log(`music: playing ${track.title}`);
     const target = first ? this.active : 1 - this.active;
     const slot = this.slots[target];
     slot.track = track;

@@ -39,6 +39,8 @@ export interface Look {
   top: Top;
   bottom: Bottom;
   carry: Carry;
+  /** The silhouette drawing that shows this person (artData.ts), or null to draw the procedural figure. */
+  art: string | null;
 }
 
 export type Ears = 'up' | 'bat' | 'flop' | 'small';
@@ -62,7 +64,14 @@ export interface PetLook {
   fluffy: boolean;
   /** Sitting or standing while the family waits. */
   sits: boolean;
+  /** The silhouette drawing that shows this pet walking, or null to draw the procedural figure. */
+  art: string | null;
+  /** The drawing that shows it while the family waits, sitting or standing, or null for the procedural figure. */
+  still: string | null;
 }
+
+/** Height of a pet drawing per unit of size, in person-height units (a size-1 dog stands about 0.4 tall). */
+export const PET_ART_HEIGHT = 0.4;
 
 /** Base height of each archetype relative to the tallest (the man). */
 export const BASE_HEIGHT: Record<HumanKind, number> = { abuela: 0.92, abuelo: 0.96, mujer: 0.95, hombre: 1 };
@@ -164,6 +173,7 @@ export function randomLook(rand: Rand, human: HumanKind): Look {
     top: weighted(rand, table.top),
     bottom: weighted(rand, table.bottom),
     carry,
+    art: null,
   };
 }
 
@@ -183,6 +193,8 @@ export function randomPetLook(rand: Rand, kind: PetKind): PetLook {
       snout: between(rand, 0.7, 1.3),
       fluffy: rand() < 0.35,
       sits: rand() < 0.4,
+      art: null,
+      still: null,
     };
   }
   return {
@@ -196,6 +208,8 @@ export function randomPetLook(rand: Rand, kind: PetKind): PetLook {
     snout: between(rand, 0.85, 1.15),
     fluffy: rand() < 0.35,
     sits: rand() < 0.6,
+    art: null,
+    still: null,
   };
 }
 
@@ -215,10 +229,13 @@ export function describePet(p: PetLook): string {
  * the hair above the head (draw.ts).
  */
 export function silhouetteTop(look: Look): number {
+  'worklet';
   const hat =
     look.headwear === 'sombrero' ? 0.08 : look.headwear === 'texana' || look.headwear === 'fedora' || look.headwear === 'palma' ? 0.068 : look.headwear === 'gorra' || look.headwear === 'boina' ? 0.025 : 0;
   const hair = look.hair === 'curly' ? 0.03 : look.hair === 'bun' || look.hair === 'pompadour' ? 0.038 : 0;
   const cover = look.headwear === 'rebozo' || look.headwear === 'panuelo' ? 0.022 : look.headwear === 'flor' ? 0.012 : 0;
   const carried = look.carry === 'guitar' ? 0.07 : 0;
+  // A drawing is normalized to height 1, hat and hair included.
+  if (look.art != null) return BASE_HEIGHT[look.human] * look.build.height;
   return BASE_HEIGHT[look.human] * look.build.height * (1 + Math.max(hat, hair, cover, carried));
 }

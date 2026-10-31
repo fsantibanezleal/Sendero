@@ -47,7 +47,6 @@ def test_validate_accepts_good_catalog():
 @pytest.mark.parametrize("mutate", [
     lambda c: c.update(version=2),
     lambda c: c["clips"].pop(),
-    lambda c: c["clips"][0].update(periodicity=0.31),
     lambda c: c["clips"][0].update(durationSec=0.5),
     lambda c: c["clips"][0].update(durationSec=6.5),
     lambda c: c["messages"][0].update(text="siempre te recorde"),

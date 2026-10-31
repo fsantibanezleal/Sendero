@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { hashPin, isValidPin, newSalt, verifyPin } from '../kiosk/pin';
-import type { MaskMode, Settings } from '../settings/settings';
+import type { Settings } from '../settings/settings';
 import { palette } from '../theme/palette';
 import { FONT_TITLE } from '../scene/Overlays';
 
@@ -11,8 +11,6 @@ export interface StaffStatus {
   version: string;
   kiosk: string;
   deviceOwner: boolean;
-  model: string;
-  maskRate: number;
   ownTracks: number;
   bundledTracks: number;
   nowPlaying: string;
@@ -131,11 +129,6 @@ export function StaffPanel({
 
   const set = (patch: Partial<Settings>) => onSettings({ ...settings, ...patch });
   const step = (v: number, d: number) => Math.round(Math.max(0, Math.min(1, v + d)) * 100) / 100;
-  const modes: { mode: MaskMode; label: string }[] = [
-    { mode: 'auto', label: 'Automático' },
-    { mode: 'live', label: 'En vivo' },
-    { mode: 'still', label: 'Foto fija' },
-  ];
 
   return (
     <View style={styles.backdrop}>
@@ -143,7 +136,6 @@ export function StaffPanel({
         <Text style={styles.title}>Sendero {status.version}</Text>
         <Text style={styles.status}>
           Quiosco: {status.kiosk} · Propietario del dispositivo: {status.deviceOwner ? 'sí' : 'no'}
-          {'\n'}Silueta de la persona: {status.model} · Máscara: {status.maskRate.toFixed(1)} por segundo
           {'\n'}Música propia: {status.ownTracks} · Tradicional: {status.bundledTracks}
           {status.nowPlaying ? `\nSonando: ${status.nowPlaying}` : ''}
         </Text>
@@ -158,11 +150,6 @@ export function StaffPanel({
         </Section>
 
         <Section title="Experiencia">
-          <View style={styles.row}>
-            {modes.map((m) => (
-              <Button key={m.mode} label={m.label} selected={settings.maskMode === m.mode} onPress={() => set({ maskMode: m.mode })} />
-            ))}
-          </View>
           <Toggle label="Mostrar 'Toca la pantalla'" value={settings.showHint} onChange={(v) => set({ showHint: v })} />
           <Button
             label="Probar una visita"

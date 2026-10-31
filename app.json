@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sendero",
     "slug": "sendero",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "platforms": ["android"],
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -10,7 +10,7 @@
     "backgroundColor": "#14102B",
     "android": {
       "package": "com.faslwork.sendero",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": ["android.permission.CAMERA"],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",

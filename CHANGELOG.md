@@ -5,6 +5,21 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ## [Unreleased]
 
+## [0.01.002] - 2026-10-30
+
+### Changed
+- The silhouettes are now 69 licensed drawings, at least ten per archetype, with realistic proportions, in place of the
+  drawn rig figures.
+- The family is dressed for the day: inner contour strokes, calavera face paint, flower crowns, marigold necklaces,
+  rebozo, huipil, serape and catrin clothes, and alebrije pets, in random colors per visit (`docs/figures.md`).
+- The music: ten warm instrumental pieces under CC BY 4.0 replace the noisy recordings of 1904 to 1920.
+- The voice: a soft near voice with a little breath replaces the distant whisper, which measured as far less natural.
+
+### Fixed
+- The next visit is planned during the farewell and a touch during the end of a visit is remembered, so touching
+  after a visit always starts the next one; the clock follows real time when the camera slows down.
+- The farewell places each drawing by its real width: it never touches the frame or leaves the screen.
+
 ## [0.01.001] - 2026-10-30
 
 ### Changed

@@ -7,7 +7,7 @@
  * speaker. Excluded on purpose (research-culture D4 risk flags): anything that reads as a call to
  * death ("te espero", "nos vemos pronto"), assigns guilt or assumes a belief.
  *
- * The whispered clips in assets/voice are rendered from the same ids and texts
+ * The voice clips in assets/voice are rendered from the same ids and texts
  * (pipeline/voice/messages.json, checked equal by a test).
  */
 export type Theme = 'owner' | 'reunion' | 'memory' | 'company' | 'support';

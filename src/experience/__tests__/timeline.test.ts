@@ -1,4 +1,4 @@
-import { computeLayout, frameAt, frameTransform } from '../layout';
+import { besideFrame, computeLayout, frameAt, frameTransform } from '../layout';
 import { inWindow, phaseAt, TIMELINE, windowProgress } from '../timeline';
 
 describe('timeline', () => {
@@ -82,5 +82,22 @@ describe('layout', () => {
     expect(st.tx).toBeCloseTo(stage.x, 6);
     expect(st.s).toBeCloseTo(layout.stageScale, 6);
     expect(frameAt(layout, 1, 1, 1)).toEqual({ tx: 0, ty: 0, s: 1 });
+  });
+});
+
+describe('the place beside the frame', () => {
+  const layout = computeLayout(1280, 800);
+
+  it('keeps a wide drawing off the frame and on the screen', () => {
+    for (const aspect of [0.2, 0.5, 0.85, 1.6, 3]) {
+      const { x, height } = besideFrame(layout, layout.companion.x, layout.companion.height, aspect);
+      const half = (height * aspect) / 2;
+      expect(x + half).toBeLessThan(layout.stage.x);
+      expect(x - half).toBeGreaterThan(0);
+    }
+  });
+
+  it('leaves a slim drawing where it was asked to stand, at its full height', () => {
+    expect(besideFrame(layout, layout.companion.x, layout.companion.height, 0.3)).toEqual({ x: layout.companion.x, height: layout.companion.height });
   });
 });

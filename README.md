@@ -15,7 +15,7 @@ their world to ours. Sendero turns that path into a short, warm moment for each 
    sometimes with a dog or a cat beside them) walks the path toward the visitor, coming closer for about seven
    seconds, stepping with real human gait data.
 4. The frame returns to full screen: the visitor, a little smaller, with the soft silhouette standing behind them.
-5. A message covers the screen ("Siempre te recordaré", "También te extraño", ...), whispered from a distance while
+5. A message covers the screen ("Siempre te recordaré", "También te extraño", ...), said by a soft voice while
    the music softens. About ten seconds later the screen waits for the next friend.
 
 The figures are generic and faceless, there are no children, and nothing the camera sees is stored or sent: the app

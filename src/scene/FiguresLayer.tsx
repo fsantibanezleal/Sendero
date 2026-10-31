@@ -174,9 +174,10 @@ export function FiguresLayer({
   const companionArt = useMemo(() => (companion?.art != null ? artPath(companion.art) : null), [companion?.art]);
   const companionArtScale = companion != null ? PET_ART_HEIGHT * companion.size : 0;
   const walkerDressed = useMemo(() => (walkerLook.art != null ? dressedFigure(walkerLook.art, visit.id * 10 + visit.walker) : null), [walkerLook.art, visit.id, visit.walker]);
+  const companionArtId = companion?.art ?? null;
   const companionDressed = useMemo(
-    () => (companion?.art != null && visit.companion != null ? dressedFigure(companion.art, visit.id * 10 + 4 + visit.companion) : null),
-    [companion?.art, visit.id, visit.companion],
+    () => (companionArtId != null && visit.companion != null ? dressedFigure(companionArtId, visit.id * 10 + 4 + visit.companion) : null),
+    [companionArtId, visit.id, visit.companion],
   );
   const walker = useDerivedValue(() => {
     const t = clock.value;

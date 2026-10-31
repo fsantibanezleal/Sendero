@@ -275,7 +275,7 @@ export function FiguresLayer({
     <Group>
       <Ghost main={familyMain} far={familyFar} opacity={familyOpacity} top={familyTop} bottom={familyBottom} glow={familyGlow} halo={dressedFamily.length > 0} />
       {dressedFamily.map((f, i) => (
-        <DressedFigure key={i} figure={f.figure} transform={f.transform} opacity={familyOpacity} />
+        <DressedFigure key={i} figure={f.figure} transform={f.transform} opacity={familyOpacity} time={time} />
       ))}
       <Sparkles
         image={atlas.image}
@@ -295,8 +295,8 @@ export function FiguresLayer({
         </Circle>
       </Group>
       <Ghost main={walkerMain} far={walkerFar} opacity={walkerOpacity} top={walkerTop} bottom={walkerBottom} glow={walkerGlow} halo={walkerDressed != null} />
-      <DressedFigure figure={walkerDressed} transform={walkerImage} opacity={walkerOpacity} />
-      <DressedFigure figure={companionDressed} transform={petImage} opacity={walkerOpacity} />
+      <DressedFigure figure={walkerDressed} transform={walkerImage} opacity={walkerOpacity} time={time} />
+      <DressedFigure figure={companionDressed} transform={petImage} opacity={walkerOpacity} time={time} />
     </Group>
   );
 }

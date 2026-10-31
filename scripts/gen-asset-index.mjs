@@ -19,6 +19,9 @@ function readJson(rel) {
   return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : null;
 }
 
+// `--only <title>`: a local test build plays one track, assets/music/_local.mp3 (never committed).
+const onlyAt = process.argv.indexOf('--only');
+const only = onlyAt >= 0 ? process.argv[onlyAt + 1] : null;
 const music = readJson('assets/music/catalog.json');
 const voice = readJson('assets/voice/catalog.json');
 
@@ -36,7 +39,10 @@ const lines = [
   '',
   'export const BUNDLED_TRACKS: BundledTrack[] = [',
 ];
-for (const t of music?.tracks ?? []) {
+if (only != null) {
+  lines.push(`  { id: "local", title: ${JSON.stringify(only)}, performer: "", year: 2026, source: require('../../assets/music/_local.mp3') },`);
+}
+for (const t of only != null ? [] : (music?.tracks ?? [])) {
   lines.push(
     `  { id: ${JSON.stringify(t.id)}, title: ${JSON.stringify(t.title)}, performer: ${JSON.stringify(t.performer)}, year: ${Number(t.year)}, source: require('../../assets/music/${t.file}') },`,
   );

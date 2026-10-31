@@ -28,6 +28,13 @@ import { log } from '../diagnostics/log';
 
 export type ModelState = 'loading' | 'ready' | 'unavailable';
 
+export interface HeadPlace {
+  x: number;
+  y: number;
+  width: number;
+  seen: number;
+}
+
 export interface FrameSize {
   width: number;
   height: number;
@@ -43,6 +50,8 @@ export interface CameraFeed {
   size: SharedValue<FrameSize>;
   /** The latest person mask (alpha), or null when the mask is off or not computed yet. */
   mask: SharedValue<SkImage | null>;
+  /** The top of the visitor's head in the image (fractions of its size), smoothed; `seen` fades from 0 to 1. */
+  head: SharedValue<HeadPlace>;
   /** Masks per second actually produced (exponential average), for the automatic mode choice. */
   maskRate: SharedValue<number>;
   modelState: ModelState;
@@ -56,6 +65,11 @@ export interface CameraFeed {
 const MASK_EVERY = 2;
 /** Weight of the newest mask in the moving average. */
 const MASK_EMA = 0.6;
+/** Weight of the newest head position, so the flowers do not tremble. */
+const HEAD_EMA = 0.35;
+/** A pixel counts as the person from this probability; the head is measured this far under its top. */
+const HEAD_PROBABILITY = 0.6;
+const HEAD_DROP = 0.1;
 /** Probability band mapped to the soft edge of the cut-out. */
 const EDGE_LOW = 0.3;
 const EDGE_HIGH = 0.7;
@@ -114,6 +128,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
   const mask = useSharedValue<SkImage | null>(null);
   const retired = useRef<SkImage[]>([]);
   const maskRate = useSharedValue(0);
+  const head = useSharedValue<HeadPlace>({ x: 0.5, y: 0.3, width: 0.2, seen: 0 });
   const [info, setInfo] = useState<ModelInfo | null>(null);
   const [modelState, setModelState] = useState<ModelState>('loading');
 
@@ -151,7 +166,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
   }, []);
 
   const publish = useCallback(
-    (next: SkImage, nextMask: SkImage | null) => {
+    (next: SkImage, nextMask: SkImage | null, found: HeadPlace | null) => {
       inFlight.setBlocking(false);
       const w = next.width();
       const h = next.height();
@@ -166,6 +181,14 @@ export function useCameraFeed(active: boolean): CameraFeed {
       retire(image.get());
       image.set(next);
       if (nextMask != null) {
+        const h = head.get();
+        // Follows the person gently; a measure that is lost fades the flowers without moving them.
+        if (found != null) {
+          const k = h.seen < 0.05 ? 1 : HEAD_EMA;
+          head.set({ x: h.x + (found.x - h.x) * k, y: h.y + (found.y - h.y) * k, width: h.width + (found.width - h.width) * k, seen: Math.min(1, h.seen + 0.25) });
+        } else {
+          head.set({ ...h, seen: Math.max(0, h.seen - 0.25) });
+        }
         retire(mask.get());
         mask.set(nextMask);
         const now = Date.now();
@@ -176,7 +199,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
         }
       }
     },
-    [image, size, mask, maskRate, lastMaskAt, inFlight, retire],
+    [image, size, mask, maskRate, head, lastMaskAt, inFlight, retire],
   );
 
   const setMaskActive = useCallback(
@@ -186,9 +209,10 @@ export function useCameraFeed(active: boolean): CameraFeed {
         retire(mask.get());
         mask.set(null);
         maskRate.set(0);
+        head.set({ ...head.get(), seen: 0 });
       }
     },
-    [flags, mask, maskRate, retire],
+    [flags, mask, maskRate, head, retire],
   );
 
   const setFrozen = useCallback(
@@ -271,7 +295,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
         const cpuImage = snapshot.makeNonTextureImage();
         if (cpuImage != null) {
           inFlight.setBlocking(true);
-          scheduleOnRN(publish, cpuImage, maskImage);
+          scheduleOnRN(publish, cpuImage, maskImage, maskImage != null ? findHead(g.__senderoMask as MaskScratch) : null);
         } else {
           maskImage?.dispose();
         }
@@ -313,7 +337,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
     [],
   );
 
-  return { image, size, mask, maskRate, modelState, setMaskActive, setFrozen };
+  return { image, size, mask, head, maskRate, modelState, setMaskActive, setFrozen };
 }
 
 interface SourceState {
@@ -421,6 +445,40 @@ interface MaskScratch {
   smooth: Float32Array;
   rgba: Uint8Array;
   hasPrevious: boolean;
+}
+
+/**
+ * The top of the head from the smoothed person mask: the first rows that hold enough of the person, and the longest
+ * run a little under them, which is the width of the head. Works with the hair, where a face detector would only
+ * see the face. Null when nobody is there or the shape is no head (a shoulder filling the image).
+ */
+export function findHead(s: { width: number; height: number; smooth: Float32Array }): HeadPlace | null {
+  'worklet';
+  const { width: w, height: h, smooth } = s;
+  let top = -1;
+  for (let y = 0; y < h && top < 0; y++) {
+    let count = 0;
+    for (let x = 0; x < w; x++) if (smooth[y * w + x] > HEAD_PROBABILITY) count++;
+    if (count >= w * 0.02) top = y;
+  }
+  if (top < 0) return null;
+  const row = Math.min(h - 1, top + Math.round(h * HEAD_DROP));
+  let bestStart = 0;
+  let bestLength = 0;
+  let start = -1;
+  for (let x = 0; x <= w; x++) {
+    const on = x < w && smooth[row * w + x] > HEAD_PROBABILITY;
+    if (on && start < 0) start = x;
+    if (!on && start >= 0) {
+      if (x - start > bestLength) {
+        bestLength = x - start;
+        bestStart = start;
+      }
+      start = -1;
+    }
+  }
+  if (bestLength < w * 0.04 || bestLength > w * 0.6) return null;
+  return { x: (bestStart + bestLength / 2) / w, y: top / h, width: bestLength / w, seen: 1 };
 }
 
 function createScratch(width: number, height: number): MaskScratch {

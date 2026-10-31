@@ -1,8 +1,9 @@
-import { Atlas, Blur, Circle, Group, Image, Line, Path, RadialGradient, rrect, Skia, vec } from '@shopify/react-native-skia';
+import { Atlas, Blur, Circle, Group, Image, Line, Path, RadialGradient, rrect, Skia, vec, type Transforms3d } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
 import type { CameraFeed } from '../camera/useCameraFeed';
+import { visitorCrown } from '../figures/decor';
 import type { Layout } from '../experience/layout';
 import { frameAt } from '../experience/layout';
 import { TIMELINE, windowProgress } from '../experience/timeline';
@@ -59,6 +60,16 @@ export function FrameLayer({
   const cw = useDerivedValue(() => cover.value.width);
   const ch = useDerivedValue(() => cover.value.height);
 
+  // The flowers in the visitor's hair: a little wider than the head, the arc resting on its top.
+  const crown = useMemo(() => visitorCrown(), []);
+  const crownTransform = useDerivedValue((): Transforms3d => {
+    const c = cover.value;
+    const head = feed.head.value;
+    const s = head.width * c.width * 1.25;
+    return [{ translateX: c.x + head.x * c.width - s / 2 }, { translateY: c.y + head.y * c.height - s * 0.3 }, { scale: s }];
+  });
+  const crownOpacity = useDerivedValue(() => feed.head.value.seen);
+
   const garland = useMemo(() => {
     const sprites = garlandSprites({ width: W, height: H, band: layout.band, seed: 1102, headVariants: HEAD_VARIANTS, leafVariants: LEAF_VARIANTS });
     return {
@@ -77,6 +88,7 @@ export function FrameLayer({
     <Group transform={transform}>
       <Group clip={clip}>
         <Image image={feed.image} x={cx} y={cy} width={cw} height={ch} fit="fill" />
+        <Image image={crown} x={0} y={0} width={1} height={1} transform={crownTransform} opacity={crownOpacity} fit="fill" />
       </Group>
       <Atlas image={atlas.image} sprites={garland.rects} transforms={garland.transforms} />
       <Line p1={vec(0, string.y + 2)} p2={vec(W, string.y + 2)} color="rgba(255, 244, 224, 0.5)" strokeWidth={2} />

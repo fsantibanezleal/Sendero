@@ -58,3 +58,5 @@ Thumbs.db
 !.vscode/extensions.json
 local.properties
 pipeline/voice/.venv/
+# The owner's test track of a local build (scripts/build-apk.ps1 -OnlyTrack).
+assets/music/_local.mp3

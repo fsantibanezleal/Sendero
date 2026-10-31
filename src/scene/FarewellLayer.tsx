@@ -125,8 +125,8 @@ export function FarewellLayer({
         <Bokeh key={i} x={b.x} y={b.y} r={b.r} phase={b.phase} time={time} strength={appear} />
       ))}
       <Ghost main={ghostMain} far={ghostFar} opacity={ghostOpacity} top={ghostTop} bottom={ghostBottom} glow={ghostGlow} halo={personDressed != null} />
-      <DressedFigure figure={personDressed} transform={personImage} opacity={ghostOpacity} />
-      <DressedFigure figure={petDressed} transform={[{ translateX: petX }, { translateY: petSpot.ground }, { scale: petArtH }]} opacity={ghostOpacity} />
+      <DressedFigure figure={personDressed} transform={personImage} opacity={ghostOpacity} time={time} />
+      <DressedFigure figure={petDressed} transform={[{ translateX: petX }, { translateY: petSpot.ground }, { scale: petArtH }]} opacity={ghostOpacity} time={time} />
       <Sparkles
         image={atlas.image}
         sprite={atlas.glow}

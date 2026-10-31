@@ -13,6 +13,7 @@ import { BUNDLED_TRACKS, VOICE_CLIPS } from './src/audio/assets.generated';
 import { clearImportedMusic, importFromPickedFolder, ownTracks } from './src/audio/importMusic';
 import { buildRound, type Track } from './src/audio/playlist';
 import { SoundEngine } from './src/audio/soundEngine';
+import { CameraView } from './src/camera/CameraView';
 import { useCameraFeed } from './src/camera/useCameraFeed';
 import { MESSAGES } from './src/content/messages';
 import { log } from './src/diagnostics/log';
@@ -211,6 +212,7 @@ function Altar() {
     <View style={styles.root}>
       <GestureDetector gesture={touch}>
         <View style={styles.root} collapsable={false}>
+          <CameraView feed={feed} layout={layout} clock={experience.clock} />
           <Scene layout={layout} feed={feed} atlas={atlas} clock={experience.clock} time={experience.time} visit={experience.visit} shown={experience.shown} />
           <Hint clock={experience.clock} time={experience.time} visible={settings.showHint} />
           <MessageOverlay visit={experience.shown} clock={experience.clock} />

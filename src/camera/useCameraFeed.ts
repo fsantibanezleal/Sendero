@@ -2,7 +2,7 @@ import { AlphaType, ColorType, Skia, type SkImage } from '@shopify/react-native-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type SharedValue, useSharedValue } from 'react-native-reanimated';
 import { loadTensorflowModel, type TensorflowModel } from 'react-native-fast-tflite';
-import { type Frame, useCamera, useFrameOutput, useOrientation } from 'react-native-vision-camera';
+import { type CameraPreviewOutput, type Frame, useCamera, useFrameOutput, useOrientation, usePreviewOutput } from 'react-native-vision-camera';
 import { renderToTexture } from 'react-native-vision-camera-skia';
 import { createSynchronizable, scheduleOnRN } from 'react-native-worklets';
 
@@ -41,7 +41,9 @@ export interface FrameSize {
 }
 
 export interface CameraFeed {
-  /** The latest upright, mirrored camera frame, or null before the first frame. */
+  /** The live camera for the native preview view (`CameraView.tsx`); the scene never copies its frames. */
+  preview: CameraPreviewOutput;
+  /** Unused since the native preview: always null. */
   image: SharedValue<SkImage | null>;
   /**
    * The size of the camera frames (0 x 0 before the first one). Layout reads this, never the image
@@ -64,7 +66,7 @@ export interface CameraFeed {
 /** Run the model on one frame out of MASK_EVERY. */
 /** Milliseconds between person measures: the flowers follow gently, and the camera keeps its frames. */
 const MASK_INTERVAL_MS = 450;
-const CAMERA_SIZE = { width: 960, height: 540 };
+const CAMERA_SIZE = { width: 640, height: 360 };
 const CAMERA_CONSTRAINTS = [{ fps: 24 }];
 /** How often the camera's real rate is logged, to diagnose a device. */
 const RATE_LOG_MS = 10000;
@@ -75,13 +77,6 @@ const HEAD_EMA = 0.35;
 /** A pixel counts as the person from this probability; the head is measured this far under its top. */
 const HEAD_PROBABILITY = 0.6;
 const HEAD_DROP = 0.1;
-/**
- * Replaced images are disposed this many publishes later, not at once: the shared value reaches the UI
- * thread asynchronously, so the canvas may still draw (or a layer measure) the previous image for a
- * frame after the JS thread replaced it. Disposing it at once crashed the app ("Attempted to access a
- * disposed object" in a UI-thread derived value).
- */
-const RETIRE_AFTER = 4;
 /**
  * Frames probed at start to choose how frames reach Skia. The GPU path imports the camera's hardware
  * buffer as a texture (`renderToTexture`); some GPUs return a black texture for it (the Android
@@ -154,17 +149,14 @@ export function useCameraFeed(active: boolean): CameraFeed {
 
   // What the scene holds, kept here too. Reading a shared value on the JS thread waits for the UI thread: on the TCL
   // Tab A1 Plus that made a frame take 1.4 to 10 seconds to pass, with the JS thread idle and the video frozen.
-  const shown = useRef<{ image: SkImage | null; width: number; height: number }>({ image: null, width: 0, height: 0 });
+  const shown = useRef({ width: 0, height: 0 });
   const place = useRef<HeadPlace>({ x: 0.5, y: 0.3, width: 0.2, seen: 0 });
-  const retired = useRef<SkImage[]>([]);
   const rate = useRef({ frames: 0, at: 0 });
 
   /** Hands a finished frame to the scene. Only writes shared values, it never reads them. */
   const publish = useCallback(
-    (next: SkImage, measured: boolean, found: HeadPlace | null) => {
+    (w: number, h: number, measured: boolean, found: HeadPlace | null) => {
       inFlight.setBlocking(false);
-      const w = next.width();
-      const h = next.height();
       const current = shown.current;
       if (current.width === 0) log(`camera: first frame ${w} x ${h}`);
       if (current.width !== w || current.height !== h) {
@@ -172,21 +164,12 @@ export function useCameraFeed(active: boolean): CameraFeed {
         current.height = h;
         size.set({ width: w, height: h });
       }
-      image.set(next);
-      if (current.image != null) {
-        // Disposed only after RETIRE_AFTER more replacements (see RETIRE_AFTER).
-        retired.current.push(current.image);
-        while (retired.current.length > RETIRE_AFTER) {
-          retired.current.shift()?.dispose();
-        }
-      }
-      current.image = next;
       const r = rate.current;
       r.frames += 1;
       const now = Date.now();
       if (r.at === 0) r.at = now;
       if (now - r.at >= RATE_LOG_MS) {
-        log(`camera: ${((r.frames * 1000) / (now - r.at)).toFixed(1)} frames per second reach the scene`);
+        log(`camera: ${((r.frames * 1000) / (now - r.at)).toFixed(1)} person measures per second`);
         r.frames = 0;
         r.at = now;
       }
@@ -202,7 +185,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
         head.set(place.current);
       }
     },
-    [image, size, head, inFlight],
+    [size, head, inFlight],
   );
 
   const setMaskActive = useCallback(
@@ -228,6 +211,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
   const inH = info?.height ?? 0;
   const channels = info?.channels ?? 1;
 
+  const preview = usePreviewOutput();
   const frameOutput = useFrameOutput({
     // RGB: 'native' resolves to PRIVATE, which some devices refuse for image analysis, and YUV hardware
     // buffers were imported as black frames on the emulator; RGBA buffers import everywhere (CameraX
@@ -246,11 +230,15 @@ export function useCameraFeed(active: boolean): CameraFeed {
         const stats = frameStats();
         stats.calls += 1;
         const state = flags.getBlocking();
-        if (state.frozen || inFlight.getBlocking()) {
+        if (state.frozen || inFlight.getBlocking() || !state.maskActive || model == null || inW <= 0) {
           stats.busy += 1;
           return;
         }
         const g = globalThis as unknown as { __senderoSource?: SourceState; __senderoMask?: MaskScratch };
+        if (g.__senderoMask != null && t0 - g.__senderoMask.measuredAt < MASK_INTERVAL_MS) {
+          stats.busy += 1;
+          return;
+        }
         if (g.__senderoSource == null) {
           g.__senderoSource = { mode: 'probe', probes: 0, gpuSum: 0, cpuSum: 0, cpuReads: 0, maskError: false, frameError: false };
         }
@@ -305,7 +293,6 @@ export function useCameraFeed(active: boolean): CameraFeed {
         }
 
         const t4 = Date.now();
-        const cpuImage = snapshot.makeNonTextureImage();
         const t5 = Date.now();
         stats.read += t1 - t0;
         stats.render += t2 - t1;
@@ -318,10 +305,8 @@ export function useCameraFeed(active: boolean): CameraFeed {
           scheduleOnRN(report, `frames ${stats.calls} called, ${stats.busy} busy, ${stats.done} done; ms read ${(stats.read / k).toFixed(0)} render ${(stats.render / k).toFixed(0)} probe ${(stats.probe / k).toFixed(0)} measure ${(stats.measure / k).toFixed(0)} copy ${(stats.copy / k).toFixed(0)}`);
           Object.assign(stats, { calls: 0, busy: 0, done: 0, read: 0, render: 0, probe: 0, measure: 0, copy: 0, at: t5 });
         }
-        if (cpuImage != null) {
-          inFlight.setBlocking(true);
-          scheduleOnRN(publish, cpuImage, measured, found);
-        }
+        inFlight.setBlocking(true);
+        scheduleOnRN(publish, snapshot.width(), snapshot.height(), measured, found);
       } catch (e) {
         // Reported once; the next frame tries again.
         const g = globalThis as unknown as { __senderoSource?: SourceState };
@@ -340,7 +325,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
   useCamera({
     isActive: active,
     device: 'front',
-    outputs: [frameOutput],
+    outputs: [preview, frameOutput],
     constraints: CAMERA_CONSTRAINTS,
     mirrorMode: 'on',
     orientationSource: 'custom',
@@ -353,7 +338,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
     frameOutput.outputOrientation = orientation;
   }, [frameOutput, orientation]);
 
-  return { image, size, mask, head, maskRate, modelState, setMaskActive, setFrozen };
+  return { preview, image, size, mask, head, maskRate, modelState, setMaskActive, setFrozen };
 }
 
 interface SourceState {

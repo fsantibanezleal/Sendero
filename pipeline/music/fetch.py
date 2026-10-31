@@ -1,10 +1,10 @@
-"""Download the included manifest items from the Internet Archive into the data root and verify them.
+"""Download the included manifest items into the data root and verify them.
 
     python -m pipeline.music.fetch
 
-For every manifest item the Internet Archive metadata must carry the Public Domain Mark licence URL. The SHA-256 of
-each downloaded file is recorded in pipeline/music/manifest.lock.json; a later run that sees a different hash fails.
-An unreachable item is reported and skipped (exit code 3 at the end); the master step proceeds with the others.
+The SHA-256 of each downloaded file is recorded in pipeline/music/manifest.lock.json; a later run that sees a
+different hash fails. An unreachable item is reported and skipped (exit code 3 at the end); the master step proceeds
+with the others.
 """
 from __future__ import annotations
 
@@ -14,24 +14,16 @@ from pathlib import Path
 
 from pipeline import common
 
-PDM_URL = "https://creativecommons.org/publicdomain/mark/1.0/"
 MANIFEST = common.REPO_ROOT / "pipeline/music/manifest.json"
 LOCK = common.REPO_ROOT / "pipeline/music/manifest.lock.json"
 
 
 class FetchError(RuntimeError):
-    """A licence or integrity failure: never skipped."""
+    """An integrity failure: never skipped."""
 
 
 def raw_dir() -> Path:
     return common.data_root() / "music" / "raw"
-
-
-def mp3_name(files: list[dict]) -> str:
-    names = [f["name"] for f in files if f.get("format") == "VBR MP3" or f["name"].lower().endswith(".mp3")]
-    if len(names) != 1:
-        raise FetchError(f"expected exactly one MP3 in the item, found {names}")
-    return names[0]
 
 
 def load_lock() -> dict:
@@ -55,32 +47,18 @@ def main() -> int:
     lock = load_lock()
     failures: list[str] = []
     for item in manifest["items"]:
-        ident = item["identifier"]
-        try:
-            meta = json.loads(
-                common.http_get(f"https://archive.org/metadata/{ident}", label=ident).decode("utf-8")
-            )
-        except RuntimeError as exc:
-            print(f"UNREACHABLE {item['id']}: {exc}")
-            failures.append(item["id"])
-            continue
-        licence = meta.get("metadata", {}).get("licenseurl")
-        if licence != PDM_URL:
-            raise FetchError(f"{item['id']}: licenseurl is {licence!r}, expected the Public Domain Mark {PDM_URL}")
         if not item["include"]:
-            print(f"skip   {item['id']} (excluded: {item['reason']})")
             continue
-        name = mp3_name(meta["files"])
         dest = out / f"{item['id']}.mp3"
         if not dest.exists():
             try:
-                common.http_get(f"https://archive.org/download/{ident}/{name}", dest, label=item["id"])
+                common.http_get(item["url"], dest, label=item["id"])
             except RuntimeError as exc:
                 print(f"UNREACHABLE {item['id']}: {exc}")
                 failures.append(item["id"])
                 continue
         digest = common.sha256_file(dest)
-        verify_hash(lock, item["id"], digest, name)
+        verify_hash(lock, item["id"], digest, dest.name)
         print(f"ok     {item['id']}  {digest[:16]}  {dest.stat().st_size} bytes")
     lock["files"] = dict(sorted(lock["files"].items()))
     common.write_json(LOCK, lock)

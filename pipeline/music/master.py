@@ -4,7 +4,7 @@
 
 Chain: decode to mono 44.1 kHz float, 50 Hz high-pass (2nd order Butterworth), 1.5 s fade in and 3 s fade out,
 integrated loudness -16 LUFS (ITU-R BS.1770 through pyloudnorm), true peak at or under -1 dBTP (4x oversampled)
-by gain reduction, AAC in .m4a at 96 kb/s. Loudness and true peak recorded in the catalog are measured on the
+by gain reduction, AAC in .m4a at 128 kb/s. Loudness and true peak recorded in the catalog are measured on the
 decoded m4a, so the encoder is inside the measurement. A raw file that is missing is reported and skipped.
 """
 from __future__ import annotations
@@ -23,10 +23,9 @@ SR = 44100
 TARGET_LUFS = -16.0
 LOUDNESS_TOLERANCE = 0.3
 TRUE_PEAK_MAX = -1.0
-BITRATE = "96k"
-LICENSE = "Public Domain Mark 1.0"
-LICENSE_URL = "https://creativecommons.org/publicdomain/mark/1.0/"
-CREDIT = "Library of Congress National Jukebox"
+BITRATE = "128k"
+LICENSE = "CC BY 4.0"
+LICENSE_URL = "https://creativecommons.org/licenses/by/4.0/"
 OUT = common.REPO_ROOT / "assets" / "music"
 MANIFEST = common.REPO_ROOT / "pipeline/music/manifest.json"
 FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
@@ -100,15 +99,15 @@ def main() -> int:
             "title": item["title"],
             "performer": item["performer"],
             "year": item["year"],
-            "composer": item["composer"]["name"],
+            "composer": item["composer"],
             "durationSec": round(m["durationSec"], 1),
             "instrumental": item["instrumental"],
             "loudnessLufs": round(m["loudnessLufs"], 2),
             "truePeakDbtp": round(m["truePeakDbtp"], 2),
             "license": LICENSE,
             "licenseUrl": LICENSE_URL,
-            "source": f"https://archive.org/details/{item['identifier']}",
-            "credit": CREDIT,
+            "source": item["url"],
+            "credit": f'"{item["title"]}" {item["performer"]} (incompetech.com), licensed under Creative Commons: By Attribution 4.0',
         })
     keep = {t["file"] for t in tracks}
     for stale in OUT.glob("*.m4a"):

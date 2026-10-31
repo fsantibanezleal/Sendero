@@ -30,7 +30,7 @@ has no internet permission.
 | App | `App.tsx`, `src/` | `experience/` (timeline, clock, choices), `scene/` (the single Skia canvas and its layers), `flowers/` (procedural marigolds, garland), `path/` (petal path), `figures/` (rig, gait, silhouettes), `camera/` (feed and person mask), `audio/` (music, voice), `staff/` (panel), `kiosk/`, `procedural/` (geometry library) |
 | Native module | `modules/sendero-kiosk/` | Kotlin: device owner, lock task mode, home launcher, screen on while plugged |
 | Config plugins | `plugins/` | Privacy (no internet), kiosk manifest, release signing, Windows native build paths |
-| Assets | `assets/` | Icons, Cormorant Garamond fonts (OFL), public-domain music, whispered voice clips, the MediaPipe selfie segmenter (Apache-2.0); every third-party file is listed in [ASSETS.md](ASSETS.md) |
+| Assets | `assets/` | Icons, Cormorant Garamond fonts (OFL), warm instrumental music (CC BY 4.0), spoken voice clips, the MediaPipe selfie segmenter (Apache-2.0); every third-party file is listed in [ASSETS.md](ASSETS.md) |
 | Offline pipeline | `pipeline/` | Python: music fetch and mastering, gait curve fitting, voice rendering, icons |
 | Data | `data/gait/` | Fourier gait curves fitted from Fukuchi et al. 2018 (CC BY 4.0) |
 | Docs | `docs/` | [Index](docs/README.md): the experience, the scene, the reveal, sound, music, voice, gait, kiosk, architecture, guides |

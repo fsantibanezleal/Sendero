@@ -5,6 +5,16 @@ All notable changes to Sendero are recorded here. The format follows Keep a Chan
 
 ## [Unreleased]
 
+## [0.01.004] - 2026-10-31
+
+### Fixed
+- A modest tablet (TCL Tab A1 Plus, Snapdragon 4 Gen 2, 2400 x 1600 at 120 Hz) froze: the camera is 960 x 540 at 24 frames
+  per second, the person measure runs on the CPU about twice a second, the screen is held at 60 Hz, the glow is a baked
+  image instead of a blur every frame, and the figure images are smaller.
+
+### Added
+- The real camera rate reaches the system log every 10 seconds, to diagnose a device.
+
 ## [0.01.003] - 2026-10-31
 
 ### Changed

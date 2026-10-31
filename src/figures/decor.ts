@@ -4,7 +4,7 @@
  * person holds a candle (docs/figures.md). Painted once per figure, on the JS thread, in figure units (feet at
  * y = 0, height 1, facing right) and rendered into an image; the scene only places the image.
  */
-import { ClipOp, PaintStyle, type SkCanvas, Skia, type SkImage, type SkPaint, type SkPath, type SkPicture, StrokeCap, TileMode, vec } from '@shopify/react-native-skia';
+import { BlurStyle, ClipOp, PaintStyle, type SkCanvas, Skia, type SkImage, type SkPaint, type SkPath, type SkPicture, StrokeCap, TileMode, vec } from '@shopify/react-native-skia';
 
 import type { ArtEntry, PersonAnchors, PetAnchors } from './artData';
 import { artById } from './artData';
@@ -176,9 +176,10 @@ export function decoratedPicture(id: string, seed: number, holdsCandle = false):
   return recorder.finishRecordingAsPicture();
 }
 
-/** A dressed figure: its image, the box it fills and the flame of its candle, in figure units. */
+/** A dressed figure: its image, its soft glow, the box they fill and the flame of its candle, in figure units. */
 export interface Dressed {
   image: SkImage;
+  glow: SkImage | null;
   x: number;
   y: number;
   width: number;
@@ -186,8 +187,9 @@ export interface Dressed {
   flame: { x: number; y: number } | null;
 }
 
-/** Pixels per figure height: as sharp as the farewell needs, where a figure is tallest. */
-const IMAGE_PX = 900;
+/** Pixels per figure height at each size on screen, and of the glow, which is only soft light. */
+export const FIGURE_PX = { family: 340, walk: 560, farewell: 760 };
+const GLOW_PX = 110;
 const MARGIN = 0.14;
 const CACHE_SIZE = 12;
 const cache = new Map<string, Dressed>();
@@ -207,9 +209,23 @@ export function bodyPaint(): SkPaint {
   return p;
 }
 
+/** The halo baked small: a blur every frame is what a modest GPU cannot afford, a stretched image is nothing. */
+function glowOf(id: string, width: number, height: number, x: number, y: number): SkImage | null {
+  const surface = Skia.Surface.Make(Math.ceil(width * GLOW_PX), Math.ceil(height * GLOW_PX));
+  if (surface == null) return null;
+  const canvas = surface.getCanvas();
+  canvas.scale(GLOW_PX, GLOW_PX);
+  canvas.translate(-x, -y);
+  const paint = fill('#FFD58A', 0.9);
+  paint.setMaskFilter(Skia.MaskFilter.MakeBlur(BlurStyle.Normal, 0.045, true));
+  canvas.drawPath(artPath(id), paint);
+  surface.flush();
+  return surface.makeImageSnapshot();
+}
+
 /** The figure rendered once on the CPU, so that drawing it costs one image per frame. */
-export function dressedFigure(id: string, seed: number, holdsCandle = false): Dressed | null {
-  const key = `${id}:${seed}:${holdsCandle}`;
+export function dressedFigure(id: string, seed: number, px: number, holdsCandle = false): Dressed | null {
+  const key = `${id}:${seed}:${px}:${holdsCandle}`;
   const cached = cache.get(key);
   if (cached != null) return cached;
   const entry = artById(id);
@@ -219,16 +235,16 @@ export function dressedFigure(id: string, seed: number, holdsCandle = false): Dr
   const height = 1 + MARGIN + 0.02;
   const x = -width / 2;
   const y = -1 - MARGIN;
-  const surface = Skia.Surface.Make(Math.ceil(width * IMAGE_PX), Math.ceil(height * IMAGE_PX));
+  const surface = Skia.Surface.Make(Math.ceil(width * px), Math.ceil(height * px));
   if (surface == null) return null;
   const canvas = surface.getCanvas();
-  canvas.scale(IMAGE_PX, IMAGE_PX);
+  canvas.scale(px, px);
   canvas.translate(-x, -y);
   canvas.drawPath(artPath(id), bodyPaint());
   canvas.drawPicture(picture);
   surface.flush();
   const person = holdsCandle && entry.archetype !== 'perro' && entry.archetype !== 'gato';
-  const dressed = { image: surface.makeImageSnapshot(), x, y, width, height, flame: person ? flameAt(entry.anchors as PersonAnchors) : null };
+  const dressed = { image: surface.makeImageSnapshot(), glow: glowOf(id, width, height, x, y), x, y, width, height, flame: person ? flameAt(entry.anchors as PersonAnchors) : null };
   if (cache.size >= CACHE_SIZE) cache.delete(cache.keys().next().value as string);
   cache.set(key, dressed);
   return dressed;

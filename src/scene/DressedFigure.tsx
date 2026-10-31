@@ -18,6 +18,9 @@ export function DressedFigure({
   if (figure == null) return null;
   return (
     <Group transform={transform} opacity={opacity}>
+      {figure.glow != null ? (
+        <Image image={figure.glow} x={figure.x} y={figure.y} width={figure.width} height={figure.height} fit="fill" blendMode="plus" opacity={0.75} />
+      ) : null}
       <Image image={figure.image} x={figure.x} y={figure.y} width={figure.width} height={figure.height} fit="fill" />
       {figure.flame != null ? <CandleLight x={figure.flame.x} y={figure.flame.y} time={time} /> : null}
     </Group>

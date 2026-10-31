@@ -17,7 +17,7 @@ import { log } from '../diagnostics/log';
  * published to a shared value the scene canvas draws (the pattern of `<SkiaCamera />`, without its
  * own canvas, so the whole experience is ONE canvas).
  *
- * The mask: while `maskActive` is on, every MASK_EVERY-th frame the upright image is drawn into a
+ * The mask: while `maskActive` is on, about twice a second the upright image is drawn into a
  * small surface of the model's input size, read back as RGB floats in [0, 1] and run through the
  * MediaPipe selfie segmenter (landscape, 144 x 256, Apache-2.0); the person probability is smoothed
  * over frames (exponential moving average) and turned into an alpha image with soft edges. Because
@@ -62,7 +62,12 @@ export interface CameraFeed {
 }
 
 /** Run the model on one frame out of MASK_EVERY. */
-const MASK_EVERY = 2;
+/** Milliseconds between person measures: the flowers follow gently, and the camera keeps its frames. */
+const MASK_INTERVAL_MS = 450;
+const CAMERA_SIZE = { width: 960, height: 540 };
+const CAMERA_CONSTRAINTS = [{ fps: 24 }];
+/** How often the camera's real rate is logged, to diagnose a device. */
+const RATE_LOG_MS = 10000;
 /** Weight of the newest mask in the moving average. */
 const MASK_EMA = 0.6;
 /** Weight of the newest head position, so the flowers do not tremble. */
@@ -70,9 +75,6 @@ const HEAD_EMA = 0.35;
 /** A pixel counts as the person from this probability; the head is measured this far under its top. */
 const HEAD_PROBABILITY = 0.6;
 const HEAD_DROP = 0.1;
-/** Probability band mapped to the soft edge of the cut-out. */
-const EDGE_LOW = 0.3;
-const EDGE_HIGH = 0.7;
 /**
  * Replaced images are disposed this many publishes later, not at once: the shared value reaches the UI
  * thread asynchronously, so the canvas may still draw (or a layer measure) the previous image for a
@@ -104,9 +106,9 @@ interface ModelInfo {
   channels: number;
 }
 
-/** Loads the segmenter on the GPU delegate, falling back to the CPU. */
+/** Loads the segmenter on the CPU: on the GPU it competes with the scene and stalls a modest tablet. */
 async function loadSegmenter(): Promise<ModelInfo | null> {
-  for (const delegates of [['android-gpu'], []] as const) {
+  for (const delegates of [[], ['android-gpu']] as const) {
     try {
       const model = await loadTensorflowModel(MODEL_SOURCE, [...delegates]);
       const shape = model.inputs[0]?.shape ?? [];
@@ -150,7 +152,8 @@ export function useCameraFeed(active: boolean): CameraFeed {
     };
   }, []);
 
-  const lastMaskAt = useSharedValue(0);
+  const frames = useRef(0);
+  const ratedAt = useRef(0);
   const firstFrame = useRef(true);
 
   const report = useCallback((message: string) => log(`camera: ${message}`), []);
@@ -166,7 +169,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
   }, []);
 
   const publish = useCallback(
-    (next: SkImage, nextMask: SkImage | null, found: HeadPlace | null) => {
+    (next: SkImage, measured: boolean, found: HeadPlace | null) => {
       inFlight.setBlocking(false);
       const w = next.width();
       const h = next.height();
@@ -180,39 +183,36 @@ export function useCameraFeed(active: boolean): CameraFeed {
       }
       retire(image.get());
       image.set(next);
-      if (nextMask != null) {
+      frames.current += 1;
+      const now = Date.now();
+      if (ratedAt.current === 0) ratedAt.current = now;
+      if (now - ratedAt.current >= RATE_LOG_MS) {
+        log(`camera: ${((frames.current * 1000) / (now - ratedAt.current)).toFixed(1)} frames per second reach the scene`);
+        frames.current = 0;
+        ratedAt.current = now;
+      }
+      if (measured) {
         const h = head.get();
         // Follows the person gently; a measure that is lost fades the flowers without moving them.
         if (found != null) {
           const k = h.seen < 0.05 ? 1 : HEAD_EMA;
-          head.set({ x: h.x + (found.x - h.x) * k, y: h.y + (found.y - h.y) * k, width: h.width + (found.width - h.width) * k, seen: Math.min(1, h.seen + 0.25) });
+          head.set({ x: h.x + (found.x - h.x) * k, y: h.y + (found.y - h.y) * k, width: h.width + (found.width - h.width) * k, seen: Math.min(1, h.seen + 0.34) });
         } else {
-          head.set({ ...h, seen: Math.max(0, h.seen - 0.25) });
-        }
-        retire(mask.get());
-        mask.set(nextMask);
-        const now = Date.now();
-        const dt = (now - lastMaskAt.get()) / 1000;
-        lastMaskAt.set(now);
-        if (dt > 0 && dt < 2) {
-          maskRate.set(maskRate.get() * 0.8 + (1 / dt) * 0.2);
+          head.set({ ...h, seen: Math.max(0, h.seen - 0.34) });
         }
       }
     },
-    [image, size, mask, maskRate, head, lastMaskAt, inFlight, retire],
+    [image, size, head, inFlight, retire],
   );
 
   const setMaskActive = useCallback(
     (on: boolean) => {
       flags.setBlocking((f) => ({ ...f, maskActive: on }));
       if (!on) {
-        retire(mask.get());
-        mask.set(null);
-        maskRate.set(0);
         head.set({ ...head.get(), seen: 0 });
       }
     },
-    [flags, mask, maskRate, head, retire],
+    [flags, head],
   );
 
   const setFrozen = useCallback(
@@ -234,7 +234,8 @@ export function useCameraFeed(active: boolean): CameraFeed {
     pixelFormat: 'rgb',
     dropFramesWhileBusy: true,
     allowDeferredStart: false,
-    enablePreviewSizedOutputBuffers: true,
+    // The camera is a small part of the screen most of the time: this size and rate keep a modest tablet fluid.
+    targetResolution: CAMERA_SIZE,
     onFrame: (frame) => {
       'worklet';
       let snapshot: SkImage | undefined;
@@ -272,17 +273,20 @@ export function useCameraFeed(active: boolean): CameraFeed {
           }
         }
 
-        let maskImage: SkImage | null = null;
+        let measured = false;
+        let found: HeadPlace | null = null;
         if (state.maskActive && model != null && inW > 0) {
           // Per-runtime scratch state survives between frames on the camera thread.
           if (g.__senderoMask == null || g.__senderoMask.width !== inW) {
             g.__senderoMask = createScratch(inW, inH);
           }
           const scratch = g.__senderoMask;
-          scratch.frame += 1;
-          if (scratch.frame % MASK_EVERY === 0) {
+          const now = Date.now();
+          if (now - scratch.measuredAt >= MASK_INTERVAL_MS) {
+            scratch.measuredAt = now;
             try {
-              maskImage = computeMask(snapshot, model, scratch, channels);
+              measured = computeMask(snapshot, model, scratch, channels);
+              found = measured ? findHead(scratch) : null;
             } catch (e) {
               if (!source.maskError) {
                 source.maskError = true;
@@ -295,9 +299,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
         const cpuImage = snapshot.makeNonTextureImage();
         if (cpuImage != null) {
           inFlight.setBlocking(true);
-          scheduleOnRN(publish, cpuImage, maskImage, maskImage != null ? findHead(g.__senderoMask as MaskScratch) : null);
-        } else {
-          maskImage?.dispose();
+          scheduleOnRN(publish, cpuImage, measured, found);
         }
       } catch (e) {
         // Reported once; the next frame tries again.
@@ -318,6 +320,7 @@ export function useCameraFeed(active: boolean): CameraFeed {
     isActive: active,
     device: 'front',
     outputs: [frameOutput],
+    constraints: CAMERA_CONSTRAINTS,
     mirrorMode: 'on',
     orientationSource: 'custom',
   });
@@ -440,10 +443,9 @@ function meanOfImage(image: SkImage): number {
 interface MaskScratch {
   width: number;
   height: number;
-  frame: number;
+  measuredAt: number;
   input: Float32Array;
   smooth: Float32Array;
-  rgba: Uint8Array;
   hasPrevious: boolean;
 }
 
@@ -487,20 +489,19 @@ function createScratch(width: number, height: number): MaskScratch {
   return {
     width,
     height,
-    frame: 0,
+    measuredAt: 0,
     input: new Float32Array(n * 3),
     smooth: new Float32Array(n),
-    rgba: new Uint8Array(n * 4),
     hasPrevious: false,
   };
 }
 
-/** Runs the segmenter on the upright image and returns the smoothed person mask as an image. */
-function computeMask(source: SkImage, model: TensorflowModel, s: MaskScratch, channels: number): SkImage | null {
+/** Runs the segmenter on the upright image and updates the smoothed person mask; true when it ran. */
+function computeMask(source: SkImage, model: TensorflowModel, s: MaskScratch, channels: number): boolean {
   'worklet';
   const surface = Skia.Surface.MakeOffscreen(s.width, s.height);
   if (surface == null) {
-    return null;
+    return false;
   }
   try {
     const canvas = surface.getCanvas();
@@ -521,7 +522,7 @@ function computeMask(source: SkImage, model: TensorflowModel, s: MaskScratch, ch
     });
     small.dispose();
     if (pixels == null) {
-      return null;
+      return false;
     }
     const n = s.width * s.height;
     const px = pixels as Uint8Array;
@@ -532,27 +533,12 @@ function computeMask(source: SkImage, model: TensorflowModel, s: MaskScratch, ch
     }
     const outputs = model.runSync([s.input.buffer as ArrayBuffer]);
     const out = new Float32Array(outputs[0]);
-    const span = EDGE_HIGH - EDGE_LOW;
     for (let i = 0; i < n; i++) {
       const p = channels >= 2 ? out[channels * i + 1] : out[i];
-      const m = s.hasPrevious ? MASK_EMA * p + (1 - MASK_EMA) * s.smooth[i] : p;
-      s.smooth[i] = m;
-      let a = (m - EDGE_LOW) / span;
-      a = a < 0 ? 0 : a > 1 ? 1 : a;
-      a = a * a * (3 - 2 * a);
-      const o = 4 * i;
-      s.rgba[o] = 255;
-      s.rgba[o + 1] = 255;
-      s.rgba[o + 2] = 255;
-      s.rgba[o + 3] = Math.round(a * 255);
+      s.smooth[i] = s.hasPrevious ? MASK_EMA * p + (1 - MASK_EMA) * s.smooth[i] : p;
     }
     s.hasPrevious = true;
-    const data = Skia.Data.fromBytes(s.rgba);
-    return Skia.Image.MakeImage(
-      { width: s.width, height: s.height, colorType: ColorType.RGBA_8888, alphaType: AlphaType.Unpremul },
-      data,
-      s.width * 4,
-    );
+    return true;
   } finally {
     surface.dispose();
   }

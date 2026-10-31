@@ -7,7 +7,7 @@ import type { Visit } from '../experience/plan';
 import { TIMELINE } from '../experience/timeline';
 import type { FlowerAtlas } from '../flowers/atlas';
 import { artById, artPath, placeArt } from '../figures/art';
-import { dressedFigure } from '../figures/decor';
+import { dressedFigure, FIGURE_PX } from '../figures/decor';
 import { humanFrontPath, petSitPath, type ScreenTransform } from '../figures/draw';
 import { BASE_HEIGHT, PET_ART_HEIGHT, silhouetteTop } from '../figures/looks';
 import { mulberry32, smoothstep } from '../procedural';
@@ -82,10 +82,10 @@ export function FarewellLayer({
   );
   const petArtH = petPlace?.height ?? 0;
   const petX = petPlace?.x ?? petSpot.x;
-  const personDressed = useMemo(() => (frontArt != null ? dressedFigure(frontArt, visit.id * 10 + visit.walker, true) : null), [frontArt, visit.id, visit.walker]);
+  const personDressed = useMemo(() => (frontArt != null ? dressedFigure(frontArt, visit.id * 10 + visit.walker, FIGURE_PX.farewell, true) : null), [frontArt, visit.id, visit.walker]);
   const petArtId = pet?.art ?? null;
   const petDressed = useMemo(
-    () => (petArtId != null && visit.companion != null ? dressedFigure(petArtId, visit.id * 10 + 4 + visit.companion) : null),
+    () => (petArtId != null && visit.companion != null ? dressedFigure(petArtId, visit.id * 10 + 4 + visit.companion, FIGURE_PX.walk) : null),
     [petArtId, visit.id, visit.companion],
   );
   const personImage = useDerivedValue((): Transforms3d => {
@@ -95,7 +95,7 @@ export function FarewellLayer({
   });
   const ghostMain = useDerivedValue(() => {
     // Built only while shown (it breathes, so it is rebuilt every frame then).
-    if (appear.value <= 0) return empty;
+    if (appear.value <= 0 || personDressed != null) return empty;
     const tf: ScreenTransform = { ox: companion.x, oy: companion.ground, h: ghostH, facing: 1 };
     const breath = 0.5 + 0.5 * Math.sin(time.value * 1.25);
     // A drawing stands beside the frame facing it, leaning toward it a little and breathing.
@@ -126,7 +126,7 @@ export function FarewellLayer({
       {bokeh.map((b, i) => (
         <Bokeh key={i} x={b.x} y={b.y} r={b.r} phase={b.phase} time={time} strength={appear} />
       ))}
-      <Ghost main={ghostMain} far={ghostFar} opacity={ghostOpacity} top={ghostTop} bottom={ghostBottom} glow={ghostGlow} halo={personDressed != null} />
+      {personDressed == null ? <Ghost main={ghostMain} far={ghostFar} opacity={ghostOpacity} top={ghostTop} bottom={ghostBottom} glow={ghostGlow} /> : null}
       <DressedFigure figure={personDressed} transform={personImage} opacity={ghostOpacity} time={time} />
       <DressedFigure figure={petDressed} transform={[{ translateX: petX }, { translateY: petSpot.ground }, { scale: petArtH }]} opacity={ghostOpacity} time={time} />
       <Sparkles
